@@ -1,0 +1,22 @@
+# Replay binaries (redistribution unclear; kept in ~/.hermes/artifacts)
+samples/raw/
+*.wargamerpl2
+
+# Generated decoder output
+out/
+output/
+*.out.json
+
+# Caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Temporary / OS files
+*.tmp
+*.swp
+*~
+hermes-verify-*
+.DS_Store

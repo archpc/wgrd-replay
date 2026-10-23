@@ -1,0 +1,75 @@
+{
+ "independent_sources": 1,
+ "samples": [
+  {
+   "acquired_at_utc": "2026-10-23T12:28:24Z",
+   "file": "koppeltar-Sample1.wargamerpl2",
+   "game_version": "59638",
+   "map": "Destruction_2x3_Tohoku_Alt",
+   "nb_max_player": "4",
+   "red_dragon_evidence": "ESAV/rply header; JSON metadata with Red Dragon map names, PlayerDeckContent deck codes, Version field; chunk walk ends exactly at EOF",
+   "redistribution": "No license declared in source repo; treat as not redistributable. Bytes kept outside Git.",
+   "sha256": "c5f8eff1298cf38c1d9967d29f98a22dfc869c150405630f9f695bb80a521df8",
+   "signature": "ESAV container v1 + 'rply' + JSON",
+   "signature_hex_0x00_0x08": "4553415600000001",
+   "size": 3675609,
+   "source_commit": "9f77fa99cdbc658a87e2276aa28d482fd95be3ff",
+   "source_repo": "https://github.com/KoppelTAR/Red-Dragon-deck-code-extractor",
+   "source_url": "https://raw.githubusercontent.com/KoppelTAR/Red-Dragon-deck-code-extractor/9f77fa99cdbc658a87e2276aa28d482fd95be3ff/Sample%20replays/Sample1.wargamerpl2",
+   "stored_at": "~/.hermes/artifacts/wgrd-replay/samples/raw/koppeltar-Sample1.wargamerpl2"
+  },
+  {
+   "acquired_at_utc": "2026-10-23T12:28:24Z",
+   "file": "koppeltar-Sample2.wargamerpl2",
+   "game_version": "510117427",
+   "map": "Conquete_3x3_Highway_Small",
+   "nb_max_player": "2",
+   "red_dragon_evidence": "ESAV/rply header; JSON metadata with Red Dragon map names, PlayerDeckContent deck codes, Version field; chunk walk ends exactly at EOF",
+   "redistribution": "No license declared in source repo; treat as not redistributable. Bytes kept outside Git.",
+   "sha256": "132a1a1bce9f214152beea9035055c45d6336527d830de266246526272eae48c",
+   "signature": "ESAV container v1 + 'rply' + JSON",
+   "signature_hex_0x00_0x08": "4553415600000001",
+   "size": 521673,
+   "source_commit": "9f77fa99cdbc658a87e2276aa28d482fd95be3ff",
+   "source_repo": "https://github.com/KoppelTAR/Red-Dragon-deck-code-extractor",
+   "source_url": "https://raw.githubusercontent.com/KoppelTAR/Red-Dragon-deck-code-extractor/9f77fa99cdbc658a87e2276aa28d482fd95be3ff/Sample%20replays/Sample2.wargamerpl2",
+   "stored_at": "~/.hermes/artifacts/wgrd-replay/samples/raw/koppeltar-Sample2.wargamerpl2"
+  },
+  {
+   "acquired_at_utc": "2026-10-23T12:28:24Z",
+   "file": "koppeltar-Sample3.wargamerpl2",
+   "game_version": "59638",
+   "map": "Destruction_2x2_port_Wonsan",
+   "nb_max_player": "20",
+   "red_dragon_evidence": "ESAV/rply header; JSON metadata with Red Dragon map names, PlayerDeckContent deck codes, Version field; chunk walk ends exactly at EOF",
+   "redistribution": "No license declared in source repo; treat as not redistributable. Bytes kept outside Git.",
+   "sha256": "ce6a60bb1f74c6ef6d6e2e779afbc6792208964dc94777dabf7c45cb98557da9",
+   "signature": "ESAV container v1 + 'rply' + JSON",
+   "signature_hex_0x00_0x08": "4553415600000001",
+   "size": 8048580,
+   "source_commit": "9f77fa99cdbc658a87e2276aa28d482fd95be3ff",
+   "source_repo": "https://github.com/KoppelTAR/Red-Dragon-deck-code-extractor",
+   "source_url": "https://raw.githubusercontent.com/KoppelTAR/Red-Dragon-deck-code-extractor/9f77fa99cdbc658a87e2276aa28d482fd95be3ff/Sample%20replays/Sample3.wargamerpl2",
+   "stored_at": "~/.hermes/artifacts/wgrd-replay/samples/raw/koppeltar-Sample3.wargamerpl2"
+  }
+ ],
+ "schema": 1,
+ "sources_attempted_without_success": [
+  {
+   "result": "404 Nextcloud page (2026-10-23)",
+   "url": "http://files.canned-catfood.com/wargame/"
+  },
+  {
+   "result": "DNS NXDOMAIN (2026-10-23)",
+   "url": "http://rd.wargame.tools/#/replays"
+  },
+  {
+   "result": "429 / Internet Archive temporarily offline (2026-10-23)",
+   "url": "https://web.archive.org (CDX for both above)"
+  },
+  {
+   "result": "no downloadable replay links found",
+   "url": "reddit r/wargame + Steam discussion threads"
+  }
+ ]
+}
