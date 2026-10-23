@@ -1,0 +1,69 @@
+{
+  "evidence_id": "ev_5143920b98311e02bd3502d7690944be454e9abcfc5c11c3f940f363d9ddbed8",
+  "subject": {
+    "name": "WarGame3.exe",
+    "digest": {
+      "sha256": "1c7533eb5387a3e82db66595c782f23c20f5871250d6b6a24d630b9d074bda46"
+    },
+    "local_path": "/Users/sein/.hermes/artifacts/wgrd-replay/game/win64/Data/PC/59638/WarGame3.exe",
+    "format": "unknown",
+    "architecture": null
+  },
+  "provider": {
+    "id": "rizin",
+    "name": "Rizin",
+    "version": null
+  },
+  "analysis_profile": null,
+  "predicate_type": "rea.reverse-engineering.command-observation",
+  "operation": "execute_rizin_command",
+  "parameters": {
+    "path": "/Users/sein/.hermes/artifacts/wgrd-replay/game/win64/Data/PC/59638/WarGame3.exe",
+    "command": "e scr.color=0; pxw 44 @ 0x1929128",
+    "provider_executable": "/opt/homebrew/bin/rizin",
+    "command_arguments": [
+      "-N",
+      "-q",
+      "-c",
+      "e scr.color=0; pxw 44 @ 0x1929128",
+      "/Users/sein/.hermes/artifacts/wgrd-replay/game/win64/Data/PC/59638/WarGame3.exe"
+    ]
+  },
+  "raw_result": {
+    "stdout": "0x01929128  0x005011b0 0x00510310 0x0051a7b0 0x005167c0  ..P...Q...Q..gQ.\n0x01929138  0x00519210 0x00517710 0x0051d240 0x0051e3a0  ..Q..wQ.@.Q...Q.\n0x01929148  0x0051a280 0x005167b0 0x00519260             ..Q..gQ.`.Q.\n",
+    "stderr": "WARNING: bin_file_strings: search interval size (0x1512c00) exceeds max region size (0xa00000), skipping it.\nWARNING: bin_file_strings: search interval size (0x1512c00) exceeds max region size (0xa00000), skipping it.\n",
+    "exit_code": 0,
+    "signal": null,
+    "output_truncated": false,
+    "completion_status": "complete",
+    "artifact_sha256_after": "1c7533eb5387a3e82db66595c782f23c20f5871250d6b6a24d630b9d074bda46",
+    "artifact_changed": false
+  },
+  "normalized_result": {
+    "stdout": "0x01929128  0x005011b0 0x00510310 0x0051a7b0 0x005167c0  ..P...Q...Q..gQ.\n0x01929138  0x00519210 0x00517710 0x0051d240 0x0051e3a0  ..Q..wQ.@.Q...Q.\n0x01929148  0x0051a280 0x005167b0 0x00519260             ..Q..gQ.`.Q.\n",
+    "stderr": "WARNING: bin_file_strings: search interval size (0x1512c00) exceeds max region size (0xa00000), skipping it.\nWARNING: bin_file_strings: search interval size (0x1512c00) exceeds max region size (0xa00000), skipping it.\n",
+    "exit_code": 0,
+    "signal": null,
+    "output_truncated": false,
+    "completion_status": "complete",
+    "artifact_sha256_after": "1c7533eb5387a3e82db66595c782f23c20f5871250d6b6a24d630b9d074bda46",
+    "artifact_changed": false
+  },
+  "confidence": "observed",
+  "authority": "shipped-artifact",
+  "environment": null,
+  "limitations": [
+    "The executable version and supported formats are reported as unknown because no reliable version probe was performed.",
+    "A non-zero process exit is preserved as an observed command result.",
+    "Rizin commands and retained plugins may read files or access network resources outside the selected artifact; those external inputs are not bound to Evidence.",
+    "When both are available, pre-run and post-run digests detect artifact changes across the provider call but cannot prove the exact bytes consumed during the call."
+  ],
+  "relationship_coverage": null,
+  "locations": [
+    {
+      "kind": "artifact-path",
+      "path": "/Users/sein/.hermes/artifacts/wgrd-replay/game/win64/Data/PC/59638/WarGame3.exe"
+    }
+  ],
+  "evidence_links": []
+}

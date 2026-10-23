@@ -142,10 +142,81 @@ def decode_op08(block, slot):
     return out
 
 
+class _CommandCursor:
+    """One bounded, shared cursor; never scan ahead for an opcode."""
+
+    def __init__(self, block):
+        self.block, self.offset = block, 0
+
+    def take(self, size):
+        if size < 0 or size > len(self.block) - self.offset:
+            raise ReplayFormatError("command read of %d bytes overruns block at 0x%x"
+                                    % (size, self.offset))
+        start = self.offset
+        self.offset += size
+        return self.block[start:self.offset]
+
+    def uint(self, size):
+        return int.from_bytes(self.take(size), "little")
+
+
+def _decode_command(cursor, slot):
+    start = cursor.offset
+    opcode = cursor.uint(1)
+    if opcode == 0x09:
+        # FUN_00b2edc0: read(obj+4,4), read(obj+8,16), read(obj+0x18,4).
+        fields = {"obj_04_u32": cursor.uint(4), "obj_08_hex": cursor.take(16).hex(),
+                  "obj_18_u32": cursor.uint(4)}
+    elif opcode == 0x08:
+        cursor.take(36)
+        cursor.take(cursor.uint(2))
+        fields = decode_op08(cursor.block[start:cursor.offset], slot)
+    else:
+        return None
+    return {"opcode": opcode, "class": OPCODE_CLASSES[opcode], "offset": start,
+            "length": cursor.offset - start, "fields": fields,
+            "raw_hex": cursor.block[start:cursor.offset].hex()}
+
+
+def decode_command_block(block, count, slot):
+    """Creator-backed split. Partial prefixes are explicitly unresolved/malformed.
+
+    Exact count and byte consumption are strict decoder policy (the executable's
+    count loop itself does not enforce EOF). Original block bytes stay on the pact.
+    """
+    cursor, commands = _CommandCursor(block), []
+    status, reason = "complete", None
+    if count < 0 or count > len(block):
+        status, reason = "malformed", "command count exceeds available opcode bytes"
+    else:
+        for _ in range(count):
+            start = cursor.offset
+            try:
+                command = _decode_command(cursor, slot)
+            except ReplayFormatError as error:
+                cursor.offset = start
+                status, reason = "malformed", str(error)
+                break
+            if command is None:
+                cursor.offset = start
+                status, reason = "unresolved", "unsupported opcode 0x%02x at 0x%x" % (block[start], start)
+                break
+            commands.append(command)
+        if status == "complete" and cursor.offset != len(block):
+            status, reason = "malformed", "trailing bytes after declared command count"
+    result = {"status": status, "layout_build": "59638", "commands": commands,
+              "consumed_bytes": cursor.offset, "remaining_hex": block[cursor.offset:].hex()}
+    if reason is not None:
+        result["reason"] = reason
+    return result
+
+
 def parse_replay(b, include_empty=False, verify_digest=True):
     header, metadata = parse_header(b)
     frames = 0
-    stats = {"star": 0, "pact": 0, "endt": 0, "empty_pact": 0, "unknown_chunks": 0}
+    stats = {"star": 0, "pact": 0, "endt": 0, "empty_pact": 0, "unknown_chunks": 0,
+             "multi_command_blocks": 0, "fully_decoded_multi_blocks": 0,
+             "fully_decoded_nonempty_blocks": 0}
     commands, unknown = [], []
     cur, slots = None, []
     for off, tag, p in iter_chunks(b, header["payload_offset"]):
@@ -182,9 +253,16 @@ def parse_replay(b, include_empty=False, verify_digest=True):
                    "block_length": blen, "first_opcode": block[0] if block else None,
                    "first_opcode_class": OPCODE_CLASSES.get(block[0]) if block else None,
                    "block_hex": block.hex()}
-            dec = decode_op08(block, slot) if count == 1 else None
-            if dec is not None:
-                rec["decoded"] = dec
+            decoded = decode_command_block(block, count, slot)
+            rec["command_decode"] = decoded
+            if count > 1:
+                stats["multi_command_blocks"] += 1
+            if count and decoded["status"] == "complete":
+                stats["fully_decoded_nonempty_blocks"] += 1
+                if count > 1:
+                    stats["fully_decoded_multi_blocks"] += 1
+                elif block[0] == 0x08:
+                    rec["decoded"] = decoded["commands"][0]["fields"]
             commands.append(rec)
         elif tag == b"endt":
             if cur is None or len(p) < 4 or struct.unpack_from("<I", p, 0)[0] != cur:
@@ -210,7 +288,7 @@ def parse_replay(b, include_empty=False, verify_digest=True):
     if verify_digest and not header["digest_valid"]:
         raise ReplayFormatError("SHA-224 mismatch: header %s, computed %s"
                                 % (b[0x0C:0x28].hex(), actual.hex()))
-    return {"decoder": "wgrd_replay/0.3", "sha256": hashlib.sha256(b).hexdigest(),
+    return {"decoder": "wgrd_replay/0.4", "sha256": hashlib.sha256(b).hexdigest(),
             "size": len(b), "header": header, "metadata": metadata,
             "stats": stats, "commands": commands, "unknown_chunks": unknown}
 

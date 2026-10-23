@@ -123,6 +123,63 @@ class RealSamples(unittest.TestCase):
         self.assertEqual(a1, a2)
 
 
+class CommandBlocks(unittest.TestCase):
+    op09 = b"\x09" + struct.pack("<I", 0xC0000020) + bytes(12) + struct.pack("<II", 50, 7)
+
+    def test_shared_cursor_and_op08_variable_string(self):
+        op08 = b"\x08" + bytes(36) + struct.pack("<H", 3) + b"abc"
+        result = w.decode_command_block(self.op09 + op08 + self.op09, 3, 2)
+        self.assertEqual(result["status"], "complete")
+        self.assertEqual(result["consumed_bytes"], 92)
+        self.assertEqual([c["offset"] for c in result["commands"]], [0, 25, 67])
+        self.assertEqual([c["length"] for c in result["commands"]], [25, 42, 25])
+        self.assertEqual(result["commands"][0]["fields"],
+                         {"obj_04_u32": 0xC0000020, "obj_08_hex": (bytes(12) + struct.pack("<I", 50)).hex(),
+                          "obj_18_u32": 7})
+        self.assertEqual(result["commands"][1]["fields"]["text"], "abc")
+
+    def test_authentic_op09_boundaries(self):
+        seen = 0
+        for name in EXPECTED:
+            b = load(name)
+            header, _ = w.parse_header(b)
+            for off, tag, payload in w.iter_chunks(b, header["payload_offset"]):
+                if tag != b"pact":
+                    continue
+                _, slot, count, length = struct.unpack_from("<IIIH", payload)
+                block = payload[14:]
+                if count != 1 or block[0] != 9:
+                    continue
+                result = w.decode_command_block(block, count, slot)
+                self.assertEqual(result["status"], "complete", (name, off))
+                self.assertEqual(result["consumed_bytes"], length)
+                self.assertEqual(length, 25)
+                seen += 1
+        self.assertEqual(seen, 31)
+
+    def test_truncated_fixed_fields_and_bad_string_lengths(self):
+        for n in range(25):
+            result = w.decode_command_block(self.op09[:n], 1, 2)
+            self.assertEqual(result["status"], "malformed", n)
+            self.assertEqual(result["commands"], [])
+        for text_length in (1, 65535):
+            block = b"\x08" + bytes(36) + struct.pack("<H", text_length)
+            self.assertEqual(w.decode_command_block(block, 1, 2)["status"], "malformed")
+
+    def test_count_and_trailing_byte_mismatches(self):
+        for block, count in ((self.op09, 2), (self.op09 + b"\x00", 1), (self.op09, 0)):
+            self.assertEqual(w.decode_command_block(block, count, 2)["status"], "malformed")
+        self.assertEqual(w.decode_command_block(b"", 0, 2)["status"], "complete")
+
+    def test_unknown_suffix_retains_prefix_without_resynchronizing(self):
+        block = self.op09 + b"\xff" + self.op09
+        result = w.decode_command_block(block, 3, 2)
+        self.assertEqual(result["status"], "unresolved")
+        self.assertEqual(len(result["commands"]), 1)
+        self.assertEqual(result["consumed_bytes"], 25)
+        self.assertEqual(result["remaining_hex"], block[25:].hex())
+
+
 class Malformed(unittest.TestCase):
     def setUp(self):
         self.b = bytearray(load("koppeltar-Sample2.wargamerpl2"))
