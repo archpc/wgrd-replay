@@ -49,6 +49,7 @@ class RealSamples(unittest.TestCase):
             self.assertEqual(h["json_length"], e["json_length"], name)
             self.assertEqual(h["payload_offset"], e["payload_offset"], name)
             self.assertEqual(h["game_version"], e["version"], name)
+            self.assertTrue(h["digest_valid"], name)
             self.assertEqual(st["frames"], e["frames"], name)
             self.assertEqual(st["star"], st["endt"])
             self.assertEqual(st["pact"], e["pact"], name)
@@ -97,34 +98,54 @@ class Malformed(unittest.TestCase):
     def setUp(self):
         self.b = bytearray(load("koppeltar-Sample2.wargamerpl2"))
 
-    def expect_error(self, b):
-        with self.assertRaises(w.ReplayFormatError):
+    def expect_error(self, b, msg):
+        with self.assertRaisesRegex(w.ReplayFormatError, msg):
             w.parse_replay(bytes(b))
 
     def test_bad_magic(self):
         self.b[0:4] = b"XSAV"
-        self.expect_error(self.b)
+        self.expect_error(self.b, "bad magic")
 
     def test_unsupported_version(self):
         struct.pack_into(">I", self.b, 4, 2)
-        self.expect_error(self.b)
+        self.expect_error(self.b, "unsupported container version")
 
     def test_truncated(self):
-        self.expect_error(self.b[:-1])
+        self.expect_error(self.b[:-1], "declared size")
 
     def test_chunk_length_overrun(self):
         struct.pack_into(">I", self.b, 0x96B + 8, 0x7FFFFFFF)
-        self.expect_error(self.b)
+        self.expect_error(self.b, "overruns file")
 
     def test_frame_gap(self):
         struct.pack_into("<I", self.b, 0xA3F + 16, 5)  # second star frame index
-        self.expect_error(self.b)
+        self.expect_error(self.b, "expected 1")
+
+    def test_digest_mismatch_payload_byte(self):
+        # Flip the last byte of Sample2's frame-0 slot-0 command block (pact at 0x983,
+        # payload 64 bytes). Structure is unchanged; only the digest can catch it.
+        last = 0x983 + 16 + 64 - 1
+        self.b[last] ^= 0xFF
+        self.expect_error(self.b, "SHA-224 mismatch")
+
+    def test_digest_mismatch_reported_when_not_verifying(self):
+        self.b[0x0C] ^= 0x01
+        r = w.parse_replay(bytes(self.b), verify_digest=False)
+        self.assertFalse(r["header"]["digest_valid"])
+
+    def test_digest_covers_json(self):
+        # Change one JSON byte (same length) without fixing the digest -> mismatch.
+        i = self.b.find(b'"IsNetworkMode":"1"') + len('"IsNetworkMode":"')
+        self.b[i] = ord("0")
+        self.expect_error(self.b, "SHA-224 mismatch")
 
     def test_unknown_tag_preserved_not_dropped(self):
         b = bytes(self.b) + b"zzzz" + struct.pack(">III", 0, 2, 0) + b"\x01\x02"
         b = bytearray(b)
         struct.pack_into(">I", b, 8, len(b))
+        b[0x0C:0x28] = hashlib.sha224(bytes(b[0x28:])).digest()
         r = w.parse_replay(bytes(b))
+        self.assertTrue(r["header"]["digest_valid"])
         self.assertEqual(r["unknown_chunks"], [{"offset": len(b) - 18,
                                                 "tag_hex": "7a7a7a7a", "payload_hex": "0102"}])
 

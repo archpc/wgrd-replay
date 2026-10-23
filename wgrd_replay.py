@@ -16,6 +16,7 @@ import sys
 MAGIC = b"ESAV"
 SUPPORTED_CONTAINER_VERSIONS = {1}
 HEADER_SIZE = 0x38
+DIGEST_START = 0x28
 CHUNK_HEADER_SIZE = 16
 KNOWN_TAGS = (b"star", b"pact", b"endt")
 # Observed in every sample: command player handle == 0xC000001E + pact slot.
@@ -60,7 +61,7 @@ def parse_header(b):
         "magic": MAGIC.decode(),
         "container_version": version,
         "declared_file_size": declared,
-        "unknown_0x0c_0x27_hex": b[0x0C:0x28].hex(),
+        "sha224_hex": b[0x0C:0x28].hex(),
         "json_offset": HEADER_SIZE,
         "json_length": json_len,
         "payload_offset": end,
@@ -119,7 +120,7 @@ def decode_op08(block, slot):
     return out
 
 
-def parse_replay(b, include_empty=False):
+def parse_replay(b, include_empty=False, verify_digest=True):
     header, metadata = parse_header(b)
     frames = 0
     stats = {"star": 0, "pact": 0, "endt": 0, "empty_pact": 0, "unknown_chunks": 0}
@@ -178,7 +179,15 @@ def parse_replay(b, include_empty=False):
     if cur is not None:
         raise ReplayFormatError("file ended inside frame %d" % cur)
     stats["frames"] = frames
-    return {"decoder": "wgrd_replay/0.1", "sha256": hashlib.sha256(b).hexdigest(),
+    # 0x0C..0x27 = SHA-224(file[0x28:EOF]): verified on all samples and in the
+    # executable (FUN_010b9500 hashes every chunk; FUN_016fd070 = SHA-224 init).
+    # Checked after the structural walk so structural errors are reported first.
+    actual = hashlib.sha224(b[DIGEST_START:]).digest()
+    header["digest_valid"] = actual == b[0x0C:0x28]
+    if verify_digest and not header["digest_valid"]:
+        raise ReplayFormatError("SHA-224 mismatch: header %s, computed %s"
+                                % (b[0x0C:0x28].hex(), actual.hex()))
+    return {"decoder": "wgrd_replay/0.2", "sha256": hashlib.sha256(b).hexdigest(),
             "size": len(b), "header": header, "metadata": metadata,
             "stats": stats, "commands": commands, "unknown_chunks": unknown}
 
@@ -188,11 +197,14 @@ def main(argv=None):
     ap.add_argument("replay")
     ap.add_argument("--include-empty", action="store_true")
     ap.add_argument("--summary", action="store_true", help="omit command list")
+    ap.add_argument("--no-verify-digest", action="store_true",
+                    help="report digest_valid instead of failing on SHA-224 mismatch")
     a = ap.parse_args(argv)
     with open(a.replay, "rb") as f:
         b = f.read()
     try:
-        r = parse_replay(b, include_empty=a.include_empty)
+        r = parse_replay(b, include_empty=a.include_empty,
+                         verify_digest=not a.no_verify_digest)
     except ReplayFormatError as e:
         print("ReplayFormatError: %s" % e, file=sys.stderr)
         return 2
