@@ -199,3 +199,21 @@ events add contextual_resolution with fallback_reached:null and effective kind
 null. Runtime module/member flags and earlier path results unavailable here.
 Sample2 event evidence remains inferred. See research/ENTITY-CONTEXT.md and
 research/entity-coverage.json for executable conditions, evidence and limits.
+
+### 8.3 Optional public descriptor snapshot
+
+`--timeline --unit-data ROOT` reads four hash-pinned ResidentMario/wargame-data
+58710 files beneath ROOT; offline, no automatic downloads. URLs and hashes:
+research/public-unit-sources.json. Exact16-byte validation GUID match only.
+NDF XML GUIDs use mixed-endian .NET notation, converted with UUID.bytes_le.
+Runtime lookup keys, NDF instance IDs and deck indices are separate namespaces.
+
+Reference catalog gains static_descriptor, descriptor_match_status and top-level
+descriptor_data provenance. Descriptor fields: NDF class/instance ID/debug name,
+module reference and selector Default references; direct TUniteAuSolDescriptor
+card values where available. Card flags describe the static source snapshot.
+All current samples differ from58710: exact_guid_cross_version, no verified
+matching-build names/capabilities. Sample2 reference-purpose mapping inferred.
+No company/member GUID rewriting; unit_identity stays null; order39 unresolved.
+Events unchanged. Without --unit-data, both default and plain timeline outputs
+unchanged. See research/PUBLIC-UNIT-MAPPING.md for counts and missing bridge.

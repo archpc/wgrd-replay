@@ -1,5 +1,9 @@
 # Entity references and contextual orders — build59638
 
+Follow-up: PUBLIC-UNIT-MAPPING.md establishes the GUID's descriptor role and
+exact public58710 matches for all726 references. This note records the earlier
+state of evidence. Unique runtime identity and effective-order limits still hold.
+
 Start4946be4a0f5b953ba09aec960d5c9d4f6963f84a. REA6.7.0 MCP / Rizin,
 read-only PE32/x86. Executable SHA256
 1c7533eb5387a3e82db66595c782f23c20f5871250d6b6a24d630b9d074bda46.

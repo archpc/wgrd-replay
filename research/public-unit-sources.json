@@ -1,0 +1,156 @@
+{
+ "dataset_version": "58710",
+ "files": [
+  {
+   "commit": "1863c5e00f098272aa0299f07ec85eca6004d969",
+   "path": "README.md",
+   "repo": "ResidentMario/wargame-data",
+   "sha256": "aa9d4f661410690a0874179e35d4614acf3723a4b74e5dc354d9de8ca5cea202",
+   "size": 16146,
+   "url": "https://raw.githubusercontent.com/ResidentMario/wargame-data/1863c5e00f098272aa0299f07ec85eca6004d969/README.md"
+  },
+  {
+   "commit": "1863c5e00f098272aa0299f07ec85eca6004d969",
+   "path": "scripts/export.py",
+   "repo": "ResidentMario/wargame-data",
+   "sha256": "83d126de383792e37f030173f1679367dc2fe237aee5d600b4d06cff81479b55",
+   "size": 20558,
+   "url": "https://raw.githubusercontent.com/ResidentMario/wargame-data/1863c5e00f098272aa0299f07ec85eca6004d969/scripts/export.py"
+  },
+  {
+   "commit": "1863c5e00f098272aa0299f07ec85eca6004d969",
+   "path": "scripts/clean.py",
+   "repo": "ResidentMario/wargame-data",
+   "sha256": "e3ddcb2aa65e3499e2713a04ea47c72e7ad3df05c56df1096a0eb6057f574f8a",
+   "size": 33857,
+   "url": "https://raw.githubusercontent.com/ResidentMario/wargame-data/1863c5e00f098272aa0299f07ec85eca6004d969/scripts/clean.py"
+  },
+  {
+   "commit": "1863c5e00f098272aa0299f07ec85eca6004d969",
+   "path": "raws/58710/pc/ndf/patchable/gfx/everything/TUniteAuSolDescriptor.csv",
+   "repo": "ResidentMario/wargame-data",
+   "sha256": "8df875b1270e1e8d29a2b5f014727fec716d41b56db07efcaf53a684bcac01f7",
+   "size": 837252,
+   "url": "https://raw.githubusercontent.com/ResidentMario/wargame-data/1863c5e00f098272aa0299f07ec85eca6004d969/raws/58710/pc/ndf/patchable/gfx/everything/TUniteAuSolDescriptor.csv"
+  },
+  {
+   "commit": "1863c5e00f098272aa0299f07ec85eca6004d969",
+   "path": "raws/58710/pc/ndf/patchable/gfx/everything/TUniteDescriptor.csv",
+   "repo": "ResidentMario/wargame-data",
+   "sha256": "b9b98b7955288ca7722e61364c8408e7ea608a146d034092491a7998fd900c84",
+   "size": 504846,
+   "url": "https://raw.githubusercontent.com/ResidentMario/wargame-data/1863c5e00f098272aa0299f07ec85eca6004d969/raws/58710/pc/ndf/patchable/gfx/everything/TUniteDescriptor.csv"
+  },
+  {
+   "commit": "1863c5e00f098272aa0299f07ec85eca6004d969",
+   "path": "data/58710/final_data.csv",
+   "repo": "ResidentMario/wargame-data",
+   "sha256": "7084320d91d8a6eacdab0fbacec50ee5d9a095eae65ea918c2ef2a47c2fbaac8",
+   "size": 2523587,
+   "url": "https://raw.githubusercontent.com/ResidentMario/wargame-data/1863c5e00f098272aa0299f07ec85eca6004d969/data/58710/final_data.csv"
+  },
+  {
+   "commit": "1863c5e00f098272aa0299f07ec85eca6004d969",
+   "path": "data/58710/raw_data.csv",
+   "repo": "ResidentMario/wargame-data",
+   "sha256": "81d7e98ad3aabe927a753eb41c6e8a8d2e3adcc7111ac89a5f841ef6c5c5b220",
+   "size": 5393365,
+   "url": "https://raw.githubusercontent.com/ResidentMario/wargame-data/1863c5e00f098272aa0299f07ec85eca6004d969/data/58710/raw_data.csv"
+  },
+  {
+   "commit": "69b0b662fd6aa799474432d2391e7ececcf8a44f",
+   "path": "README.md",
+   "repo": "fmdostoyevskiy/wgrd-toolbox",
+   "sha256": "edbc084294f660b83f67b6ae6a324531f33a23e2e541ac9344a0d14ba2adfdf1",
+   "size": 9624,
+   "url": "https://raw.githubusercontent.com/fmdostoyevskiy/wgrd-toolbox/69b0b662fd6aa799474432d2391e7ececcf8a44f/README.md"
+  },
+  {
+   "commit": "69b0b662fd6aa799474432d2391e7ececcf8a44f",
+   "path": "LICENSE.txt",
+   "repo": "fmdostoyevskiy/wgrd-toolbox",
+   "sha256": "2f91554765f3b6ea62677d628efdac0b2d9b69ff0ffbe2408f466ee430692f24",
+   "size": 35339,
+   "url": "https://raw.githubusercontent.com/fmdostoyevskiy/wgrd-toolbox/69b0b662fd6aa799474432d2391e7ececcf8a44f/LICENSE.txt"
+  },
+  {
+   "commit": "69b0b662fd6aa799474432d2391e7ececcf8a44f",
+   "path": "scripts/extract.py",
+   "repo": "fmdostoyevskiy/wgrd-toolbox",
+   "sha256": "5e030c444f4af6c4674e8f668f08963b5330fcb52e2a967e14df8bec80bafd64",
+   "size": 59879,
+   "url": "https://raw.githubusercontent.com/fmdostoyevskiy/wgrd-toolbox/69b0b662fd6aa799474432d2391e7ececcf8a44f/scripts/extract.py"
+  },
+  {
+   "commit": "69b0b662fd6aa799474432d2391e7ececcf8a44f",
+   "path": "scripts/enrich.py",
+   "repo": "fmdostoyevskiy/wgrd-toolbox",
+   "sha256": "606dbb09977e7ea66cfe6697da42e63c3850345a5507c7d1aebf454fe252c098",
+   "size": 56742,
+   "url": "https://raw.githubusercontent.com/fmdostoyevskiy/wgrd-toolbox/69b0b662fd6aa799474432d2391e7ececcf8a44f/scripts/enrich.py"
+  },
+  {
+   "commit": "69b0b662fd6aa799474432d2391e7ececcf8a44f",
+   "path": "data/master.json",
+   "repo": "fmdostoyevskiy/wgrd-toolbox",
+   "sha256": "6ae17e42502ac3512d5d7fb88913af160f9d17797adb4a7070c8bf7596edabcc",
+   "size": 9432746,
+   "url": "https://raw.githubusercontent.com/fmdostoyevskiy/wgrd-toolbox/69b0b662fd6aa799474432d2391e7ececcf8a44f/data/master.json"
+  },
+  {
+   "commit": "69b0b662fd6aa799474432d2391e7ececcf8a44f",
+   "path": "data/deck_indices.json",
+   "repo": "fmdostoyevskiy/wgrd-toolbox",
+   "sha256": "255ac29686638f83baf4f43dee0778dda0574a73f45488f54e8f32de79dbcbc2",
+   "size": 514948,
+   "url": "https://raw.githubusercontent.com/fmdostoyevskiy/wgrd-toolbox/69b0b662fd6aa799474432d2391e7ececcf8a44f/data/deck_indices.json"
+  },
+  {
+   "commit": "1863c5e00f098272aa0299f07ec85eca6004d969",
+   "path": "raws/58710/pc/ndf/patchable/gfx/everything/TUniteDescriptor.xml",
+   "repo": "ResidentMario/wargame-data",
+   "sha256": "606f9256c3da45192cdb06886e07efca7a9c520cb98702fb7caf4806f6513957",
+   "size": 4989479,
+   "url": "https://raw.githubusercontent.com/ResidentMario/wargame-data/1863c5e00f098272aa0299f07ec85eca6004d969/raws/58710/pc/ndf/patchable/gfx/everything/TUniteDescriptor.xml"
+  },
+  {
+   "commit": "1863c5e00f098272aa0299f07ec85eca6004d969",
+   "path": "raws/58710/pc/ndf/patchable/gfx/everything/TGroupeCombatModuleDescriptor.xml",
+   "repo": "ResidentMario/wargame-data",
+   "sha256": "4f69c0bf02df44b24d385afa94fa0a09038949001ea8077e5b8b5222e56c5f17",
+   "size": 229052,
+   "url": "https://raw.githubusercontent.com/ResidentMario/wargame-data/1863c5e00f098272aa0299f07ec85eca6004d969/raws/58710/pc/ndf/patchable/gfx/everything/TGroupeCombatModuleDescriptor.xml"
+  },
+  {
+   "commit": "1863c5e00f098272aa0299f07ec85eca6004d969",
+   "path": "raws/58710/pc/ndf/patchable/gfx/everything/TModuleSelector.xml",
+   "repo": "ResidentMario/wargame-data",
+   "sha256": "482b7cf43100e8d1a62860b9491dd679fdf4d8102e9cf2fe0761135fdc997758",
+   "size": 4218018,
+   "url": "https://raw.githubusercontent.com/ResidentMario/wargame-data/1863c5e00f098272aa0299f07ec85eca6004d969/raws/58710/pc/ndf/patchable/gfx/everything/TModuleSelector.xml"
+  },
+  {
+   "commit": "1863c5e00f098272aa0299f07ec85eca6004d969",
+   "path": "raws/58710/pc/ndf/patchable/gfx/everything/TUniteAuSolDescriptor.xml",
+   "repo": "ResidentMario/wargame-data",
+   "sha256": "04e2c3ecaa4502350a73e710a10281a2062dcbbf4807b88fd69101e5afc9f534",
+   "size": 11102679,
+   "url": "https://raw.githubusercontent.com/ResidentMario/wargame-data/1863c5e00f098272aa0299f07ec85eca6004d969/raws/58710/pc/ndf/patchable/gfx/everything/TUniteAuSolDescriptor.xml"
+  }
+ ],
+ "redistribution": "Data cached locally only; no ResidentMario license found; toolbox license reserves Eugen game content.",
+ "repositories": [
+  {
+   "commit": "1863c5e00f098272aa0299f07ec85eca6004d969",
+   "date": "2021-10-07T22:29:20Z",
+   "repo": "ResidentMario/wargame-data"
+  },
+  {
+   "commit": "69b0b662fd6aa799474432d2391e7ececcf8a44f",
+   "date": "2026-10-02T01:39:42Z",
+   "repo": "fmdostoyevskiy/wgrd-toolbox"
+  }
+ ],
+ "schema": "wgrd_public_unit_sources/1",
+ "toolbox_dataset_version": null
+}

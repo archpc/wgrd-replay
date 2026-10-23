@@ -206,3 +206,20 @@ otherwise33. No module -> ca0620 all member flag0x10 clear selects4, else9.
 Earlier paths can select other kinds. Module class/flag name unproven. Runtime
 values and reachability unavailable from decoded07. effective kinds remain null.
 See research/ENTITY-CONTEXT.md for canonical evidence IDs, tests and state blocker.
+
+## Public descriptor mapping follow-up (2026-10-23)
+
+DescriptorId reflected at+0c (b5bf60); TSaveableDescriptor destructor b58aa0
+removes that GUID from manager203b890+10. b5a630 reads same map; b2d263 resolves
+GUID and b2d288..29b casts TModularUnitDescriptor -> TUniteDescriptor. RTTI base
+chain: TUniteDescriptor -> TModularUnitDescriptor -> TSaveableDescriptor. This
+establishes descriptor role for transmitted trailing16-byte validation material;
+firstu32 remains runtime registry key. Translation can bypass validation, so wire
+match does not prove accepted live entity descriptor.
+
+Public58710 snapshot:726/726 exact GUID matches,722 Company_* +4 individual
+units. No data-build match to59638 or Sample2. --timeline --unit-data ROOT adds
+opt-in cross-version descriptor/card/module annotations; actual unit_identity
+and effective order39 remain unknown. Company/member bridge table missing.
+See research/PUBLIC-UNIT-MAPPING.md, public-unit-coverage.json and canonical
+REA ev_a170f55f / ev_2679b34d / ev_31396b02 / ev_091f83c9.

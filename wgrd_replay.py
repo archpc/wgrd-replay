@@ -353,9 +353,12 @@ def main(argv=None):
     ap.add_argument("--include-empty", action="store_true")
     ap.add_argument("--summary", action="store_true", help="omit command list")
     ap.add_argument("--timeline", action="store_true", help="export ordered command timeline with evidence status")
+    ap.add_argument("--unit-data", metavar="ROOT", help="annotate timeline with pinned public58710 descriptor snapshot (offline)")
     ap.add_argument("--no-verify-digest", action="store_true",
                     help="report digest_valid instead of failing on SHA-224 mismatch")
     a = ap.parse_args(argv)
+    if a.unit_data and not a.timeline:
+        ap.error("--unit-data requires --timeline")
     with open(a.replay, "rb") as f:
         b = f.read()
     format_errors = (ReplayFormatError,)
@@ -367,7 +370,11 @@ def main(argv=None):
         r = parse_replay(b, include_empty=a.include_empty,
                          verify_digest=not a.no_verify_digest)
         if a.timeline:
-            r = build_timeline(r)
+            if a.unit_data:
+                from wgrd_unit_data import load_unit_data
+                r = build_timeline(r, unit_data=load_unit_data(a.unit_data))
+            else:
+                r = build_timeline(r)
     except format_errors as e:
         print("ReplayFormatError: %s" % e, file=sys.stderr)
         return 2

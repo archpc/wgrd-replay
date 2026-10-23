@@ -1,0 +1,38 @@
+{
+ "samples": [
+  {
+   "default_matches_starting_commit": true,
+   "enriched_sha256": "d30f7eca6bd266277ba947d928efde6e3fa02e03c29bdbd8eaaeea200e232fc7",
+   "enriched_two_runs_identical": true,
+   "events": 4162,
+   "matched_references": 285,
+   "only_reference_catalog_annotated": true,
+   "plain_timeline_matches_starting_commit": true,
+   "sample": "koppeltar-Sample1.wargamerpl2",
+   "sample_unchanged": true
+  },
+  {
+   "default_matches_starting_commit": true,
+   "enriched_sha256": "f29b0951d3979f80ab77a80c0d12bb1d548eb05a7bb6db5551ca2738d882a46e",
+   "enriched_two_runs_identical": true,
+   "events": 132,
+   "matched_references": 41,
+   "only_reference_catalog_annotated": true,
+   "plain_timeline_matches_starting_commit": true,
+   "sample": "koppeltar-Sample2.wargamerpl2",
+   "sample_unchanged": true
+  },
+  {
+   "default_matches_starting_commit": true,
+   "enriched_sha256": "97c5fa4ade7c304a2eb0aad4f551c93d7c1248de63dd4d7f60b658deaac63696",
+   "enriched_two_runs_identical": true,
+   "events": 7271,
+   "matched_references": 400,
+   "only_reference_catalog_annotated": true,
+   "plain_timeline_matches_starting_commit": true,
+   "sample": "koppeltar-Sample3.wargamerpl2",
+   "sample_unchanged": true
+  }
+ ],
+ "starting_commit": "06d1351a8d62efbd4ea7952fdf4ed0187b8c1fd9"
+}

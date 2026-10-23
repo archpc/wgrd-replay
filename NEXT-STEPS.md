@@ -1,7 +1,7 @@
 # NEXT-STEPS.md (prioritized)
 
 Milestone: **594/594 multi-command blocks split**, with exact count and EOF.
-571 complete layouts; 23 explicitly opaque-framed blocks. 56 tests pass.
+571 complete layouts; 23 explicitly opaque-framed blocks. 63 tests pass.
 See research/COMMAND-LAYOUTS.md, research/coverage.json and research/evidence/.
 
 Timeline milestone: `--timeline` retains all 11,565 authentic commands. 08/09
@@ -19,6 +19,11 @@ research/TIMELINE-SEMANTICS.md, timeline-coverage.json, timeline-cli-validation.
    results. Do not merge shared GUIDs or use slot provenance as ownership.
    See research/ENTITY-CONTEXT.md and entity-coverage.json. Next useful dependency:
    descriptor/state data (possibly opaque0d), before effective-order classification.
+   Public dataset follow-up: all726 GUIDs match58710 static descriptors,722 company
+   and4 individual. Optional --timeline --unit-data adds cross-version debug
+   names/module references/direct card attributes. Need matching59638 data and
+   TUnitListCompanyModuleDescriptor/member state before assigning unit names to
+   companies. No GUID-word substitution. See research/PUBLIC-UNIT-MAPPING.md.
 2. **Decode 0d serializer interiors.** Boundary is proven: 18+L from root
    FUN_00b584e0 -> child FUN_00b580a0. Field bodies FUN_00c06ba0 (variant2) and
    FUN_00c06c20 (1/3) use nested scopes, helper reads and runtime references.

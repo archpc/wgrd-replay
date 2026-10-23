@@ -60,7 +60,7 @@ def _interpretation(opcode, fields, matched):
     return result
 
 
-def build_timeline(parsed):
+def build_timeline(parsed, unit_data=None):
     """Preserve commands in frame / recorded slot / serialized command order.
 
     Unknown single-command tails have a known boundary. Unknown tails containing
@@ -127,6 +127,9 @@ def build_timeline(parsed):
                            "unresolved_boundary", span_id)
     from wgrd_entities import build_reference_catalog, contextual_fallback_rules
     reference_catalog = build_reference_catalog(events, parsed["sha256"], matched)
+    if unit_data is not None:
+        from wgrd_unit_data import enrich_references
+        enrich_references(reference_catalog, unit_data, str(parsed["header"]["game_version"]))
     return _json_safe({
         "schema": "wgrd_timeline/1", "sha256": parsed["sha256"], "size": parsed["size"],
         "header": parsed["header"], "metadata": parsed["metadata"],
