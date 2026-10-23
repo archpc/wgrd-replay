@@ -1,5 +1,9 @@
 # Timeline execution evidence — 59638
 
+07 update: requested subtypes, actor/target roles and positional argument now
+recovered; see [OP07-ORDERS.md](OP07-ORDERS.md). The original partial-dispatch
+findings below describe the prior milestone; contextual39 remains unresolved.
+
 Scope: static REA 6.7.0 MCP `execute_rizin_command`, installed Rizin provider.
 No Windows execution. Each canonical evidence JSON records tool request, addresses,
 stdout, immutable-source hashes and `artifact_changed:false`.

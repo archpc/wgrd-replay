@@ -1,18 +1,21 @@
 # NEXT-STEPS.md (prioritized)
 
 Milestone: **594/594 multi-command blocks split**, with exact count and EOF.
-571 complete layouts; 23 explicitly opaque-framed blocks. 41 tests pass.
+571 complete layouts; 23 explicitly opaque-framed blocks. 50 tests pass.
 See research/COMMAND-LAYOUTS.md, research/coverage.json and research/evidence/.
 
 Timeline milestone: `--timeline` retains all 11,565 authentic commands. 08/09
-marker create/remove request semantics verified against 59638; 07 order dispatch
+marker create/remove request semantics verified against 59638; 07 explicit requested subtypes recovered; contextual39
 partial. Sample2 semantics inferred only (different build). Default CLI output
 matches starting commit byte-for-byte on all samples. See
 research/TIMELINE-SEMANTICS.md, timeline-coverage.json, timeline-cli-validation.json.
 
-1. **07 tactical order kind and references.** Highest value: 10,461 commands.
-   Trace b32690 -> c972a0 and downstream enum handlers; establish actor/target
-   roles and move/attack/stop kinds before naming fields. No unit identities yet.
+1. **07 effective order selection and entity descriptors.** Requested-kind
+   classifier now covers1797 matched-build explicit orders.8578 contextual39
+   requests require runtime actor/module/target state to recover effective kinds.
+   Resolve entity descriptors and group membership before adding unit names or
+   collapsing full20-byte references. Decode remaining flags/token mappings only
+   with executable support. See research/OP07-ORDERS.md and op07-coverage.json.
 2. **Decode 0d serializer interiors.** Boundary is proven: 18+L from root
    FUN_00b584e0 -> child FUN_00b580a0. Field bodies FUN_00c06ba0 (variant2) and
    FUN_00c06c20 (1/3) use nested scopes, helper reads and runtime references.

@@ -38,9 +38,9 @@
     },
     "events": 4162,
     "interpretations": {
-     "partial": 3794,
+     "partial": 3318,
      "unknown": 324,
-     "verified": 44
+     "verified": 520
     },
     "unresolved_spans": 0
    },
@@ -128,9 +128,9 @@
     },
     "events": 7271,
     "interpretations": {
-     "partial": 6581,
+     "partial": 5260,
      "unknown": 481,
-     "verified": 209
+     "verified": 1530
     },
     "unresolved_spans": 0
    },

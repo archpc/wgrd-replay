@@ -180,3 +180,15 @@ research/TIMELINE-SEMANTICS.md. All canonical records committed under research/e
 No frame-to-seconds or metadata-to-slot identity mapping established. No Windows
 execution, source mutation or inferred gameplay outcomes. Sample2 semantics remain
 inferred because the available executable is build59638, not 510117427.
+
+## 07 requested-order milestone
+
+Recovered object+e0 requested kind; reflected OrderType table1d86488 and descriptor
+1d868b8; kind-group dispatch c972a0 -> b32690 -> abd410 -> af9f60. Distinct from
+object+e4 runtime token and object+f4 mode. Full20-byte actor/target reference roles
+established; target-position argument from object+bc, effective destination unknown.
+
+Matched samples:1797 explicit requests now classified (including Move481,
+Attack399);8578 contextual39 requests remain partial. Sample2:31 explicit +55
+contextual, all inferred. See research/OP07-ORDERS.md for precise claims/limits,
+canonical evidence IDs, aligned instruction ranges and Ghidra startup limitation.
