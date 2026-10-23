@@ -192,3 +192,17 @@ Matched samples:1797 explicit requests now classified (including Move481,
 Attack399);8578 contextual39 requests remain partial. Sample2:31 explicit +55
 contextual, all inferred. See research/OP07-ORDERS.md for precise claims/limits,
 canonical evidence IDs, aligned instruction ranges and Ghidra startup limitation.
+## Entity/context follow-up (2026-10-23)
+
+REA MCP / Rizin. b2e070 separates20-byte references into u32 registry key and
+16-byte validation GUID. ae5690 translates key; ae5730 resolves live pointer.
+b5abd0/b5a630 map full GUID to saved-object pointer; conditional comparison with
+live object+28 rejects stale/mismatched references. No unique unit/descriptor
+meaning inferred for GUID words. Exact raw references retained and cataloged
+within replay hash, never merged by shared tail or key alone.
+
+c9a140 kind39 fallback: module registry+108 exists -> state+28 equals1 selects32,
+otherwise33. No module -> ca0620 all member flag0x10 clear selects4, else9.
+Earlier paths can select other kinds. Module class/flag name unproven. Runtime
+values and reachability unavailable from decoded07. effective kinds remain null.
+See research/ENTITY-CONTEXT.md for canonical evidence IDs, tests and state blocker.

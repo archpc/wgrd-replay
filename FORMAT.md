@@ -147,8 +147,8 @@ Source offsets in bytes, zero-based: chunk header; command relative to block;
 absolute file position; length. Each event's raw bytes cover exactly that range.
 `interpretation` separately holds action, semantic parameters, evidence and limits.
 `verified` / `partial` require matching 59638; other builds use `inferred`.
-Marker create/remove are supported request interpretations; order subtype remains
-unknown. No outcomes asserted. See research/TIMELINE-SEMANTICS.md.
+Marker create/remove and opcode07 requested kinds are supported interpretations.
+Effective orders/outcomes unresolved. See research/TIMELINE-SEMANTICS.md.
 
 Raw frames have no verified duration. Player slots have no verified metadata-name
 mapping; identity is null. Full metadata and unknown chunks retained.
@@ -180,3 +180,22 @@ parameters remain available without guessed option semantics.
 
 Execution addresses, enum table, request-vs-effective limits and census:
 research/OP07-ORDERS.md, research/op07-coverage.json.
+
+### 8.2 Replay-scoped reference catalog and conditional context rules
+
+Each actor/target reference also exposes trailing16 bytes as validation_guid_hex,
+four LE u32 words, and four-word colon text (not RFC UUID ordering).
+reference_id = full replay SHA256 + ':' + full20-byte reference_hex.
+entity_references catalogs these IDs: first/last frame and global command order,
+actor/target occurrence counts, observed command player slots. Duplicate array
+entries count separately. Same key/different GUID remains separate and flagged;
+shared GUIDs do not merge registry keys. No unit type/name, ownership, live
+registry acceptance or cross-replay identity asserted. unit_identity:null.
+Catalog covers decoded opcode07 arrays only; retained by --timeline --summary.
+
+contextual_order_rules describes build59638 c9a140 fallback branches. It is
+conditional metadata, not a complete classifier or observed outcome. Kind39
+events add contextual_resolution with fallback_reached:null and effective kind
+null. Runtime module/member flags and earlier path results unavailable here.
+Sample2 event evidence remains inferred. See research/ENTITY-CONTEXT.md and
+research/entity-coverage.json for executable conditions, evidence and limits.

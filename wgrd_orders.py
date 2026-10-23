@@ -3,6 +3,7 @@ import math
 import struct
 
 from wgrd_replay import ReplayFormatError
+from wgrd_entities import reference_components, CONTEXT_RULE_ID
 
 # Name/value pairs at VA 0x1d86488..0x1d865b0; descriptor at 0x1d868b8.
 # 39 is the reflected Length sentinel, explicitly handled as contextual by c972a0.
@@ -37,11 +38,9 @@ def _bytes(text, size, name):
 
 def _references(array, name):
     # b2e070 separates first u32 from the remaining 16 bytes, performs registry
-    # lookup and generation/context checks. The first word alone is not identity.
+    # lookup and saved-object validation. The first word alone is not identity.
     raw = _bytes(array['items_hex'], array['count_u32'] * 20, name)
-    return [{'lookup_key_u32': int.from_bytes(raw[i:i+4], 'little'),
-             'reference_hex': raw[i:i+20].hex()}
-            for i in range(0, len(raw), 20)]
+    return [reference_components(raw[i:i+20].hex()) for i in range(0, len(raw), 20)]
 
 
 def decode_standard_order(fields, matched):
@@ -89,6 +88,13 @@ def decode_standard_order(fields, matched):
             'Dispatch token IDs and remaining option flags have no stable semantic mapping here.',
         ],
     }
+    if contextual:
+        result['parameters']['contextual_resolution'] = {
+            'status': 'runtime_state_required',
+            'evidence_status': 'verified' if matched else 'inferred',
+            'rule_id': CONTEXT_RULE_ID, 'fallback_reached': None,
+            'effective_order_kind': None,
+        }
     if not matched:
         result['limitation'] = 'Replay build differs from executable; semantics transferred by layout only.'
     return result

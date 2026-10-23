@@ -125,6 +125,8 @@ def build_timeline(parsed):
                     append(len(commands) + i, first_opcode if i == 0 else None, None, None,
                            decoded["consumed_bytes"] if i == 0 else None, None, False,
                            "unresolved_boundary", span_id)
+    from wgrd_entities import build_reference_catalog, contextual_fallback_rules
+    reference_catalog = build_reference_catalog(events, parsed["sha256"], matched)
     return _json_safe({
         "schema": "wgrd_timeline/1", "sha256": parsed["sha256"], "size": parsed["size"],
         "header": parsed["header"], "metadata": parsed["metadata"],
@@ -140,4 +142,6 @@ def build_timeline(parsed):
                   "decode_status": dict(Counter(e["decode_status"] for e in events)),
                   "unresolved_spans": len(spans)},
         "events": events, "unresolved_spans": spans, "unknown_chunks": parsed["unknown_chunks"],
+        "entity_references": reference_catalog,
+        "contextual_order_rules": contextual_fallback_rules(),
     })
