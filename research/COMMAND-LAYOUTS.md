@@ -33,3 +33,28 @@ Sample2 (different game version; no matching binary available).
 22 tests pass. 31 opcode-09 single blocks + 226 opcode-08 single blocks supported.
 Multi-command coverage remains 0/594; unknown frontiers: 07=523, 04=25, 0a=25,
 0d=19, 17=2. Next: 07 helper FUN_00b35e30, then frontier-driven recovery.
+
+## 0x07 — FUN_00b2f850
+
+Evidence ev_354985ababe3b3b821b3960ff5f8494d7d05bacc8a735eb0c58c50867bbfa0b3
+and ev_ac9dc415e39c0efd355eca9626c09a8f6ebaeb2a251b72d006128b82a3f9d410.
+Creator body 0xb2f850..0xb2f9d4. Reads two FUN_00b35e30 sections at
+0xb2f908 / 0xb2f91d (destinations obj+4 / obj+0x60). Helper reads a u32
+count at 0xb35e60; zero count bypasses element reads; each iteration reads
+4 then 16 bytes at 0xb35f5c / 0xb35f73. Its small-vector capacity branches
+change memory allocation only, not serialized reads. False from count or element
+read returns false at 0xb35fa6.
+
+Then creator reads raw 12 (obj+0xbc), 8 (+0xc8), 36 (+0xd0), u32 (+0xf4).
+It rejects unsigned +0xf4 >3 (0xb2f985..0xb2f988). FUN_008fb4a0 at 0xb2f999
+reads u16 T then T raw bytes into +0xf8; no terminator or alignment on the wire.
+Every failure reaches cleanup 0xb2f9b5/0xb2f9b9 then NULL at 0xb2f9c2.
+Total = 71 + 20*(count1+count2) + T. Entire creator and all read dependencies
+inspected. No order/target/action interpretation assigned to these fields.
+
+Milestone 2: 25 tests pass; authentic single-command 07 records match the independent
+length formula; all 523 multi blocks starting with 07 fully split with exact count
+and EOF. No malformed authentic blocks. Coverage now 523/594 (Sample1 274,
+Sample2 0, Sample3 249). Remaining first unsupported opcodes: 04=25, 0a=25,
+0d=19, 17=2. Shared-cursor tests cross helper count 4/5 capacity boundaries,
+include both empty arrays, nonempty strings, oversized counts and enum rejection.

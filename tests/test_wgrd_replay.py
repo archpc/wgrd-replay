@@ -179,6 +179,49 @@ class CommandBlocks(unittest.TestCase):
         self.assertEqual(result["consumed_bytes"], 25)
         self.assertEqual(result["remaining_hex"], block[25:].hex())
 
+    @staticmethod
+    def op07(first=1, second=0, enum=0, text=b""):
+        return (b"\x07" + struct.pack("<I", first) + bytes(20 * first)
+                + struct.pack("<I", second) + bytes(20 * second) + bytes(56)
+                + struct.pack("<IH", enum, len(text)) + text)
+
+    def test_op07_counted_sections_and_shared_cursor(self):
+        for first, second in ((0, 0), (1, 0), (4, 5), (5, 4)):
+            block = self.op07(first, second, 3, b"hello")
+            result = w.decode_command_block(block + self.op09, 2, 2)
+            self.assertEqual(result["status"], "complete")
+            self.assertEqual(result["commands"][0]["length"], 76 + 20 * (first + second))
+            fields = result["commands"][0]["fields"]
+            self.assertEqual(fields["obj_04_array"]["count_u32"], first)
+            self.assertEqual(fields["obj_60_array"]["count_u32"], second)
+            self.assertEqual(fields["obj_f8_string"]["bytes_hex"], b"hello".hex())
+
+    def test_op07_truncated_array_enum_and_string(self):
+        cases = [b"\x07" + struct.pack("<I", 0xFFFFFFFF), self.op07(enum=4),
+                 self.op07()[:-1], self.op07(text=b"hello")[:-1]]
+        for block in cases:
+            self.assertEqual(w.decode_command_block(block, 1, 2)["status"], "malformed")
+
+    def test_authentic_op07_boundaries(self):
+        seen = 0
+        for name in EXPECTED:
+            b = load(name)
+            header, _ = w.parse_header(b)
+            for off, tag, p in w.iter_chunks(b, header["payload_offset"]):
+                if tag != b"pact" or struct.unpack_from("<I", p, 8)[0] != 1 or p[14] != 7:
+                    continue
+                block = p[14:]
+                # Independent wire-length calculation from creator reads.
+                n1 = struct.unpack_from("<I", block, 1)[0]
+                n2 = struct.unpack_from("<I", block, 5 + 20 * n1)[0]
+                t = struct.unpack_from("<H", block, 69 + 20 * (n1 + n2))[0]
+                self.assertEqual(len(block), 71 + 20 * (n1 + n2) + t)
+                result = w.decode_command_block(block, 1, 0)
+                self.assertEqual(result["status"], "complete", (name, off))
+                self.assertEqual(result["consumed_bytes"], len(block))
+                seen += 1
+        self.assertGreater(seen, 9000)
+
 
 class Malformed(unittest.TestCase):
     def setUp(self):

@@ -160,10 +160,30 @@ class _CommandCursor:
         return int.from_bytes(self.take(size), "little")
 
 
+def _read_array(cursor, width):
+    count = cursor.uint(4)
+    return {"count_u32": count, "items_hex": cursor.take(count * width).hex()}
+
+
+def _read_string(cursor):
+    length = cursor.uint(2)
+    return {"length_u16": length, "bytes_hex": cursor.take(length).hex()}
+
+
 def _decode_command(cursor, slot):
     start = cursor.offset
     opcode = cursor.uint(1)
-    if opcode == 0x09:
+    if opcode == 0x07:
+        # FUN_00b2f850; two FUN_00b35e30 arrays: u32 count, 20 bytes/entry.
+        fields = {"obj_04_array": _read_array(cursor, 20),
+                  "obj_60_array": _read_array(cursor, 20),
+                  "obj_bc_hex": cursor.take(12).hex(),
+                  "obj_c8_hex": cursor.take(8).hex(),
+                  "obj_d0_hex": cursor.take(36).hex(), "obj_f4_u32": cursor.uint(4)}
+        if fields["obj_f4_u32"] > 3:
+            raise ReplayFormatError("opcode 07 obj+0xf4 exceeds creator bound 3")
+        fields["obj_f8_string"] = _read_string(cursor)
+    elif opcode == 0x09:
         # FUN_00b2edc0: read(obj+4,4), read(obj+8,16), read(obj+0x18,4).
         fields = {"obj_04_u32": cursor.uint(4), "obj_08_hex": cursor.take(16).hex(),
                   "obj_18_u32": cursor.uint(4)}
