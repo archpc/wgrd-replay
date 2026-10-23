@@ -352,20 +352,29 @@ def main(argv=None):
     ap.add_argument("replay")
     ap.add_argument("--include-empty", action="store_true")
     ap.add_argument("--summary", action="store_true", help="omit command list")
+    ap.add_argument("--timeline", action="store_true", help="export ordered command timeline with evidence status")
     ap.add_argument("--no-verify-digest", action="store_true",
                     help="report digest_valid instead of failing on SHA-224 mismatch")
     a = ap.parse_args(argv)
     with open(a.replay, "rb") as f:
         b = f.read()
+    format_errors = (ReplayFormatError,)
+    if a.timeline:
+        from wgrd_timeline import build_timeline, ReplayFormatError as TimelineFormatError
+        # Direct script invocation and module imports can have distinct class identities.
+        format_errors += (TimelineFormatError,)
     try:
         r = parse_replay(b, include_empty=a.include_empty,
                          verify_digest=not a.no_verify_digest)
-    except ReplayFormatError as e:
+        if a.timeline:
+            r = build_timeline(r)
+    except format_errors as e:
         print("ReplayFormatError: %s" % e, file=sys.stderr)
         return 2
     if a.summary:
-        r.pop("commands")
-    json.dump(r, sys.stdout, sort_keys=True, ensure_ascii=False, indent=1)
+        r.pop("events" if a.timeline else "commands")
+    json.dump(r, sys.stdout, sort_keys=True, ensure_ascii=False, indent=1,
+              allow_nan=not a.timeline)
     sys.stdout.write("\n")
     return 0
 

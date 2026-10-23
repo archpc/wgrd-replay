@@ -133,3 +133,28 @@ its executable behavior. See research/coverage.json for per-sample counts.
 Stream structure (one input packet per slot per frame, mostly empty) matches lockstep
 input recording. No kill/hit/score/position-snapshot records identified. Outcomes very
 likely require simulation reconstruction (INFERRED, not proven).
+
+## 8. Optional timeline export
+
+`python3 wgrd_replay.py REPLAY --timeline` produces `wgrd_timeline/1` JSON.
+Default JSON unchanged; `--timeline --summary` omits events but keeps counts,
+metadata, uncertainty and unresolved raw spans. SHA-224 enforced by default.
+
+Events: zero-based global `command_order`, raw `frame`, `frame_command_order`,
+`player_slot`, `slot_command_order`, opcode, RTTI class, original decoded
+`parameters`, `raw_hex`, `decode_status`, layout-build status and `source` offsets.
+Source offsets in bytes, zero-based: chunk header; command relative to block;
+absolute file position; length. Each event's raw bytes cover exactly that range.
+`interpretation` separately holds action, semantic parameters, evidence and limits.
+`verified` / `partial` require matching 59638; other builds use `inferred`.
+Marker create/remove are supported request interpretations; order subtype remains
+unknown. No outcomes asserted. See research/TIMELINE-SEMANTICS.md.
+
+Raw frames have no verified duration. Player slots have no verified metadata-name
+mapping; identity is null. Full metadata and unknown chunks retained.
+Unknown single commands retain entire raw bytes; multi-command unresolved tails
+use one placeholder per declared command and one shared raw span, with individual
+boundaries unknown. Known malformed blocks fail export instead of generating
+misleading events. Opaque 0d interiors remain opaque. Raw bytes also preserve
+nonfinite floats; timeline JSON uses explicit nonfinite objects and null semantic
+positions. No NaN/Infinity JSON tokens.
