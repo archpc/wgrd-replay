@@ -12,10 +12,10 @@ Keep the opcode-08 single-command interface compatible. New fields use object of
 - [x] Recover opcode 09 creator and all failure exits; authentic boundary survey.
 - [x] Tests first for cursor, 09, 08 concatenation, unknown suffix and malformed lengths.
       Implement, run relevant suite, record coverage, commit.
-- [ ] Rank unresolved block frontiers; recover highest-value next creators and helpers.
+- [x] Rank unresolved block frontiers; recover highest-value next creators and helpers.
       For each meaningful batch: evidence -> authentic survey -> failing tests -> code
       -> tests -> coverage -> commit. No repeated unchanged validation.
-- [ ] Finish at 594/594 or a substantial verified subset with a concrete evidence blocker.
+- [x] Finish at 594/594 or a substantial verified subset with a concrete evidence blocker.
       Update FORMAT, REA notes, NEXT-STEPS and reproducible sample coverage.
 
 Review focus: shared variable-length cursor; no heuristic resync; count mismatch;
@@ -24,3 +24,12 @@ build 59638 evidence is not cross-version runtime equivalence for Sample2.
 
 Ruling: user supplied the complete scope and opted into autonomous implementation;
 no per-opcode design approval or recursive review gates. No additional worktree.
+
+Completion: all 594 multi blocks split (571 complete, 23 explicitly opaque-framed).
+31 tests passed; coverage census checks authenticated bytes and exact reassembly.
+No opcode scanner, global configuration edits, target execution, or recursive reviews.
+
+Final verification: independent census completed; CLI summary smoke on authenticated
+Sample2 reports 4/4 split and 2/4 complete layouts. All 19 retained REA records have
+successful exit status and unchanged target hashes. One bounded read-only final
+review found no material issues; no test rerun or recursive delegation during review.

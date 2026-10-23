@@ -246,6 +246,60 @@ class CommandBlocks(unittest.TestCase):
         bad = b"\x17" + struct.pack("<II", 0, 0xFFFFFFFF)
         self.assertEqual(w.decode_command_block(bad, 1, 0)["status"], "malformed")
 
+    @staticmethod
+    def op0d(variant=1, payload=b"opaque", length=None):
+        return (b"\x0d" + struct.pack("<IIBII", variant, 32, 0, 32,
+                                       len(payload) if length is None else length) + payload)
+
+    def test_op0d_envelope_is_framed_and_explicitly_opaque(self):
+        for variant in (1, 2, 3):
+            block = self.op0d(variant)
+            result = w.decode_command_block(self.op09 + block + self.op09, 3, 0)
+            self.assertEqual(result["status"], "framed")
+            self.assertEqual(result["consumed_bytes"], 74)
+            command = result["commands"][1]
+            self.assertEqual(command["field_decode_status"], "opaque")
+            self.assertEqual(command["fields"]["serializer_payload_hex"], b"opaque".hex())
+            self.assertEqual(command["offset"], 25)
+            self.assertEqual(command["length"], 24)
+
+    def test_op0d_envelope_malformed_lengths_and_unknown_variants(self):
+        block = self.op0d()
+        for n in range(len(block)):
+            self.assertEqual(w.decode_command_block(block[:n], 1, 0)["status"], "malformed", n)
+        for variant in (0, 4, 0xFFFFFFFF):
+            self.assertEqual(w.decode_command_block(self.op0d(variant), 1, 0)["status"], "malformed")
+        for length in (0, 5, 7, 0xFFFFFFFF):
+            self.assertEqual(w.decode_command_block(self.op0d(length=length), 1, 0)["status"], "malformed")
+
+    def test_op0e_fixed_fields(self):
+        block = b"\x0e" + struct.pack("<II", 123, 456) + bytes(range(16))
+        result = w.decode_command_block(block + self.op09, 2, 0)
+        self.assertEqual(result["status"], "complete")
+        self.assertEqual(result["commands"][0]["fields"],
+                         {"obj_04_u32": 123, "obj_08_u32": 456,
+                          "obj_0c_hex": bytes(range(16)).hex()})
+        for n in range(len(block)):
+            self.assertEqual(w.decode_command_block(block[:n], 1, 0)["status"], "malformed")
+
+    def test_authentic_multi_blocks_reassemble_and_opaque_is_not_decoded(self):
+        expected = [(290, 285), (4, 2), (300, 284)]
+        for name, (total, decoded) in zip(EXPECTED, expected):
+            result = w.parse_replay(load(name))
+            self.assertEqual(result["stats"]["multi_command_blocks"], total)
+            self.assertEqual(result["stats"]["fully_split_multi_blocks"], total)
+            self.assertEqual(result["stats"]["fully_decoded_multi_blocks"], decoded)
+            for record in result["commands"]:
+                split = record["command_decode"]
+                if record["count"] <= 1:
+                    continue
+                self.assertIn(split["status"], ("complete", "framed"), (name, record["offset"]))
+                commands = split["commands"]
+                self.assertEqual(len(commands), record["count"])
+                self.assertEqual("".join(c["raw_hex"] for c in commands), record["block_hex"])
+                self.assertEqual(sum(c["length"] for c in commands), record["block_length"])
+                self.assertEqual(split["remaining_hex"], "")
+
 
 class Malformed(unittest.TestCase):
     def setUp(self):

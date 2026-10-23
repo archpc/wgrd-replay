@@ -65,7 +65,8 @@ Frame-to-time mapping: UNKNOWN (no tick length found in file).
 
 Empty pact: L=14, count 0, B 0 (297,516 of 308,458 pacts).
 Block = `count` concatenated commands, each starting with an opcode byte. Commands are
-NOT individually length-prefixed; splitting count>1 blocks needs per-opcode lengths (UNKNOWN for most).
+not universally length-prefixed; splitting uses creator-proven reads. Count linkage is
+verified in research/count-loop.md; layouts and evidence in research/COMMAND-LAYOUTS.md.
 Observed opcodes (count==1): 02 04 07 08 09 0a 0c 0d 0e 13 17 18. Fixed lengths seen:
 09/0e/04 = 25, 0a = 29, 13 = 13, 18 = 10, 02 = 22, 0c = 105 (+281 once). 07 = 91+20k. 08 = 39+text.
 
@@ -94,7 +95,40 @@ Length = 39+T exactly (226/226). Example: Sample1 frame 131 slot 2, block at 0x6
 text "leave your cv at base". Class name plus position plus label suggest a map flare
 (INFERRED). Type meanings 0/1/2: UNKNOWN.
 
-## 6. Inputs vs. outcomes
+## 6. Implemented command splitting (decoder 0.4)
+
+New layouts: 04, 07, 09, 0a, 0e, 17; existing 08 now shares the block cursor.
+0d has a proven length-delimited serializer envelope; interior fields stay opaque.
+New field names identify object storage offsets, without assigning game meanings.
+
+| Opcode | Total command bytes | Verified read layout after opcode |
+|---|---|---|
+| 04 / 09 | 25 | u32, raw16, u32 |
+| 07 | 71+20*(N1+N2)+T | twice (u32 N, raw20*N), raw12, raw8, raw36, u32 <=3, u16 T, T bytes |
+| 08 | 39+T | section 5 |
+| 0a | 29 | u32, raw16, u32 <=14, u32 |
+| 0d | 18+L | u32 variant 1..3, raw4, raw1, raw4, u32 L, opaque L-byte serializer payload |
+| 0e | 25 | u32, u32, raw16 |
+| 17 | 10+8*N | u32, u32 N, raw8*N, raw1 |
+
+Each pact preserves block_hex and adds command_decode:
+- complete: count commands, full supported field layouts, exact EOF.
+- framed: count command boundaries and exact EOF, with opaque serializer content.
+  Interior validity and creator acceptance are unverified. Not counted as decoded.
+- unresolved: unsupported opcode; retain verified prefix and unconsumed bytes.
+- malformed: proven read, count, enum or exact-EOF violation; retain raw block.
+
+Each command records offset, length, raw_hex, fields, field_decode_status.
+On unsupported/truncated commands, consumed_bytes ends at the last complete command;
+remaining_hex includes the entire unresolved command. No opcode scanning/resync.
+Only complete/framed blocks increment fully_split counts; only complete blocks
+increment fully_decoded counts. Exact EOF is strict decoder policy, not executable parity.
+
+SHA-256-authenticated census: 594/594 multi blocks split; 571 complete +23 framed.
+All new binary evidence is build 59638; Sample2's structural match does not establish
+its executable behavior. See research/coverage.json for per-sample counts.
+
+## 7. Inputs vs. outcomes
 
 Stream structure (one input packet per slot per frame, mostly empty) matches lockstep
 input recording. No kill/hit/score/position-snapshot records identified. Outcomes very

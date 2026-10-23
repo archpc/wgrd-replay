@@ -1,4 +1,7 @@
-# WGRD counted command loop — read-only evidence report
+# WGRD counted command loop — accepted read-only evidence report
+
+Historical investigation; implementation now authorized and delivered. Current status:
+[Command layouts](COMMAND-LAYOUTS.md) and [coverage](coverage.json).
 
 Date: 2026-10-23. Repository: /Users/sein/Code/wgrd-replay.
 Baseline HEAD: 3122ba7ded32ae1fcb8c97a215c02d5d138ddbca.
@@ -67,8 +70,8 @@ that many commands, runtime reachability on a particular replay, or action seman
 
 ## Phase gate and next task
 
-Count linkage is now supported by executable instruction evidence. No parser
-changes authorized or made. Next: recover ONE creator's exact read layout, using
+Count linkage is now supported by executable instruction evidence. At the time of this read-only report, no parser
+changes were authorized or made. The accepted next task was: recover ONE creator's exact read layout, using
 an observed fixed-size opcode such as 0x09 (current table maps to FUN_00b2edc0),
 including branches, failure paths, and complete read dependencies. Then compare
 against authenticated count==1 sample blocks. Only after all needed layouts are
@@ -83,7 +86,7 @@ current committed code already validates it. No documentation edits in this pass
 
 ## Evidence
 
-Canonical inline REA Evidence retained in wgrd-count-loop-evidence.json. Each call
+Canonical inline REA Evidence retained in research/evidence/*.json. Each call
 reports exit_code=0, completion_status=complete, artifact_changed=false and the
 same post-call target SHA-256. Commands and provider limitations are retained.
 

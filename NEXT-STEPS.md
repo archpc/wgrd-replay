@@ -1,18 +1,23 @@
 # NEXT-STEPS.md (prioritized)
 
-1. **Per-opcode field layouts from the creators.** Dispatcher FUN_00b24050 and the jump table
-   at 0xb241f4 are mapped (REA-NOTES-59638.md). Decompile the creators for the observed opcodes
-   (02 04 07 09 0a 0c 0d 0e 13 17 18) to get exact lengths, then split count>1 blocks.
-   Also trace the dispatcher's caller to confirm it runs `count` times per block.
-2. **Split the 594 multi-command blocks** (290 + 4 + 300 across Samples 1/2/3) using the
-   creator-derived lengths from step 1; require exact consumption.
-3. **Parser alignment decision (user call).** SHA-224 is now verified. Decide whether
-   to relax version (<= 1) and the field A/B zero checks to match the executable.
-4. **Digest handling.** Find where this[5] (the digest-check trigger offset) is set and whether a
-   mismatch aborts loading.
-5. **Second independent sample source.** Retry Wayback CDX for files.canned-catfood.com/wargame/
-   and rd.wargame.tools; Sample2's Version 510117427 has no matching executable build.
-6. **Frame duration.** Not yet located in the executable or the file.
-7. **star payload L=34/60 in Sample3**: decode alongside the 20-player lobby context.
-8. Opcode 0x08 type values 0/1/2 and the 16-byte block: analyse the LaunchFumigene
-   execute/apply vtable slot (vtbl 0x19a18cc) before naming them.
+Milestone: **594/594 multi-command blocks split**, with exact count and EOF.
+571 complete layouts; 23 explicitly opaque-framed blocks. 31 tests pass.
+See research/COMMAND-LAYOUTS.md, research/coverage.json and research/evidence/.
+
+1. **Decode 0d serializer interiors.** Boundary is proven: 18+L from root
+   FUN_00b584e0 -> child FUN_00b580a0. Field bodies FUN_00c06ba0 (variant2) and
+   FUN_00c06c20 (1/3) use nested scopes, helper reads and runtime references.
+   Current output reports framed/opaque, not complete. 514 opaque commands total.
+2. **Remaining 112 single-command blocks:** 0c=47, 18=44, 13=16, 02=5.
+   Recover exact creators/helpers before implementing; no more multi blocks
+   are blocked by these opcodes in the authenticated sample set.
+3. **Parser alignment decision.** SHA-224 is verified. Version <=1 and fields A/B
+   differ from current strict policy; retain policy until separately decided.
+4. **Digest handling.** Locate this[5] origin and fatal/nonfatal mismatch handling.
+5. **Second independent sample source and matching Sample2 executable.** Existing
+   three samples share one source; Sample2 Version 510117427 differs from 59638.
+6. **Frame duration and star L=34/60 payloads.** Unknown; no seconds conversion.
+7. **Opcode08 meanings.** Analyse execute/apply before naming type0/1/2 or raw16.
+
+Reproduce census: python3 -B research/coverage.py > research/coverage.json
+Tests: PYTHONDONTWRITEBYTECODE=1 python3 -B -m unittest discover -s tests -v

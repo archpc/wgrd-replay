@@ -173,6 +173,7 @@ def _read_string(cursor):
 def _decode_command(cursor, slot):
     start = cursor.offset
     opcode = cursor.uint(1)
+    field_status = "layout"
     if opcode == 0x07:
         # FUN_00b2f850; two FUN_00b35e30 arrays: u32 count, 20 bytes/entry.
         fields = {"obj_04_array": _read_array(cursor, 20),
@@ -200,15 +201,32 @@ def _decode_command(cursor, slot):
         # FUN_00b2f3b0: u32, u32 count with two u32 per entry, raw byte.
         fields = {"obj_04_u32": cursor.uint(4), "obj_08_array": _read_array(cursor, 8),
                   "obj_18_u8": cursor.uint(1)}
+    elif opcode == 0x0D:
+        # FUN_00b28ef0 -> root FUN_00b584e0 -> child FUN_00b580a0.
+        # Child constructor copies the complete length-delimited body up front.
+        # This proves the command boundary, not the interior serializer layout.
+        variant = cursor.uint(4)
+        if variant not in (1, 2, 3):
+            raise ReplayFormatError("opcode 0d unsupported creator variant %d" % variant)
+        fields = {"variant_u32": variant, "serializer_header_u32": cursor.uint(4),
+                  "serializer_header_u8": cursor.uint(1), "serializer_section_u32": cursor.uint(4),
+                  "serializer_length_u32": cursor.uint(4)}
+        fields["serializer_payload_hex"] = cursor.take(fields["serializer_length_u32"]).hex()
+        field_status = "opaque"
+    elif opcode == 0x0E:
+        # FUN_00b2f9e0: 4 -> obj+4, 4 -> obj+8, 16 -> obj+0x0c.
+        fields = {"obj_04_u32": cursor.uint(4), "obj_08_u32": cursor.uint(4),
+                  "obj_0c_hex": cursor.take(16).hex()}
     else:
         return None
     return {"opcode": opcode, "class": OPCODE_CLASSES[opcode], "offset": start,
             "length": cursor.offset - start, "fields": fields,
+            "field_decode_status": field_status,
             "raw_hex": cursor.block[start:cursor.offset].hex()}
 
 
 def decode_command_block(block, count, slot):
-    """Creator-backed split. Partial prefixes are explicitly unresolved/malformed.
+    """Creator-backed split. Opaque serializer bodies are framed, not decoded.
 
     Exact count and byte consumption are strict decoder policy (the executable's
     count loop itself does not enforce EOF). Original block bytes stay on the pact.
@@ -233,6 +251,8 @@ def decode_command_block(block, count, slot):
             commands.append(command)
         if status == "complete" and cursor.offset != len(block):
             status, reason = "malformed", "trailing bytes after declared command count"
+        if status == "complete" and any(c["field_decode_status"] == "opaque" for c in commands):
+            status = "framed"
     result = {"status": status, "layout_build": "59638", "commands": commands,
               "consumed_bytes": cursor.offset, "remaining_hex": block[cursor.offset:].hex()}
     if reason is not None:
@@ -245,7 +265,8 @@ def parse_replay(b, include_empty=False, verify_digest=True):
     frames = 0
     stats = {"star": 0, "pact": 0, "endt": 0, "empty_pact": 0, "unknown_chunks": 0,
              "multi_command_blocks": 0, "fully_decoded_multi_blocks": 0,
-             "fully_decoded_nonempty_blocks": 0}
+             "fully_decoded_nonempty_blocks": 0, "fully_split_multi_blocks": 0,
+             "fully_split_nonempty_blocks": 0}
     commands, unknown = [], []
     cur, slots = None, []
     for off, tag, p in iter_chunks(b, header["payload_offset"]):
@@ -286,6 +307,10 @@ def parse_replay(b, include_empty=False, verify_digest=True):
             rec["command_decode"] = decoded
             if count > 1:
                 stats["multi_command_blocks"] += 1
+            if count and decoded["status"] in ("complete", "framed"):
+                stats["fully_split_nonempty_blocks"] += 1
+                if count > 1:
+                    stats["fully_split_multi_blocks"] += 1
             if count and decoded["status"] == "complete":
                 stats["fully_decoded_nonempty_blocks"] += 1
                 if count > 1:

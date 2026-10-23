@@ -86,3 +86,75 @@ not read wire bytes. All read failures reach cleanup 0xb2f55b -> NULL 0xb2f568.
 Trailing byte is raw, no bool value validation. Total 10+8*N.
 53 authentic singles: 43*18, 9*26, 1*34 bytes. All exactly consumed.
 27 tests pass. Multi coverage 571/594. Remaining 23 blocked at 0d serializer.
+
+## 0x0d — proven envelope; internal fields remain opaque
+
+Creator FUN_00b2fea0 delegates to FUN_00b28ef0 (ev_8a4d9f595e4b7f61ffaac879e810067a50341049b1779f92d053eac14c146f07).
+The latter reads a u32 variant at 0xb28f29; only 1/2/3 select an object:
+1/3 -> constructor 0xc08340, vtable 0x19b0180; 2 -> 0xc080e0,
+vtable 0x19b01b4. Failed selector reads or 0/>3 yield no object and false;
+creator then cleans up and returns NULL at 0xb2ff1d.
+
+Proven serialized boundary (offsets relative to opcode):
+
+| Offset | Bytes | Wire observation |
+|---|---|---|
+| 0 | 1 | opcode |
+| 1 | 4 | variant, 1..3 |
+| 5 | 4 | root serializer header, raw u32 |
+| 9 | 1 | root serializer header, raw byte |
+| 10 | 4 | child section header, raw u32 |
+| 14 | 4 | child payload length L |
+| 18 | L | opaque serializer payload |
+
+Root constructor FUN_00b584e0 reads 4 then 1 bytes directly from the packet
+reader (0xb58556 / 0xb58571). Virtual slot +0x10 at 0xb28fd6 resolves via
+vtable reads (ev_73ef1cc98c73a8423375b40ae4cb5f819e8fd7c1c1dab4bc81aeb06b2dad2656)
+to 0xc0fad0 (variants 1/3) or 0xc0f530 (2). Both invoke FUN_00b580a0 before
+any field-level deserialization (ev_565d7694a729fd90408b7840d63449bc242c9f724283cea5c4a9ecd9ca5295dd).
+
+FUN_00b580a0 reads exactly 8 bytes at 0xb5812a into two u32s; second is L.
+It then reads exactly L bytes at 0xb581a1 into a private buffer and wraps that
+buffer at 0xb581b6. Further nested serializers operate on that buffer, not on
+the shared command stream. False reads set the parent error byte +0x10;
+FUN_00b589a0 propagates child errors (0xb589af), and FUN_00b28ef0 checks the
+root error at 0xb28fe2 before returning true/false. Evidence:
+ev_d830cd29948f71bb887d0d8f105d18afd926a7f4b55f40ad4e01c2572eae77a2 and
+ev_50a31a0d558533a4160dee39615039a4ff4241910ed7650c770aeb47d021e1bd.
+
+Thus 18+L is an instruction-backed boundary, not a fitted sample-length rule.
+All 470 authentic single-command 0d records match it; all 44 additional 0d
+commands in multi blocks fit the declared count and reassemble exactly.
+
+Deliberate limit: fields inside the private buffer are NOT fully recovered or
+validated. Traced bodies FUN_00c06ba0 / FUN_00c06c20 delegate through nested
+serializer helpers; repeated identifier/length envelopes and runtime reference
+resolution remain. These commands have field_decode_status=opaque. A complete
+count/byte split containing one reports status=framed, NEVER complete. This
+proves only the envelope, not creator success, nested field validity, runtime
+reference resolution, or game behavior. Empty or structurally invalid opaque
+payloads may still be framed; that is not an acceptance claim.
+
+## 0x0e — FUN_00b2f9e0
+
+Complete creator 0xb2f9e0..0xb2fac5 is retained in
+ev_354985ababe3b3b821b3960ff5f8494d7d05bacc8a735eb0c58c50867bbfa0b3.
+Reads 4 -> obj+4 (0xb2fa65), 4 -> +8 (0xb2fa78), 16 -> +0x0c
+(0xb2fa8b). All false branches -> cleanup 0xb2faa5 -> NULL 0xb2fab2.
+Total 25; no enum/conditional read. 26 authentic singles and 6 occurrences in
+multi blocks (after 0d) validate boundaries. No item/production semantics inferred.
+
+## Final milestone — 2026-10-23
+
+31 tests pass. All 594 multi blocks split exactly (290 / 4 / 300).
+571 have complete supported field layouts (285 / 2 / 284); 23 are explicitly
+opaque-framed (5 / 2 / 16). No multi block remains boundary-unresolved.
+Across nonempty blocks: 10,830 / 10,942 split; 112 single-command blocks remain
+unresolved: 02=5, 0c=47, 13=16, 18=44. No authentic block is malformed.
+514 total 0d envelopes remain opaque (470 singles + 44 commands in multi blocks).
+Coverage is structural, not proof of gameplay semantics or cross-build equivalence.
+
+Reproduce: python3 -B research/coverage.py > research/coverage.json.
+The census checks manifest size/SHA-256, container digest, command count,
+contiguous offsets, exact reassembly and EOF for every split block. It emits no
+sample bytes. Source samples and the executable remain outside Git.

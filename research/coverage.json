@@ -1,0 +1,111 @@
+{
+  "layout_build": "59638",
+  "samples": [
+    {
+      "block_statuses": {
+        "complete": 3596,
+        "framed": 228,
+        "unresolved": 42
+      },
+      "commands_in_split_blocks": {
+        "0x04": 8,
+        "0x07": 3794,
+        "0x08": 39,
+        "0x09": 5,
+        "0x0a": 16,
+        "0x0d": 233,
+        "0x0e": 8,
+        "0x17": 17
+      },
+      "file": "koppeltar-Sample1.wargamerpl2",
+      "game_version": "59638",
+      "multi_block_statuses": {
+        "complete": 285,
+        "framed": 5
+      },
+      "nonempty_blocks": 3866,
+      "opaque_commands": {
+        "0x0d": 233
+      },
+      "sha256": "c5f8eff1298cf38c1d9967d29f98a22dfc869c150405630f9f695bb80a521df8",
+      "unresolved_opcodes": {
+        "0x0c": 13,
+        "0x13": 10,
+        "0x18": 19
+      }
+    },
+    {
+      "block_statuses": {
+        "complete": 94,
+        "framed": 23,
+        "unresolved": 10
+      },
+      "commands_in_split_blocks": {
+        "0x04": 4,
+        "0x07": 86,
+        "0x08": 2,
+        "0x09": 2,
+        "0x0d": 24,
+        "0x0e": 4
+      },
+      "file": "koppeltar-Sample2.wargamerpl2",
+      "game_version": "510117427",
+      "multi_block_statuses": {
+        "complete": 2,
+        "framed": 2
+      },
+      "nonempty_blocks": 127,
+      "opaque_commands": {
+        "0x0d": 24
+      },
+      "sha256": "132a1a1bce9f214152beea9035055c45d6336527d830de266246526272eae48c",
+      "unresolved_opcodes": {
+        "0x02": 2,
+        "0x0c": 6,
+        "0x13": 2
+      }
+    },
+    {
+      "block_statuses": {
+        "complete": 6647,
+        "framed": 242,
+        "unresolved": 60
+      },
+      "commands_in_split_blocks": {
+        "0x04": 40,
+        "0x07": 6581,
+        "0x08": 185,
+        "0x09": 24,
+        "0x0a": 64,
+        "0x0d": 257,
+        "0x0e": 20,
+        "0x17": 40
+      },
+      "file": "koppeltar-Sample3.wargamerpl2",
+      "game_version": "59638",
+      "multi_block_statuses": {
+        "complete": 284,
+        "framed": 16
+      },
+      "nonempty_blocks": 6949,
+      "opaque_commands": {
+        "0x0d": 257
+      },
+      "sha256": "ce6a60bb1f74c6ef6d6e2e779afbc6792208964dc94777dabf7c45cb98557da9",
+      "unresolved_opcodes": {
+        "0x02": 3,
+        "0x0c": 28,
+        "0x13": 4,
+        "0x18": 25
+      }
+    }
+  ],
+  "totals": {
+    "fully_split_multi_blocks": 594,
+    "fully_split_nonempty_blocks": 10830,
+    "layout_decoded_multi_blocks": 571,
+    "multi_blocks": 594,
+    "nonempty_blocks": 10942,
+    "opaque_framed_multi_blocks": 23
+  }
+}

@@ -88,12 +88,12 @@ DIFFERS (parser stricter or narrower than the executable):
 - File-size equality: the parser requires it. No equality check found in the reader yet.
 - Frame order star->pact->endt: the parser enforces it. No order enforcement found in the
   visitor (it only dispatches on tag).
-- SHA-224 digest: the executable verifies it; the parser does not.
+- SHA-224 digest: both executable and current parser verify it (older parser comparison superseded).
 NOT ADDRESSED by the executable evidence: little-endian layout inside pact payloads
 (the decoding happens in the downstream consumer).
 
 ## Open
-- Consumer of the queued pact payloads (opcode dispatch, LE field decoding).
+- Remaining command fields: opcode 0d nested serializer content; unsupported 02/0c/13/18 layouts.
 - this[5] origin; whether a digest mismatch aborts loading.
 - FUN_004e6d80, FUN_004fcc00, FUN_004f94a0, FUN_00522ec0 semantics.
 - Hopper not used (demo install; Ghidra + rizin were sufficient).
@@ -119,7 +119,7 @@ a frame completes, then FUN_00b3ea20(pact list). For each pact payload FUN_00b3e
 u32 frame, u32 slot, u32 count (raw, native LE), then FUN_00b29440 reads u16 length +
 block bytes; FUN_00b34480(slot) looks up the player; FUN_00b2c170(frame, block) stores the
 block per frame. Opcode dispatch happens later via FUN_00b24050 (caller of the dispatcher
-and per-block command loop not traced; whether it runs `count` times is UNVERIFIED).
+region and count linkage now traced; see research/count-loop.md and Session 4 below).
 
 Endianness: packet reads are raw memory copies on x86 -> little-endian. CONFIRMED.
 No per-command length field exists; each creator consumes exactly its own fields.
@@ -148,3 +148,19 @@ creator returns NULL.
 Semantics: class name LaunchFumigene (French "fumigene" = smoke/signal flare), with a
 position and optional text label -> map flare/marker. Executable: VERIFIED class and layout.
 Meaning of each field: INFERRED (no consumer/Execute analysis yet).
+
+## Session 4: implemented counted-block decoding
+
+The caller region around 0xb35aea loads the counter from stored block+0x58,
+which is copied unchanged from the third pact u32. It attempts count dispatches;
+NULL results continue the loop. Reader bounds checks are present; no exact-EOF
+check was found in this loop exit. Exact-EOF enforcement is decoder policy.
+
+All 594 multi blocks are now split with exact count and EOF. 571 have complete
+supported layouts; 23 require explicitly opaque 0d envelopes and report framed.
+New layouts 04/07/09/0a/0e/17 plus existing08; 0d boundary support only.
+Complete instruction traces, failure exits, limitations and evidence IDs:
+[Command layouts](research/COMMAND-LAYOUTS.md).
+Canonical REA 6.7.0 MCP/Rizin Evidence: research/evidence/. No new Ghidra import,
+target execution, global config change, or sample/binary redistribution.
+[Census](research/coverage.json) is reproduced by research/coverage.py.
