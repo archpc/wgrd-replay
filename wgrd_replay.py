@@ -21,6 +21,28 @@ CHUNK_HEADER_SIZE = 16
 KNOWN_TAGS = (b"star", b"pact", b"endt")
 # Observed in every sample: command player handle == 0xC000001E + pact slot.
 HANDLE_BASE = 0xC000001E
+# Opcode -> action class, build 59638. Source: dispatcher FUN_00b24050 (movzx opcode;
+# sub 2; cmp 0x20; jmp [eax*4+0xb241f4]); each case calls a creator whose body installs
+# the named class's vtable (RTTI). Opcodes outside 0x02..0x22 take the default path.
+OPCODE_CLASSES = {
+    0x02: "TNetworkActionSurrender", 0x03: "TNetworkActionRetreat",
+    0x04: "TNetworkActionCommitOptionPlayer", 0x05: "TNetworkActionStop",
+    0x06: "TNetworkActionCreateGroup", 0x07: "TNetworkActionGiveOrderStandard",
+    0x08: "TNetworkActionLaunchFumigene", 0x09: "TNetworkActionCancelFumigene",
+    0x0A: "TNetworkActionAnnuleProduction", 0x0B: "TNetworkActionAnnuleLastProductionOfType",
+    0x0C: "TNetworkActionChangeProduction", 0x0D: "TNetworkActionProductionUnite",
+    0x0E: "TNetworkActionItemFinished", 0x0F: "TNetworkActionKill",
+    0x10: "TNetworkActionAddMaterial", 0x11: "TNetworkActionSpawnUnit",
+    0x12: "TNetworkActionSpawnUnitV2", 0x13: "TNetworkActionPlayerSynchroServiceAction",
+    0x14: "TNetworkActionSetTechnoResearch", 0x15: "TNetworkActionStopTechnoResearch",
+    0x16: "TNetworkActionDynamicCampaignEndTurn", 0x17: "TNetworkActionDeactivateWeapon",
+    0x18: "TNetworkActionDeactivateSupply", 0x19: "TNetworkActionGiveOrderBattleGroup",
+    0x1A: "TNetworkActionAutoBattleResolution", 0x1B: "TNetworkActionAvoidBattle",
+    0x1C: "TNetworkActionCancelBattle", 0x1D: "TNetworkActionLaunchStrategicAction",
+    0x1E: "TNetworkActionBuyBattleGroup", 0x1F: "TNetworkActionCancelBattleGroup",
+    0x20: "TNetworkActionEventPopup", 0x21: "TNetworkActionRetreatFromBattle",
+    0x22: "TNetworkActionResolveConflictInZone",
+}
 
 
 class ReplayFormatError(ValueError):
@@ -87,16 +109,16 @@ def iter_chunks(b, start):
 
 
 def decode_op08(block, slot):
-    """Opcode 0x08: handle, 12 reserved, u32 k, 3x f32, u32 type, u16 len, text.
-
-    Field meanings beyond layout are UNKNOWN/INFERRED; see FORMAT.md.
+    """Opcode 0x08 = TNetworkActionLaunchFumigene (build 59638 dispatcher FUN_00b24050,
+    jump table 0xb241f4 -> creator FUN_00b2fbc0). The creator reads, after the opcode:
+    4 bytes (obj+0x04), 16 bytes (obj+0x08), 12 bytes (obj+0x18), 4 bytes (obj+0x24),
+    then a u16-length-prefixed byte string (FUN_008fb4a0). Reads are raw (native LE).
+    Field names below beyond that layout are INFERRED from replay data; see FORMAT.md.
     Returns None if the block does not exactly match the layout.
     """
     if len(block) < 39 or block[0] != 0x08:
         return None
     handle, = struct.unpack_from("<I", block, 1)
-    reserved = block[5:17]
-    k, = struct.unpack_from("<I", block, 17)
     x, y, z = struct.unpack_from("<fff", block, 21)
     mtype, tlen = struct.unpack_from("<IH", block, 33)
     if 39 + tlen != len(block):
@@ -104,10 +126,10 @@ def decode_op08(block, slot):
     raw_text = block[39:]
     out = {
         "opcode": 0x08,
+        "class": OPCODE_CLASSES[0x08],
         "player_handle": "0x%08x" % handle,
         "handle_matches_slot": handle == HANDLE_BASE + slot,
-        "reserved_hex": reserved.hex(),
-        "u32_at_17": k,
+        "unknown16_hex": block[5:21].hex(),
         "position_f32": [x, y, z],
         "type_u32": mtype,
         "text_length": tlen,
@@ -158,6 +180,7 @@ def parse_replay(b, include_empty=False, verify_digest=True):
             block = p[14:]
             rec = {"frame": fi, "slot": slot, "offset": off, "count": count,
                    "block_length": blen, "first_opcode": block[0] if block else None,
+                   "first_opcode_class": OPCODE_CLASSES.get(block[0]) if block else None,
                    "block_hex": block.hex()}
             dec = decode_op08(block, slot) if count == 1 else None
             if dec is not None:
@@ -187,7 +210,7 @@ def parse_replay(b, include_empty=False, verify_digest=True):
     if verify_digest and not header["digest_valid"]:
         raise ReplayFormatError("SHA-224 mismatch: header %s, computed %s"
                                 % (b[0x0C:0x28].hex(), actual.hex()))
-    return {"decoder": "wgrd_replay/0.2", "sha256": hashlib.sha256(b).hexdigest(),
+    return {"decoder": "wgrd_replay/0.3", "sha256": hashlib.sha256(b).hexdigest(),
             "size": len(b), "header": header, "metadata": metadata,
             "stats": stats, "commands": commands, "unknown_chunks": unknown}
 

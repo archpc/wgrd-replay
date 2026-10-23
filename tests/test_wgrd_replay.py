@@ -68,24 +68,53 @@ class RealSamples(unittest.TestCase):
         rec = [c for c in r["commands"] if c["frame"] == 131 and c["slot"] == 2][0]
         self.assertEqual(rec["offset"], 0x69A7 - 16 - 14)
         d = rec["decoded"]
+        self.assertEqual(d["class"], "TNetworkActionLaunchFumigene")
         self.assertEqual(d["player_handle"], "0xc0000020")
         self.assertTrue(d["handle_matches_slot"])
+        self.assertEqual(d["unknown16_hex"], "00" * 12 + "32000000")
         self.assertEqual(d["type_u32"], 3)
         self.assertEqual(d["text"], "leave your cv at base")
         self.assertEqual(d["text_length"], 21)
+        # Byte boundaries per creator FUN_00b2fbc0: 1+4+16+12+4 then u16 len + text.
+        blk = bytes.fromhex(rec["block_hex"])
+        self.assertEqual(len(blk), 1 + 4 + 16 + 12 + 4 + 2 + 21)
+        self.assertEqual(blk[:5].hex(), "08200000c0")
+        self.assertEqual(blk[37:39].hex(), "1500")
+        self.assertEqual(blk[39:], b"leave your cv at base")
 
     def test_op08_invariants_all_samples(self):
         n = 0
+        types = {}
         for name in EXPECTED:
             for c in w.parse_replay(load(name))["commands"]:
                 d = c.get("decoded")
                 if not d:
                     continue
                 n += 1
+                self.assertEqual(d["class"], "TNetworkActionLaunchFumigene")
                 self.assertTrue(d["handle_matches_slot"], (name, c["offset"]))
-                self.assertEqual(d["reserved_hex"], "00" * 12)
+                self.assertEqual(d["unknown16_hex"], "00" * 12 + "32000000")
                 self.assertEqual(d["text_length"] > 0, d["type_u32"] == 3)
+                types[d["type_u32"]] = types.get(d["type_u32"], 0) + 1
         self.assertEqual(n, 39 + 2 + 185)
+        self.assertEqual(types, {0: 69, 1: 50, 2: 27, 3: 80})
+
+    def test_op08_layout_mismatch_not_decoded(self):
+        r = w.parse_replay(load("koppeltar-Sample1.wargamerpl2"))
+        rec = [c for c in r["commands"] if c["frame"] == 131 and c["slot"] == 2][0]
+        blk = bytes.fromhex(rec["block_hex"])
+        self.assertIsNone(w.decode_op08(blk[:-1], 2))
+        self.assertIsNone(w.decode_op08(blk + b"\x00", 2))
+
+    def test_first_opcodes_within_dispatcher_range(self):
+        # Dispatcher FUN_00b24050 accepts opcodes 0x02..0x22 only.
+        seen = set()
+        for name in EXPECTED:
+            for c in w.parse_replay(load(name))["commands"]:
+                seen.add(c["first_opcode"])
+                self.assertIsNotNone(c["first_opcode_class"], (name, c["offset"]))
+        self.assertEqual(sorted(seen), [0x02, 0x04, 0x07, 0x08, 0x09, 0x0A, 0x0C,
+                                        0x0D, 0x0E, 0x13, 0x17, 0x18])
 
     def test_deterministic_output(self):
         b = load("koppeltar-Sample2.wargamerpl2")

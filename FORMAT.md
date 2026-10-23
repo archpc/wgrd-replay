@@ -73,23 +73,26 @@ Common pattern in many opcodes: `op | u32 handle | 12 zero bytes | u32 0x32 | �
 Handle = 0xC000001E + slot (VERIFIED for opcode 08; also seen in 04/09/0a/0c/0e). Other handles
 (e.g. 0xc00000ba in op 07, 0xc00001a3 in op 17) are UNKNOWN object ids.
 
-## 5. Opcode 0x08 — layout VERIFIED, meaning INFERRED
+## 5. Opcode 0x08: TNetworkActionLaunchFumigene. Layout VERIFIED from the executable; field meanings INFERRED
 
-| Rel | Size | Field |
-|---|---|---|
-| 0 | 1 | 0x08 |
-| 1 | 4 | u32 player handle (= 0xC000001E + slot, 226/226) |
-| 5 | 12 | zero (226/226) |
-| 17 | 4 | u32 = 0x32 (observed) |
-| 21 | 12 | 3 × f32 (values in same range as op 0x0c positions; INFERRED world position x,y,z) |
-| 33 | 4 | u32 type: 0,1,2,3 |
-| 37 | 2 | u16 text length T (T>0 ⇔ type 3, 226/226) |
-| 39 | T | UTF-8 text |
+Executable (build 59638): dispatcher FUN_00b24050 reads the opcode byte and indexes the jump
+table at 0xb241f4 (opcodes 0x02..0x22). Case 0x08 calls creator FUN_00b2fbc0, which installs
+the TNetworkActionLaunchFumigene vtable and reads fields with raw (little-endian) copies.
+Full opcode table: REA-NOTES-59638.md and OPCODE_CLASSES in wgrd_replay.py.
 
-Length = 39+T exactly, all 226 instances. Example Sample1 frame 131 slot 2 (block at 0x69a7):
-text "leave your cv at base". Texts are contextual tactical chat ("smoke", "tank",
-"we need a cv here"), consistent with the in-game map-flare/marker command. Type
-meanings (0/1/2) UNKNOWN.
+| Rel | Size | Executable read | Data observation |
+|---|---|---|---|
+| 0 | 1 | opcode 0x08 | |
+| 1 | 4 | obj+0x04 | u32 = 0xC000001E + slot (226/226); INFERRED player handle |
+| 5 | 16 | obj+0x08, raw | `00`×12 `32000000` (226/226); meaning UNKNOWN |
+| 21 | 12 | obj+0x18, raw | 3 × f32 in map-coordinate range; INFERRED position |
+| 33 | 4 | obj+0x24 | u32 0..3 (0:69, 1:50, 2:27, 3:80); text non-empty iff 3 |
+| 37 | 2 | FUN_008fb4a0: u16 T | |
+| 39 | T | FUN_008fb4a0: T bytes, narrow string | ASCII in all samples (UTF-8 decode attempted, errors flagged) |
+
+Length = 39+T exactly (226/226). Example: Sample1 frame 131 slot 2, block at 0x69a7:
+text "leave your cv at base". Class name plus position plus label suggest a map flare
+(INFERRED). Type meanings 0/1/2: UNKNOWN.
 
 ## 6. Inputs vs. outcomes
 

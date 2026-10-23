@@ -97,3 +97,54 @@ NOT ADDRESSED by the executable evidence: little-endian layout inside pact paylo
 - this[5] origin; whether a digest mismatch aborts loading.
 - FUN_004e6d80, FUN_004fcc00, FUN_004f94a0, FUN_00522ec0 semantics.
 - Hopper not used (demo install; Ghidra + rizin were sufficient).
+
+## Session 3: pact consumer -> dispatcher -> opcode 0x08 (build 59638)
+
+Address conversion: as above (.text file = VA - 0x401000 + 0x400).
+
+| # | Item | VA | RVA | File off | Evidence | Status |
+|---|---|---|---|---|---|---|
+| 11 | replay frame loop FUN_00b3db10 (TNetworkEventSourceFromReplay vtbl) | 0x00b3db10 | 0x73db10 | 0x73cf10 | Ghidra ev_4ea358ce… | VERIFIED |
+| 12 | pact list consumer FUN_00b3ea20 | 0x00b3ea20 | 0x73ea20 | 0x73de20 | Ghidra ev_1e924a6e… | VERIFIED |
+| 13 | block reader FUN_00b29440 (u16 len + bytes) | 0x00b29440 | 0x729440 | 0x728840 | Ghidra ev_37b97e85… | VERIFIED |
+| 14 | per-frame block store FUN_00b2c170 | 0x00b2c170 | 0x72c170 | 0x72b570 | Ghidra ev_d3d3f966… | VERIFIED |
+| 15 | opcode dispatcher FUN_00b24050 | 0x00b24050 | 0x724050 | 0x723450 | rizin pd: movzx byte; add -2; cmp 0x20; jmp [eax*4+0xb241f4] | VERIFIED |
+| 16 | jump table (33 dwords) | 0x00b241f4 | 0x7241f4 | 0x7235f4 | Python read; each case = push esi; call creator | VERIFIED |
+| 17 | op 0x08 creator FUN_00b2fbc0 | 0x00b2fbc0 | 0x72fbc0 | 0x72efc0 | Ghidra ev_0ea526f5…; installs TNetworkActionLaunchFumigene vtbl 0x19a18cc | VERIFIED |
+| 18 | length-prefixed string reader FUN_008fb4a0 | 0x008fb4a0 | 0x4fb4a0 | 0x4fa8a0 | Ghidra ev_06018019… | VERIFIED |
+| 19 | TNetworkPacketReaderFromStream::Read (vtbl 0x19ea164 slot 1) | 0x010b94c0 | 0xcb94c0 | 0xcb88c0 | rizin pd: remaining>=n check, then raw stream read, no swap | VERIFIED |
+
+Data path: FUN_00b3db10 builds TReplayActionVisitor, calls FUN_010b9500 per chunk until
+a frame completes, then FUN_00b3ea20(pact list). For each pact payload FUN_00b3ea20 reads
+u32 frame, u32 slot, u32 count (raw, native LE), then FUN_00b29440 reads u16 length +
+block bytes; FUN_00b34480(slot) looks up the player; FUN_00b2c170(frame, block) stores the
+block per frame. Opcode dispatch happens later via FUN_00b24050 (caller of the dispatcher
+and per-block command loop not traced; whether it runs `count` times is UNVERIFIED).
+
+Endianness: packet reads are raw memory copies on x86 -> little-endian. CONFIRMED.
+No per-command length field exists; each creator consumes exactly its own fields.
+
+Opcode table (dispatcher case -> creator -> vtable installed in creator body):
+0x02 Surrender, 0x03 Retreat, 0x04 CommitOptionPlayer, 0x05 Stop, 0x06 CreateGroup,
+0x07 GiveOrderStandard, 0x08 LaunchFumigene, 0x09 CancelFumigene, 0x0a AnnuleProduction,
+0x0b AnnuleLastProductionOfType, 0x0c ChangeProduction, 0x0d ProductionUnite,
+0x0e ItemFinished, 0x0f Kill, 0x10 AddMaterial, 0x11 SpawnUnit, 0x12 SpawnUnitV2,
+0x13 PlayerSynchroServiceAction, 0x14 SetTechnoResearch, 0x15 StopTechnoResearch,
+0x16 DynamicCampaignEndTurn, 0x17 DeactivateWeapon, 0x18 DeactivateSupply,
+0x19 GiveOrderBattleGroup, 0x1a AutoBattleResolution, 0x1b AvoidBattle, 0x1c CancelBattle,
+0x1d LaunchStrategicAction, 0x1e BuyBattleGroup, 0x1f CancelBattleGroup, 0x20 EventPopup,
+0x21 RetreatFromBattle, 0x22 ResolveConflictInZone (all prefixed TNetworkAction).
+Opcodes 0x00, 0x01 and > 0x22 -> default path (0xb241f0). Class names are RTTI; behaviour
+of each class is not analysed beyond 0x08.
+
+Opcode 0x08 TNetworkActionLaunchFumigene, object size 0x2c, creator reads in order:
+  read(obj+0x04, 4)    block[1:5]    u32   (data: 0xC000001E+slot, 226/226)
+  read(obj+0x08, 16)   block[5:21]   raw   (data: 00*12 32000000, 226/226)
+  read(obj+0x18, 12)   block[21:33]  raw   (data: plausible f32 x,y,z map coordinates)
+  read(obj+0x24, 4)    block[33:37]  u32   (data: 0,1,2,3; text non-empty iff 3)
+  FUN_008fb4a0(obj+0x28): read u16 T, read T bytes -> narrow string
+Total 39+T bytes: matches all 226 sample instances. Any short read -> object destroyed,
+creator returns NULL.
+Semantics: class name LaunchFumigene (French "fumigene" = smoke/signal flare), with a
+position and optional text label -> map flare/marker. Executable: VERIFIED class and layout.
+Meaning of each field: INFERRED (no consumer/Execute analysis yet).
