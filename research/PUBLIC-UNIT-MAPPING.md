@@ -1,5 +1,11 @@
 # Public unit datasets / descriptor bridge
 
+Follow-up: COMPANY-BRIDGE.md recovers the static reverse link through
+TCompanyUnitModuleDescriptor.CompanyDescriptor. TUnitListCompany's
+PorteurDescriptor is graphics, not a direct member-unit descriptor. Matching
+original NDF entry now pinned; bytes unavailable locally. Earlier missing-table
+discussion below records the evidence available before that REA pass.
+
 Baseline06d1351. Native REA6.7.0 MCP / Rizin, build59638. No game execution.
 Executable SHA2561c7533eb5387a3e82db66595c782f23c20f5871250d6b6a24d630b9d074bda46.
 

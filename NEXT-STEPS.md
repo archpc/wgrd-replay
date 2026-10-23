@@ -10,7 +10,7 @@ partial. Sample2 semantics inferred only (different build). Default CLI output
 matches starting commit byte-for-byte on all samples. See
 research/TIMELINE-SEMANTICS.md, timeline-coverage.json, timeline-cli-validation.json.
 
-1. **07 effective order selection and entity descriptors — runtime-state blocker.** Requested-kind
+1. **One matching-NDF extraction pass; keep static identity separate from live orders.** Requested-kind
    classifier now covers1797 matched-build explicit orders.8578 contextual39
    requests require runtime actor/module/target state to recover effective kinds.
    Timeline now catalogs726 replay-scoped full references (685 matched,41 inferred),
@@ -21,9 +21,16 @@ research/TIMELINE-SEMANTICS.md, timeline-coverage.json, timeline-cli-validation.
    descriptor/state data (possibly opaque0d), before effective-order classification.
    Public dataset follow-up: all726 GUIDs match58710 static descriptors,722 company
    and4 individual. Optional --timeline --unit-data adds cross-version debug
-   names/module references/direct card attributes. Need matching59638 data and
-   TUnitListCompanyModuleDescriptor/member state before assigning unit names to
-   companies. No GUID-word substitution. See research/PUBLIC-UNIT-MAPPING.md.
+   names/module references/direct card attributes. Matching executable now proves
+   a static reverse bridge: unit.CompanyUnit selector -> TCompanyUnitModuleDescriptor
+   .CompanyDescriptor -> company descriptor. PorteurDescriptor is graphics, not
+   the member-unit link. Original59638 NDF bytes absent; exact Steam file entry,
+   expected size/SHA1 pinned in research/matching-ndf-target.json. Need actual
+   values and inverse-link cardinality before assigning company unit types.
+   See research/COMPANY-BRIDGE.md. If the file remains unavailable, park static
+   names and improve timeline navigation/history; no simulation reconstruction.
+   Runtime membership/flags/state still block effective39; a static type link
+   will not resolve those outcomes. No GUID-word substitution.
 2. **Decode 0d serializer interiors.** Boundary is proven: 18+L from root
    FUN_00b584e0 -> child FUN_00b580a0. Field bodies FUN_00c06ba0 (variant2) and
    FUN_00c06c20 (1/3) use nested scopes, helper reads and runtime references.

@@ -223,3 +223,23 @@ opt-in cross-version descriptor/card/module annotations; actual unit_identity
 and effective order39 remain unknown. Company/member bridge table missing.
 See research/PUBLIC-UNIT-MAPPING.md, public-unit-coverage.json and canonical
 REA ev_a170f55f / ev_2679b34d / ev_31396b02 / ev_091f83c9.
+
+## Static company bridge / simulation boundary (2026-10-23)
+
+c55fb0 registers TCompanyUnitModuleDescriptor.CompanyDescriptor at+18;
+c1f730 property vtable19b2344 RTTI confirms refptr<TUniteDescriptor>.
+Static reverse path: individual descriptor.Modules[CompanyUnit] -> selector
+Default -> CompanyDescriptor. Invert actual matching-data references, retaining
+missing/multiple matches. No live entity-key or GUID-word substitution.
+
+dad680's TUnitListCompanyModuleDescriptor.PorteurDescriptor+18 uses helpera6a5d0,
+vtable1998104 RTTI refptr<TGfxDescriptorPorteur>. Graphics reference, not a unit.
+Other fields: CompanyMergeRadius+1c, spawn count+20, max count+24, spacing+28,
+CanBeSupplied+2c. Static type association is not current live membership.
+
+Original Data/WarGame/PC/59638/NDF_Win.dat identified in cached data-depot
+manifest251062/7569342467126442184;24,199,168 bytes, expected content SHA1
+bfd6c3e8affaad83a08ccff3271f6e4a5447e590. NDF not cached. Values extraction
+blocked by missing original file, not proven transient-only reconstruction.
+See research/COMPANY-BRIDGE.md and matching-ndf-target.json; canonical
+REA ev_5a0ebdad / ev_c4c3078f / ev_01688e53. No decoder change or test rerun.
