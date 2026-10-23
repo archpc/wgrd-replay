@@ -235,6 +235,17 @@ class CommandBlocks(unittest.TestCase):
         invalid = b"\x0a" + bytes(20) + struct.pack("<II", 15, 123)
         self.assertEqual(w.decode_command_block(invalid, 1, 0)["status"], "malformed")
 
+    def test_op17_array_and_trailing_byte(self):
+        for count in (0, 1, 5):
+            block = b"\x17" + struct.pack("<II", 99, count) + bytes(8 * count) + b"\xff"
+            result = w.decode_command_block(block + self.op09, 2, 0)
+            self.assertEqual(result["status"], "complete")
+            self.assertEqual(result["commands"][0]["length"], 10 + 8 * count)
+            self.assertEqual(result["commands"][0]["fields"]["obj_18_u8"], 255)
+            self.assertEqual(w.decode_command_block(block[:-1], 1, 0)["status"], "malformed")
+        bad = b"\x17" + struct.pack("<II", 0, 0xFFFFFFFF)
+        self.assertEqual(w.decode_command_block(bad, 1, 0)["status"], "malformed")
+
 
 class Malformed(unittest.TestCase):
     def setUp(self):

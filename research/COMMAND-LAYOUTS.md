@@ -73,3 +73,16 @@ all truncation lengths and enum 14 accepted / 15 rejected.
 
 Milestone 3: 569/594 multi blocks split (283 / 2 / 284). Remaining frontiers
 0d=23 and 17=2; four 0d commands appeared after newly decoded prefixes.
+
+## 0x17 — FUN_00b2f3b0
+
+Dispatch wrapper 0xb2416c calls 0xb2f3b0 (not adjacent creator 0xb2f580).
+Evidence ev_73ef1cc98c73a8423375b40ae4cb5f819e8fd7c1c1dab4bc81aeb06b2dad2656;
+wrapper table in ev_1a54f3c80ea18ed0a60fa1041204c9118bfcbb72cd111b49833aed492b68d985.
+Creator 0xb2f3b0..0xb2f57b: read4 -> obj+4 (0xb2f43f), read4 ->
+array count (0xb2f45c), loop read4/read4 per entry (0xb2f504/0xb2f51b),
+read1 -> obj+0x18 (0xb2f541). Zero count skips array. Allocation branches do
+not read wire bytes. All read failures reach cleanup 0xb2f55b -> NULL 0xb2f568.
+Trailing byte is raw, no bool value validation. Total 10+8*N.
+53 authentic singles: 43*18, 9*26, 1*34 bytes. All exactly consumed.
+27 tests pass. Multi coverage 571/594. Remaining 23 blocked at 0d serializer.

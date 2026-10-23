@@ -196,6 +196,10 @@ def _decode_command(cursor, slot):
         cursor.take(36)
         cursor.take(cursor.uint(2))
         fields = decode_op08(cursor.block[start:cursor.offset], slot)
+    elif opcode == 0x17:
+        # FUN_00b2f3b0: u32, u32 count with two u32 per entry, raw byte.
+        fields = {"obj_04_u32": cursor.uint(4), "obj_08_array": _read_array(cursor, 8),
+                  "obj_18_u8": cursor.uint(1)}
     else:
         return None
     return {"opcode": opcode, "class": OPCODE_CLASSES[opcode], "offset": start,
