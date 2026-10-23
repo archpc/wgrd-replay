@@ -20,7 +20,8 @@ Requirement of ≥2 independent sources NOT met.
 - `ESAV` header: VERIFIED. JSON metadata: VERIFIED (length-prefixed at 0x30, starts 0x38).
 - `star`/`pact`/`endt` markers: VERIFIED as 16-byte-header chunks; full-file walk lands exactly at EOF in all 3.
 - Compression: none observed in container (JSON and command text are plaintext).
-- Checksum: 28 bytes at 0x0C UNKNOWN; not plain MD5/SHA1/SHA256 over tested ranges.
+- Checksum: 28 bytes at 0x0C = SHA-224(file[0x28:EOF]), VERIFIED on all 3 samples
+  and confirmed from the executable (see Phase 3).
 - Alignment: none (chunks packed, odd offsets occur, e.g. 0xc89).
 
 Comparison: qReplay (replay.cpp) and the 3Mydlo3 PowerShell gist only text-scan for
@@ -28,13 +29,28 @@ Comparison: qReplay (replay.cpp) and the 3Mydlo3 PowerShell gist only text-scan 
 Our JSON boundaries agree with that scan.
 
 ## Phase 3 — REA
-- No legitimate game executable available; none downloaded. Replay-loader analysis BLOCKED.
-- REA used for independent byte verification only: Ghidra 12.1.4 raw-binary import of
-  Sample2 (sha256 132a1a1b…, x86, entry 0x0 ⇒ address = file offset).
-  read_bytes 0x0/64 and 0x963/48 matched Python; search_bytes `star…0008` → 0x96b, 0xa3f, 0xc94…
-  matches the Python walk.
-- First attempt with provider_id=rizin failed (capability_unavailable: open_binary accepts
-  ghidra/hopper/ida/kuna). Skill reverse-engineering patched with this pitfall.
+Executables: user-owned Steam copy (app 251060) fetched with DepotDownloader 3.4.0
+(`-os windows -qr`, .exe/.dll file list only). Inventory with SHA-256 for every file:
+samples/game-binaries.json. Binaries are kept outside Git in ~/.hermes/artifacts/wgrd-replay/game/.
+Target analyzed: Data/PC/59638/WarGame3.exe (sha256 1c7533eb…4bda46), the same build as
+Samples 1 and 3. Full findings, addresses, and evidence IDs: REA-NOTES-59638.md.
+
+Summary:
+- FUN_010b9300 (VA 0x010b9300, file 0xcb8700): ntohl magic == 'ESAV', version <= 1,
+  reads the file-size field (FUN_010b9790), then the 28-byte digest.
+- FUN_010b9500 (VA 0x010b9500, file 0xcb8900): per-chunk reader. 4 × ntohl header words,
+  L <= remaining check, SHA-224 over chunk bytes, visitor vtbl[+8](tag, A, ptr, L).
+- FUN_00b3c5d0 (TReplayActionVisitor vtbl[+8]): integer compares 'pact'/'endt'/'star';
+  pact payloads are queued raw.
+- FUN_0093c670: handles 'rply' (JSON chunk) and 'cmpg'.
+- FUN_016fd070: SHA-224 IV constants, digest length 0x1c.
+- Parser comparison: structure CONFIRMED. The parser is stricter than the executable on
+  version, fields A/B, file-size equality, and frame order; it does not check the SHA-224 digest.
+
+Earlier (pre-executable) REA use: Ghidra raw-binary import of Sample2 for byte
+cross-checks (read_bytes/search_bytes matched Python). provider_id=rizin is rejected by
+open_binary (accepts ghidra/hopper/ida/kuna); reverse-engineering skill patched.
+Hopper 6.6.0-demo installed on user request; not used.
 
 ## Phase 4 — Command recovery
 Opcode 0x08 (layout VERIFIED, meaning INFERRED map marker with optional text). Evidence:

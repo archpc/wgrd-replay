@@ -11,14 +11,11 @@ container version (1) observed. No version-specific layout differences observed.
 | Offset | Size | Field | Evidence (Sample2) |
 |---|---|---|---|
 | 0x00 | 4 | magic `ESAV` | `45534156` |
-| 0x04 | 4 | u32 BE container version = 1 (name INFERRED) | `00000001` |
-| 0x08 | 4 | u32 BE total file size | `0007f5c9` = 521673 = actual size (all 3 match) |
-| 0x0C | 28 | UNKNOWN; differs per file; not MD5/SHA1/SHA256 of file, file[0x28:], or file[0x2c:] (tested) | `dbaeabcd…cc5d7106` |
-| 0x28 | 4 | tag `rply` | `72706c79` |
-| 0x2C | 4 | u32 BE, always 0 | `00000000` |
-| 0x30 | 4 | u32 BE JSON length N | `00000933` = 2355 |
-| 0x34 | 4 | u32 BE, always 0 | `00000000` |
-| 0x38 | N | UTF-8 JSON metadata `{"game":{…},"player_<id>":{…},…}` | `7b2267616d65223a` |
+| 0x04 | 4 | u32 BE container version = 1 (name INFERRED). Executable 59638 accepts <= 1 (FUN_010b9300) | `00000001` |
+| 0x08 | 4 | u32 BE total file size (read via ntohl, FUN_010b9790; no equality check found in the executable) | `0007f5c9` = 521673 = actual size (all 3 match) |
+| 0x0C | 28 | SHA-224 of file[0x28:EOF]. VERIFIED on all 3 samples; the executable initializes SHA-224 (FUN_016fd070) and compares 28 bytes | `dbaeabcd…cc5d7106` |
+| 0x28 | 16 | chunk 0 header: tag `rply`, field A = 0, length N, field B = 0 (same layout as section 2; executable treats it as an ordinary chunk) | `72706c79 00000000 00000933 00000000` |
+| 0x38 | N | chunk 0 payload: UTF-8 JSON metadata `{"game":{…},"player_<id>":{…},…}` | `7b2267616d65223a` |
 
 Payload starts at 0x38+N (Sample1 0x9a4, Sample2 0x96b, Sample3 0x2826).
 JSON is a flat-string-valued object (Version, Map, Seed, InitMoney, TimeLimit,
@@ -30,11 +27,15 @@ Repeated to EOF, no padding, no trailing bytes (walk ends exactly at file size i
 
 | Rel | Size | Field |
 |---|---|---|
-| +0 | 4 | tag: `star`, `pact`, `endt` (no other tag observed) |
-| +4 | 4 | u32 BE, always 0 (may be high half of a u64 length: UNKNOWN) |
-| +8 | 4 | u32 BE payload length L |
-| +12 | 4 | u32 BE, always 0 |
-| +16 | L | payload (little-endian internals) |
+| +0 | 4 | tag: `star`, `pact`, `endt` (and `rply` as chunk 0). Executable also handles `cmpg` (not seen) |
+| +4 | 4 | u32 BE field A, always 0 in samples; executable passes it to the visitor (meaning UNKNOWN) |
+| +8 | 4 | u32 BE payload length L; executable rejects L > remaining bytes |
+| +12 | 4 | u32 BE field B, always 0 in samples; executable reads and discards it |
+| +16 | L | payload, handed raw to the visitor (little-endian internals) |
+
+Executable path (build 59638, details in REA-NOTES-59638.md): FUN_010b9500 reads the 4
+header words via ntohl, bounds-checks L, hashes header+payload into SHA-224, and calls
+visitor vtbl[+8](tag, A, ptr, L).
 
 Evidence: Sample2 0x96b `73746172 00000000 00000008 00000000` + 8 bytes, next
 `pact` at 0x983 = 0x96b+16+8. Confirmed independently via REA/Ghidra 12.1.4

@@ -1,0 +1,147 @@
+{
+ "acquired_utc": "2026-10-23T12:43:10Z",
+ "app": 251060,
+ "depot_manifests": [
+  "228984_2547553897526095397",
+  "228988_6645201662696499616",
+  "228990_1829726630299308803",
+  "251061_8230547754628472767",
+  "251062_7569342467126442184",
+  "251070_5659874598125191659",
+  "313560_1337305231672584355",
+  "318290_6360799764883690276",
+  "348330_1644340783487808587",
+  "443730_7844344855394367491",
+  "529390_3120409505074020196",
+  "561470_6424466443309717853"
+ ],
+ "files": [
+  {
+   "path": "Data/PC/116084/WarGame3.exe",
+   "pe_machine": "0x14c",
+   "pe_timestamp_utc": "1970-01-01T07:14:23Z",
+   "sha256": "8f733f907efba98a31b1e26fae004333d11e14bca262e737216043c94e360ae6",
+   "size": 30053352
+  },
+  {
+   "path": "Data/PC/130278/WarGame3.exe",
+   "pe_machine": "0x14c",
+   "pe_timestamp_utc": "1970-01-01T07:18:34Z",
+   "sha256": "88993ff3c3e426af6de0f2e99343a9f82c8540b903dda59ec111e58b45ba445e",
+   "size": 30042624
+  },
+  {
+   "path": "Data/PC/48574/WarGame3.exe",
+   "pe_machine": "0x14c",
+   "pe_timestamp_utc": "1970-01-01T06:50:37Z",
+   "sha256": "308bc62e7892cd4e3629cef3666bd15c285fb7d5d11834cb6b429f6ad6be1504",
+   "size": 30081664
+  },
+  {
+   "path": "Data/PC/49125/WarGame3.exe",
+   "pe_machine": "0x14c",
+   "pe_timestamp_utc": "1970-01-01T06:50:55Z",
+   "sha256": "4c03bdb13cc0b68bd1c38db4f0cd8a5497bf919245cc064b93f45c511d5dda04",
+   "size": 30081664
+  },
+  {
+   "path": "Data/PC/49964/WarGame3.exe",
+   "pe_machine": "0x14c",
+   "pe_timestamp_utc": "1970-01-01T06:51:17Z",
+   "sha256": "6a6ceae9cf03e52c6bbf497fc0f581bee7d1d8e1b28407e3903e624603938e90",
+   "size": 30085760
+  },
+  {
+   "path": "Data/PC/58710/WarGame3.exe",
+   "pe_machine": "0x14c",
+   "pe_timestamp_utc": "1970-01-01T06:55:15Z",
+   "sha256": "f5ee34212d1fce07f00ac8d5360dc91a1b025e72a37f9104cf37cf0d492de84a",
+   "size": 30046752
+  },
+  {
+   "path": "Data/PC/59095/WarGame3.exe",
+   "pe_machine": "0x14c",
+   "pe_timestamp_utc": "1970-01-01T06:55:23Z",
+   "sha256": "45eea865ceb571cbb4980542a20c4b72d5cac223d2f9e25dc003ab3f22236635",
+   "size": 30047776
+  },
+  {
+   "path": "Data/PC/59638/WarGame3.exe",
+   "pe_machine": "0x14c",
+   "pe_timestamp_utc": "1970-01-01T06:55:33Z",
+   "sha256": "1c7533eb5387a3e82db66595c782f23c20f5871250d6b6a24d630b9d074bda46",
+   "size": 30049312
+  },
+  {
+   "path": "Data/PC/68335/WarGame3.exe",
+   "pe_machine": "0x14c",
+   "pe_timestamp_utc": "1970-01-01T06:58:18Z",
+   "sha256": "5f4543e570836d65256abcf50df1aa418a0c1de78231e83578960a36b29659f3",
+   "size": 30048800
+  },
+  {
+   "path": "Data/PC/72352/WarGame3.exe",
+   "pe_machine": "0x14c",
+   "pe_timestamp_utc": "1970-01-01T06:59:42Z",
+   "sha256": "90c92b061c9d3eca4a5eeb1584a9c18cae4ba646889d22805b5a49a6122a913f",
+   "size": 30050904
+  },
+  {
+   "path": "WarGame3.exe",
+   "pe_machine": "0x14c",
+   "pe_timestamp_utc": "1970-01-01T07:18:56Z",
+   "sha256": "5eaa6d6168c9570ff9789bffb3b2cc16fd908be61263b12fcc1e8b2f09efc75d",
+   "size": 30032896
+  },
+  {
+   "path": "_CommonRedist/DirectX/Jun2010/DXSETUP.exe",
+   "pe_machine": "0x14c",
+   "pe_timestamp_utc": "1970-01-01T05:30:59Z",
+   "sha256": "8f47d7121ef6532ad9ad9901e44e237f5c30448b752028c58a9d19521414e40d",
+   "size": 517976
+  },
+  {
+   "path": "_CommonRedist/vcredist/2012/vcredist_x64.exe",
+   "pe_machine": "0x14c",
+   "pe_timestamp_utc": "1970-01-01T05:50:11Z",
+   "sha256": "681be3e5ba9fd3da02c09d7e565adfa078640ed66a0d58583efad2c1e3cc4064",
+   "size": 7186992
+  },
+  {
+   "path": "_CommonRedist/vcredist/2012/vcredist_x86.exe",
+   "pe_machine": "0x14c",
+   "pe_timestamp_utc": "1970-01-01T05:50:11Z",
+   "sha256": "b924ad8062eaf4e70437c8be50fa612162795ff0839479546ce907ffa8d6e386",
+   "size": 6554576
+  },
+  {
+   "path": "_CommonRedist/vcredist/2019/VC_redist.x64.exe",
+   "pe_machine": "0x14c",
+   "pe_timestamp_utc": "1970-01-01T06:24:16Z",
+   "sha256": "c2d74d9b85d0030eaa134679a2392268baa773185c5a21657390e43f8b518f69",
+   "size": 14882584
+  },
+  {
+   "path": "_CommonRedist/vcredist/2019/VC_redist.x86.exe",
+   "pe_machine": "0x14c",
+   "pe_timestamp_utc": "1970-01-01T06:24:16Z",
+   "sha256": "5c7dfa4fd52809813cf9350c4e5807434d78a0bb1fd0d61c85e02b41646a5780",
+   "size": 14328440
+  },
+  {
+   "path": "atimgpud.dll",
+   "pe_machine": "0x14c",
+   "pe_timestamp_utc": "1970-01-01T05:02:44Z",
+   "sha256": "e65966807ec52c814a62aa911cc0223178d02cb29ca22276b96002a1085a4dbd",
+   "size": 159744
+  },
+  {
+   "path": "steam_api.dll",
+   "pe_machine": "0x14c",
+   "pe_timestamp_utc": "1970-01-01T06:16:56Z",
+   "sha256": "5b6ef90f822209180ed5cafecb90af849ee84bcf6281eeb21be2f89b3b5c89b6",
+   "size": 219424
+  }
+ ],
+ "tool": "DepotDownloader 3.4.0 (-os windows -qr, filelist-exe.txt)"
+}
