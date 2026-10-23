@@ -164,3 +164,19 @@ Complete instruction traces, failure exits, limitations and evidence IDs:
 Canonical REA 6.7.0 MCP/Rizin Evidence: research/evidence/. No new Ghidra import,
 target execution, global config change, or sample/binary redistribution.
 [Census](research/coverage.json) is reproduced by research/coverage.py.
+
+## Timeline milestone: execution handlers
+
+REA MCP / Rizin execution traces extend RTTI-only labels:
+- vtable+4 dispatch b24580 -> 07 b2cc90, 08 b2ced0, 09 b2c680.
+- 08 -> player-context+124 manager aa3d00 -> graphical marker/position/type/text;
+  graphics a9d730, label aa6a50. Type3 nonempty text shown.
+- 09 -> same manager aa0620; compares manager-local ID, removes matching marker.
+- 07 -> reference resolution -> b31e30 -> b32270 -> b32480 -> b32690 -> c972a0;
+  order subtype and reference roles unresolved.
+
+Complete chains, failure/no-op conditions, evidence IDs and confidence limits:
+research/TIMELINE-SEMANTICS.md. All canonical records committed under research/evidence/.
+No frame-to-seconds or metadata-to-slot identity mapping established. No Windows
+execution, source mutation or inferred gameplay outcomes. Sample2 semantics remain
+inferred because the available executable is build59638, not 510117427.
