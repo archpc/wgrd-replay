@@ -55,14 +55,8 @@ def _interpretation(opcode, fields, matched):
         result.update(action="remove_map_marker", parameters={"marker_id_u32": fields["obj_18_u32"]})
         result["limitations"] = ["ID scoped to resolved player marker manager; affected marker and success unknown."]
     else:
-        result.update(status="partial" if matched else "inferred", action="issue_standard_order",
-                      parameters={"reference_sets": {"obj_04": fields["obj_04_array"],
-                                                      "obj_60": fields["obj_60_array"]},
-                                  "order_kind": None})
-        result["limitations"] = [
-            "Entity-reference resolution and order dispatch verified; move/attack/stop kind unresolved.",
-            "Reference roles, entity identities and coordinate semantics unresolved.",
-        ]
+        from wgrd_orders import decode_standard_order
+        return decode_standard_order(fields, matched)
     return result
 
 

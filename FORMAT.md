@@ -158,3 +158,25 @@ boundaries unknown. Known malformed blocks fail export instead of generating
 misleading events. Opaque 0d interiors remain opaque. Raw bytes also preserve
 nonfinite floats; timeline JSON uses explicit nonfinite objects and null semantic
 positions. No NaN/Infinity JSON tokens.
+
+### 8.1 Opcode07 requested order subtypes
+
+`interpretation.parameters.order_kind_u32`: object+e0, u32 at order-structure+10.
+`order_kind`: executable enum name for explicit requests; null for contextual39
+or unnamed values. `order_selection`: explicit_request / runtime_dependent / unknown.
+`effective_order_kind` remains null: execution may choose different kinds per actor.
+Matching-build explicit request classification is verified; contextual/unnamed
+kinds partial; mismatched builds inferred. Status describes request classification.
+
+`actor_references` from obj+04, `target_references` from obj+60: each entry preserves
+all20 bytes and exposes its leading registry lookup key. Do not identify entities
+or deduplicate references by this first word alone. Entity type/name/group expansion
+requires runtime state. `target_position_argument_f32` is transmitted finite float3
+from obj+bc, with raw bytes retained; actual position can be clamped or taken from
+target state. All+Infinity -> absent sentinel; other nonfinite -> null. Exporter
+omits Stop's positional interpretation. No effective destination is asserted.
+`secondary_vector_hex`, dispatch token/mode, order_structure_hex and original raw
+parameters remain available without guessed option semantics.
+
+Execution addresses, enum table, request-vs-effective limits and census:
+research/OP07-ORDERS.md, research/op07-coverage.json.
