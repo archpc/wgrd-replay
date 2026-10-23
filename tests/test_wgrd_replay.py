@@ -222,6 +222,19 @@ class CommandBlocks(unittest.TestCase):
                 seen += 1
         self.assertGreater(seen, 9000)
 
+    def test_op04_and_op0a_fixed_reads(self):
+        op04 = b"\x04" + self.op09[1:]
+        op0a = b"\x0a" + bytes(20) + struct.pack("<II", 14, 123)
+        result = w.decode_command_block(op04 + op0a + self.op09, 3, 0)
+        self.assertEqual(result["status"], "complete")
+        self.assertEqual([c["length"] for c in result["commands"]], [25, 29, 25])
+        self.assertEqual(result["commands"][1]["fields"]["obj_1c_u32"], 123)
+        for cmd in (op04, op0a):
+            for n in range(len(cmd)):
+                self.assertEqual(w.decode_command_block(cmd[:n], 1, 0)["status"], "malformed")
+        invalid = b"\x0a" + bytes(20) + struct.pack("<II", 15, 123)
+        self.assertEqual(w.decode_command_block(invalid, 1, 0)["status"], "malformed")
+
 
 class Malformed(unittest.TestCase):
     def setUp(self):

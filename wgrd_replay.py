@@ -183,10 +183,15 @@ def _decode_command(cursor, slot):
         if fields["obj_f4_u32"] > 3:
             raise ReplayFormatError("opcode 07 obj+0xf4 exceeds creator bound 3")
         fields["obj_f8_string"] = _read_string(cursor)
-    elif opcode == 0x09:
+    elif opcode in (0x04, 0x09, 0x0A):
         # FUN_00b2edc0: read(obj+4,4), read(obj+8,16), read(obj+0x18,4).
         fields = {"obj_04_u32": cursor.uint(4), "obj_08_hex": cursor.take(16).hex(),
                   "obj_18_u32": cursor.uint(4)}
+        if opcode == 0x0A:
+            # FUN_00b2e870 additionally checks +0x18 <=14 and reads +0x1c.
+            if fields["obj_18_u32"] > 14:
+                raise ReplayFormatError("opcode 0a obj+0x18 exceeds creator bound 14")
+            fields["obj_1c_u32"] = cursor.uint(4)
     elif opcode == 0x08:
         cursor.take(36)
         cursor.take(cursor.uint(2))

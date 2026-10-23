@@ -58,3 +58,18 @@ and EOF. No malformed authentic blocks. Coverage now 523/594 (Sample1 274,
 Sample2 0, Sample3 249). Remaining first unsupported opcodes: 04=25, 0a=25,
 0d=19, 17=2. Shared-cursor tests cross helper count 4/5 capacity boundaries,
 include both empty arrays, nonempty strings, oversized counts and enum rejection.
+
+## 0x04 / 0x0a — FUN_00b2f0a0 / FUN_00b2e870
+
+Evidence ev_e55fd6aa691971ccecf10c9c1896a1eb22d2c9b6c4805de45a58d9a8e7083729.
+04 reads 4 -> obj+4, 16 -> +8, 4 -> +0x18 (calls 0xb2f125, 0xb2f138,
+0xb2f14b); each false branches cleanup 0xb2f165; NULL at 0xb2f172.
+No extra checks; identical wire layout to 09, total 25.
+0a reads 4 -> +4, 16 -> +8, u32 -> +0x18; unsigned value must <=14
+(0xb2e924..0xb2e927), then 4 -> +0x1c. Total 29. Failed reads or enum
+check -> cleanup 0xb2e953/0xb2e957 -> NULL 0xb2e960. Full bodies inspected.
+Authentic singles: 04=3, 0a=16; all exact boundaries. 26 tests pass, including
+all truncation lengths and enum 14 accepted / 15 rejected.
+
+Milestone 3: 569/594 multi blocks split (283 / 2 / 284). Remaining frontiers
+0d=23 and 17=2; four 0d commands appeared after newly decoded prefixes.
