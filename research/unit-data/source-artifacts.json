@@ -1,0 +1,8 @@
+{
+  "expanded_sha256": "0f11779d9e5592f3fa6e46602d63f1a5022c913f823121d451a385b9c74a6f31",
+  "objects_sha256": "0c857e55be1750b8cc6348db943e970e33954b920ec52ce17f21b534edcc95a7",
+  "parser_path": "research/ndf59638_parse.py",
+  "parser_sha256": "72a4a59f44a88b5d789dd0d06141c63ba643924fa37edf7216b63ad2f6897aca",
+  "schema": "wgrd_ndf59638_source_artifacts/1",
+  "validation": "Existing parser rerun against authenticated expanded NDF; objects JSON byte-identical to bridge artifacts. Export requires these pinned hashes."
+}

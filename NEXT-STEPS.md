@@ -1,7 +1,7 @@
 # NEXT-STEPS.md (prioritized)
 
 Milestone: **594/594 multi-command blocks split**, with exact count and EOF.
-571 complete layouts; 23 explicitly opaque-framed blocks. 63 tests pass.
+571 complete layouts; 23 explicitly opaque-framed blocks. 71 tests pass.
 See research/COMMAND-LAYOUTS.md, research/coverage.json and research/evidence/.
 
 Timeline milestone: `--timeline` retains all 11,565 authentic commands. 08/09
@@ -10,16 +10,20 @@ partial. Sample2 semantics inferred only (different build). Default CLI output
 matches starting commit byte-for-byte on all samples. See
 research/TIMELINE-SEMANTICS.md, timeline-coverage.json, timeline-cli-validation.json.
 
-1. **Matching-NDF static bridge recovered; useful timeline analysis next.** Original
+1. **Matching-NDF enrichment and localization implemented; useful timeline analysis next.** Original
    59638 archive size/SHA1 verified; everything.ndfbin extracted read-only.
    2121 explicit CompanyUnit -> selector Default -> CompanyDescriptor paths;
    all inverse cardinalities1, no observed ambiguity. All685 matching-build
    references have configured static unit types/source debug names; Sample2's41
    stay inferred. Conditions retained unevaluated; no live member identities.
    Research artifacts: research/NDF59638-BRIDGE.md and ndf59638-bridge-coverage.json.
-   Decoder intentionally unchanged for this request. A later scoped change can
-   consume the static index with provenance and ambiguous-candidate preservation.
-   Matching localization data still needed for exact UI labels.
+   Optional --timeline --unit-data research/unit-data/build59638-v1.json.gz now
+   consumes the versioned index. Original59638 US dictionary resolves all2121
+   configured types; all685 matching references get names, Sample2's41 inferred.
+   Shared provenance nodes, raw selector conditions, ambiguous/missing states
+   preserved. No alias/debug substitution for absent dictionary names. Source
+   strings retain markup. See research/TIMELINE-59638.md; exporter and input hashes
+   committed with compact index. Original archives remain unchanged.
    Timeline currently retains1797 explicit requested kinds and8578 contextual39
    requests requiring live flags/module state and earlier path results. Do not
    pursue simulation reconstruction; filters/reference history/request summaries

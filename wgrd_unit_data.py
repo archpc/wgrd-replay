@@ -98,7 +98,10 @@ def descriptor_index(unit_xml, descriptor_xml, selector_xml, card_csv):
 
 
 def load_unit_data(directory):
-    """Load four hash-pinned files from a ResidentMario/wargame-data root. Offline."""
+    """Load a versioned59638 index file or pinned public58710 directory. Offline."""
+    if Path(directory).is_file():
+        from wgrd_unit_index import load_index
+        return load_index(directory)
     manifest = json.loads((Path(__file__).resolve().parent/'research/public-unit-sources.json').read_text())
     records = {r['path']:r for r in manifest['files'] if r['repo']=='ResidentMario/wargame-data'}
     blobs = []
@@ -117,6 +120,9 @@ def load_unit_data(directory):
 
 def enrich_references(catalog, unit_data, replay_version):
     """Annotate newly built reference catalog only. No event/outcome changes."""
+    if 'index' in unit_data:
+        from wgrd_unit_index import enrich_index
+        return enrich_index(catalog, unit_data, replay_version)
     source = unit_data['source']; matched = 0
     for entry in catalog['entries']:
         desc = unit_data['descriptors'].get(entry['validation_guid_hex'])

@@ -217,3 +217,31 @@ matching-build names/capabilities. Sample2 reference-purpose mapping inferred.
 No company/member GUID rewriting; unit_identity stays null; order39 unresolved.
 Events unchanged. Without --unit-data, both default and plain timeline outputs
 unchanged. See research/PUBLIC-UNIT-MAPPING.md for counts and missing bridge.
+
+### 8.4 Original59638 configured-type index and localized names
+
+`--timeline --unit-data research/unit-data/build59638-v1.json.gz` loads the
+bundled `wgrd_unit_index/1` index. Plain JSON index files also accepted. Offline;
+the existing58710 directory mode and outputs remain compatible.
+
+Each reference gains `configured_unit_types`: `status` unique/ambiguous/missing,
+`evidence_status`, original source descriptor object IDs, and candidate arrays.
+Candidates expose configured type GUID/class, debug name, raw alias, localized
+name/status/candidates and mapping provenance. `localized_name` is populated only
+for exactly one dictionary record; never falls back to alias/debug text. Original
+dictionary markup retained. Duplicate translations and inverse mappings retained
+as candidate arrays. Missing source descriptors/paths/names remain explicit.
+
+Exact wire validation GUID joins to original descriptor GUIDs. Inverse paths retain
+unit -> CompanyUnit selector Default -> module -> CompanyDescriptor object IDs;
+direct AuSol GUID matches remain separate. Shared `descriptor_data.nodes` records
+contain original classes, absolute expanded-NDF offsets and mapping/name properties,
+including raw filter conditions. `descriptor_data` also carries index/archive/
+member/expanded/parsed-object/dictionary hashes and locale. Node properties are a
+projection, not complete object/module dumps. Conditions never evaluated.
+
+59638 match means configured static type association, not live registry acceptance,
+membership, ownership, active modules or capabilities. Sample2 remains
+`inferred_build_59638`. `unit_identity` stays null; event parameters, classification,
+effective kinds and contextual39 outcomes unchanged. Default/plain timeline output
+byte-identical to02b4081 on all samples. See research/TIMELINE-59638.md.

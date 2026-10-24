@@ -353,7 +353,7 @@ def main(argv=None):
     ap.add_argument("--include-empty", action="store_true")
     ap.add_argument("--summary", action="store_true", help="omit command list")
     ap.add_argument("--timeline", action="store_true", help="export ordered command timeline with evidence status")
-    ap.add_argument("--unit-data", metavar="ROOT", help="annotate timeline with pinned public58710 descriptor snapshot (offline)")
+    ap.add_argument("--unit-data", metavar="INDEX_OR_ROOT", help="annotate timeline with build59638 index file or pinned public58710 directory (offline)")
     ap.add_argument("--no-verify-digest", action="store_true",
                     help="report digest_valid instead of failing on SHA-224 mismatch")
     a = ap.parse_args(argv)
