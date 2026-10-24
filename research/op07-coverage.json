@@ -1,0 +1,98 @@
+{
+ "samples": [
+  {
+   "commands_with_target_references": 525,
+   "distinct_actor_references": 274,
+   "distinct_target_references": 158,
+   "game_version": "59638",
+   "interpretations": {
+    "partial": 3318,
+    "verified": 476
+   },
+   "order_commands": 3794,
+   "positions": {
+    "not_interpreted_for_stop_request": 56,
+    "transmitted_argument": 3738
+   },
+   "requested_kinds": {
+    "10:Stop": 56,
+    "14:UnloadFromTransport": 83,
+    "15:MergeCompany": 3,
+    "19:Shoot": 136,
+    "1:Land": 7,
+    "20:SplitCompany": 4,
+    "27:Reverse": 34,
+    "39:Length": 3318,
+    "4:Move": 153
+   },
+   "sample": "koppeltar-Sample1.wargamerpl2",
+   "selection": {
+    "explicit_request": 476,
+    "runtime_dependent": 3318
+   },
+   "sha256": "c5f8eff1298cf38c1d9967d29f98a22dfc869c150405630f9f695bb80a521df8"
+  },
+  {
+   "commands_with_target_references": 26,
+   "distinct_actor_references": 23,
+   "distinct_target_references": 19,
+   "game_version": "510117427",
+   "interpretations": {
+    "inferred": 86
+   },
+   "order_commands": 86,
+   "positions": {
+    "not_interpreted_for_stop_request": 3,
+    "transmitted_argument": 83
+   },
+   "requested_kinds": {
+    "10:Stop": 3,
+    "14:UnloadFromTransport": 2,
+    "39:Length": 55,
+    "4:Move": 22,
+    "6:Attack": 4
+   },
+   "sample": "koppeltar-Sample2.wargamerpl2",
+   "selection": {
+    "explicit_request": 31,
+    "runtime_dependent": 55
+   },
+   "sha256": "132a1a1bce9f214152beea9035055c45d6336527d830de266246526272eae48c"
+  },
+  {
+   "commands_with_target_references": 786,
+   "distinct_actor_references": 389,
+   "distinct_target_references": 221,
+   "game_version": "59638",
+   "interpretations": {
+    "partial": 5260,
+    "verified": 1321
+   },
+   "order_commands": 6581,
+   "positions": {
+    "not_interpreted_for_stop_request": 131,
+    "transmitted_argument": 6450
+   },
+   "requested_kinds": {
+    "10:Stop": 131,
+    "14:UnloadFromTransport": 146,
+    "15:MergeCompany": 22,
+    "19:Shoot": 194,
+    "1:Land": 2,
+    "20:SplitCompany": 21,
+    "27:Reverse": 77,
+    "28:Spread": 1,
+    "39:Length": 5260,
+    "4:Move": 328,
+    "6:Attack": 399
+   },
+   "sample": "koppeltar-Sample3.wargamerpl2",
+   "selection": {
+    "explicit_request": 1321,
+    "runtime_dependent": 5260
+   },
+   "sha256": "ce6a60bb1f74c6ef6d6e2e779afbc6792208964dc94777dabf7c45cb98557da9"
+  }
+ ],
+ "schema": "wgrd_op07_census/1"
+}

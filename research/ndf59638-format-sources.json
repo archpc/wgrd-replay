@@ -1,0 +1,51 @@
+[
+ {
+  "repo": "ev1313/wgrd-cons-parsers",
+  "commit": "6231b97101df593971939a6b05701b58ca374e00",
+  "path": "src/wgrd_cons_parsers/edat.py",
+  "url": "https://raw.githubusercontent.com/ev1313/wgrd-cons-parsers/6231b97101df593971939a6b05701b58ca374e00/src/wgrd_cons_parsers/edat.py",
+  "sha256": "40139e506f294608814361af69f25851d2fabf31409f396f46e7b9443d39b2e2"
+ },
+ {
+  "repo": "ev1313/wgrd-cons-parsers",
+  "commit": "6231b97101df593971939a6b05701b58ca374e00",
+  "path": "src/wgrd_cons_parsers/dictionary.py",
+  "url": "https://raw.githubusercontent.com/ev1313/wgrd-cons-parsers/6231b97101df593971939a6b05701b58ca374e00/src/wgrd_cons_parsers/dictionary.py",
+  "sha256": "42108bcdc9cf41b1066f197fda7cae9470e4d997a12fe67f099cedb2d6834b27"
+ },
+ {
+  "repo": "ev1313/wgrd-cons-parsers",
+  "commit": "6231b97101df593971939a6b05701b58ca374e00",
+  "path": "src/wgrd_cons_parsers/decompress_ndfbin.py",
+  "url": "https://raw.githubusercontent.com/ev1313/wgrd-cons-parsers/6231b97101df593971939a6b05701b58ca374e00/src/wgrd_cons_parsers/decompress_ndfbin.py",
+  "sha256": "6cb270d0925e950f4b5a39a5889ab0978360d098bb3ab3e36eb726fb1ec05391"
+ },
+ {
+  "repo": "ev1313/wgrd-cons-parsers",
+  "commit": "6231b97101df593971939a6b05701b58ca374e00",
+  "path": "src/wgrd_cons_parsers/cons_utils.py",
+  "url": "https://raw.githubusercontent.com/ev1313/wgrd-cons-parsers/6231b97101df593971939a6b05701b58ca374e00/src/wgrd_cons_parsers/cons_utils.py",
+  "sha256": "22297e41e94664eea816138b525d3c1113c4b738ddc7d4a6b5630c3f664f96c8"
+ },
+ {
+  "repo": "is-consulting/moddingSuite",
+  "commit": "7f1274b614fb907d420cb6ee85c18900018589fd",
+  "path": "moddingSuite/Model/Ndfbin/Types/NdfType.cs",
+  "url": "https://raw.githubusercontent.com/is-consulting/moddingSuite/7f1274b614fb907d420cb6ee85c18900018589fd/moddingSuite/Model/Ndfbin/Types/NdfType.cs",
+  "sha256": "ade8bc08be4f772f140927aa6a4688666a48a0ef7ef082d575700862fc053206"
+ },
+ {
+  "repo": "is-consulting/moddingSuite",
+  "commit": "7f1274b614fb907d420cb6ee85c18900018589fd",
+  "path": "moddingSuite/Model/Ndfbin/Types/NdfTypeManager.cs",
+  "url": "https://raw.githubusercontent.com/is-consulting/moddingSuite/7f1274b614fb907d420cb6ee85c18900018589fd/moddingSuite/Model/Ndfbin/Types/NdfTypeManager.cs",
+  "sha256": "e064135052f4434777a5ae1027a6f216350647144b37ebe45106c98439861022"
+ },
+ {
+  "repo": "is-consulting/moddingSuite",
+  "commit": "7f1274b614fb907d420cb6ee85c18900018589fd",
+  "path": "moddingSuite/BL/Ndf/NdfbinReader.cs",
+  "url": "https://raw.githubusercontent.com/is-consulting/moddingSuite/7f1274b614fb907d420cb6ee85c18900018589fd/moddingSuite/BL/Ndf/NdfbinReader.cs",
+  "sha256": "06920d578d7498de39e5670f654892f848cf8387f25ea25cca36e184fcb44511"
+ }
+]

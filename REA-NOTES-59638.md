@@ -5,6 +5,11 @@ SHA-256 1c7533eb5387a3e82db66595c782f23c20f5871250d6b6a24d630b9d074bda46, PE32 i
 compiled 2021-10-12, ImageBase 0x400000, PDB path WarGame.Final.Win32.pdb (PDB not loaded).
 Tools: REA 6.7.0 / Ghidra 12.1.4 (decompile), rizin (independent disassembly), Python (byte scans).
 
+Original-playback feasibility follow-up: research/RUNTIME59638-FEASIBILITY.md.
+Fresh REA/Rizin candidate c7e350 -> da4d20 returns a stored-vector pointer;
+not yet validated as an individual-unit position. No game execution. Runtime/
+asset prerequisites block local playback; tick/health/spawn/destruction untraced.
+
 Address conversion (VERIFIED from section table):
 - RVA = VA - 0x400000
 - .text:  file = VA - 0x401000 + 0x400
@@ -88,12 +93,12 @@ DIFFERS (parser stricter or narrower than the executable):
 - File-size equality: the parser requires it. No equality check found in the reader yet.
 - Frame order star->pact->endt: the parser enforces it. No order enforcement found in the
   visitor (it only dispatches on tag).
-- SHA-224 digest: the executable verifies it; the parser does not.
+- SHA-224 digest: both executable and current parser verify it (older parser comparison superseded).
 NOT ADDRESSED by the executable evidence: little-endian layout inside pact payloads
 (the decoding happens in the downstream consumer).
 
 ## Open
-- Consumer of the queued pact payloads (opcode dispatch, LE field decoding).
+- Remaining command fields: opcode 0d nested serializer content; unsupported 02/0c/13/18 layouts.
 - this[5] origin; whether a digest mismatch aborts loading.
 - FUN_004e6d80, FUN_004fcc00, FUN_004f94a0, FUN_00522ec0 semantics.
 - Hopper not used (demo install; Ghidra + rizin were sufficient).
@@ -119,7 +124,7 @@ a frame completes, then FUN_00b3ea20(pact list). For each pact payload FUN_00b3e
 u32 frame, u32 slot, u32 count (raw, native LE), then FUN_00b29440 reads u16 length +
 block bytes; FUN_00b34480(slot) looks up the player; FUN_00b2c170(frame, block) stores the
 block per frame. Opcode dispatch happens later via FUN_00b24050 (caller of the dispatcher
-and per-block command loop not traced; whether it runs `count` times is UNVERIFIED).
+region and count linkage now traced; see research/count-loop.md and Session 4 below).
 
 Endianness: packet reads are raw memory copies on x86 -> little-endian. CONFIRMED.
 No per-command length field exists; each creator consumes exactly its own fields.
@@ -148,3 +153,118 @@ creator returns NULL.
 Semantics: class name LaunchFumigene (French "fumigene" = smoke/signal flare), with a
 position and optional text label -> map flare/marker. Executable: VERIFIED class and layout.
 Meaning of each field: INFERRED (no consumer/Execute analysis yet).
+
+## Session 4: implemented counted-block decoding
+
+The caller region around 0xb35aea loads the counter from stored block+0x58,
+which is copied unchanged from the third pact u32. It attempts count dispatches;
+NULL results continue the loop. Reader bounds checks are present; no exact-EOF
+check was found in this loop exit. Exact-EOF enforcement is decoder policy.
+
+All 594 multi blocks are now split with exact count and EOF. 571 have complete
+supported layouts; 23 require explicitly opaque 0d envelopes and report framed.
+New layouts 04/07/09/0a/0e/17 plus existing08; 0d boundary support only.
+Complete instruction traces, failure exits, limitations and evidence IDs:
+[Command layouts](research/COMMAND-LAYOUTS.md).
+Canonical REA 6.7.0 MCP/Rizin Evidence: research/evidence/. No new Ghidra import,
+target execution, global config change, or sample/binary redistribution.
+[Census](research/coverage.json) is reproduced by research/coverage.py.
+
+## Timeline milestone: execution handlers
+
+REA MCP / Rizin execution traces extend RTTI-only labels:
+- vtable+4 dispatch b24580 -> 07 b2cc90, 08 b2ced0, 09 b2c680.
+- 08 -> player-context+124 manager aa3d00 -> graphical marker/position/type/text;
+  graphics a9d730, label aa6a50. Type3 nonempty text shown.
+- 09 -> same manager aa0620; compares manager-local ID, removes matching marker.
+- 07 -> reference resolution -> b31e30 -> b32270 -> b32480 -> b32690 -> c972a0;
+  order subtype and reference roles unresolved.
+
+Complete chains, failure/no-op conditions, evidence IDs and confidence limits:
+research/TIMELINE-SEMANTICS.md. All canonical records committed under research/evidence/.
+No frame-to-seconds or metadata-to-slot identity mapping established. No Windows
+execution, source mutation or inferred gameplay outcomes. Sample2 semantics remain
+inferred because the available executable is build59638, not 510117427.
+
+## 07 requested-order milestone
+
+Recovered object+e0 requested kind; reflected OrderType table1d86488 and descriptor
+1d868b8; kind-group dispatch c972a0 -> b32690 -> abd410 -> af9f60. Distinct from
+object+e4 runtime token and object+f4 mode. Full20-byte actor/target reference roles
+established; target-position argument from object+bc, effective destination unknown.
+
+Matched samples:1797 explicit requests now classified (including Move481,
+Attack399);8578 contextual39 requests remain partial. Sample2:31 explicit +55
+contextual, all inferred. See research/OP07-ORDERS.md for precise claims/limits,
+canonical evidence IDs, aligned instruction ranges and Ghidra startup limitation.
+## Entity/context follow-up (2026-10-23)
+
+REA MCP / Rizin. b2e070 separates20-byte references into u32 registry key and
+16-byte validation GUID. ae5690 translates key; ae5730 resolves live pointer.
+b5abd0/b5a630 map full GUID to saved-object pointer; conditional comparison with
+live object+28 rejects stale/mismatched references. No unique unit/descriptor
+meaning inferred for GUID words. Exact raw references retained and cataloged
+within replay hash, never merged by shared tail or key alone.
+
+c9a140 kind39 fallback: module registry+108 exists -> state+28 equals1 selects32,
+otherwise33. No module -> ca0620 all member flag0x10 clear selects4, else9.
+Earlier paths can select other kinds. Module class/flag name unproven. Runtime
+values and reachability unavailable from decoded07. effective kinds remain null.
+See research/ENTITY-CONTEXT.md for canonical evidence IDs, tests and state blocker.
+
+## Public descriptor mapping follow-up (2026-10-23)
+
+DescriptorId reflected at+0c (b5bf60); TSaveableDescriptor destructor b58aa0
+removes that GUID from manager203b890+10. b5a630 reads same map; b2d263 resolves
+GUID and b2d288..29b casts TModularUnitDescriptor -> TUniteDescriptor. RTTI base
+chain: TUniteDescriptor -> TModularUnitDescriptor -> TSaveableDescriptor. This
+establishes descriptor role for transmitted trailing16-byte validation material;
+firstu32 remains runtime registry key. Translation can bypass validation, so wire
+match does not prove accepted live entity descriptor.
+
+Public58710 snapshot:726/726 exact GUID matches,722 Company_* +4 individual
+units. No data-build match to59638 or Sample2. --timeline --unit-data ROOT adds
+opt-in cross-version descriptor/card/module annotations; actual unit_identity
+and effective order39 remain unknown. Company/member bridge table missing.
+See research/PUBLIC-UNIT-MAPPING.md, public-unit-coverage.json and canonical
+REA ev_a170f55f / ev_2679b34d / ev_31396b02 / ev_091f83c9.
+
+## Static company bridge / simulation boundary (2026-10-23)
+
+c55fb0 registers TCompanyUnitModuleDescriptor.CompanyDescriptor at+18;
+c1f730 property vtable19b2344 RTTI confirms refptr<TUniteDescriptor>.
+Static reverse path: individual descriptor.Modules[CompanyUnit] -> selector
+Default -> CompanyDescriptor. Invert actual matching-data references, retaining
+missing/multiple matches. No live entity-key or GUID-word substitution.
+
+dad680's TUnitListCompanyModuleDescriptor.PorteurDescriptor+18 uses helpera6a5d0,
+vtable1998104 RTTI refptr<TGfxDescriptorPorteur>. Graphics reference, not a unit.
+Other fields: CompanyMergeRadius+1c, spawn count+20, max count+24, spacing+28,
+CanBeSupplied+2c. Static type association is not current live membership.
+
+Original Data/WarGame/PC/59638/NDF_Win.dat identified in cached data-depot
+manifest251062/7569342467126442184;24,199,168 bytes, expected content SHA1
+bfd6c3e8affaad83a08ccff3271f6e4a5447e590. NDF not cached. Values extraction
+blocked by missing original file, not proven transient-only reconstruction.
+See research/COMPANY-BRIDGE.md and matching-ndf-target.json; canonical
+REA ev_5a0ebdad / ev_c4c3078f / ev_01688e53. No decoder change or test rerun.
+
+## Matching original NDF values recovered (2026-10-23)
+
+Original59638 NDF_Win.dat verified:24,199,168 bytes, manifest SHA1
+bfd6c3e8affaad83a08ccff3271f6e4a5447e590; independent SHA25697d7442eecff5d0f836d5caee4d01cdf93bd7fe262ff12fef75f59fbc84638c0.
+EDAT dictionary and everything.ndfbin entry MD5s pass. Read-only extraction,
+expanded lengths/footer spans/120516-object count checked;367499 non-null
+object refs match exact class IDs. No separator scanning/resynchronization.
+
+Actual values:2121 CompanyUnit selector Default -> CompanyDescriptor paths,
+all distinct inverse company GUIDs with one configured unit candidate. All685
+matching-build replay references resolve (681 company paths +4 direct unit GUIDs).
+Sample2's41 remain inferred. All selectors include an unevaluated shared filter:
+ParamEquals_Integer ParamId11,ParamValue1. No claim that module is active.
+Source debug names available; localized display-name dictionary absent.
+
+Current REA ev_c71bc22a reconfirms typed CompanyDescriptor property; ev_1de49c5f
+and ev_5c5c9e64 capture expanded NDF bytes/header/illustrative link endpoints.
+Full durable result research/NDF59638-BRIDGE.md, extraction/coverage JSON and
+research-only reproduction scripts. Decoder untouched; no simulation behavior.

@@ -1,0 +1,61 @@
+{
+ "company_unit_static_paths": 2121,
+ "duplicate_descriptor_guid_count": 0,
+ "inverse_cardinalities": {
+  "1": 2121
+ },
+ "inverse_companies": 2121,
+ "samples": [
+  {
+   "candidate_cardinalities": {
+    "1": 285
+   },
+   "distinct_candidate_unit_types": 102,
+   "distinct_descriptor_guids": 103,
+   "game_version": "59638",
+   "references": 285,
+   "references_with_source_alias": 216,
+   "sample": "koppeltar-Sample1.wargamerpl2",
+   "sha256": "c5f8eff1298cf38c1d9967d29f98a22dfc869c150405630f9f695bb80a521df8",
+   "status": {
+    "direct_unit_descriptor": 1,
+    "unique_configured_static_unit_type": 284
+   }
+  },
+  {
+   "candidate_cardinalities": {
+    "1": 41
+   },
+   "distinct_candidate_unit_types": 29,
+   "distinct_descriptor_guids": 29,
+   "game_version": "510117427",
+   "references": 41,
+   "references_with_source_alias": 35,
+   "sample": "koppeltar-Sample2.wargamerpl2",
+   "sha256": "132a1a1bce9f214152beea9035055c45d6336527d830de266246526272eae48c",
+   "status": {
+    "unique_configured_static_unit_type": 41
+   }
+  },
+  {
+   "candidate_cardinalities": {
+    "1": 400
+   },
+   "distinct_candidate_unit_types": 178,
+   "distinct_descriptor_guids": 181,
+   "game_version": "59638",
+   "references": 400,
+   "references_with_source_alias": 355,
+   "sample": "koppeltar-Sample3.wargamerpl2",
+   "sha256": "ce6a60bb1f74c6ef6d6e2e779afbc6792208964dc94777dabf7c45cb98557da9",
+   "status": {
+    "direct_unit_descriptor": 3,
+    "unique_configured_static_unit_type": 397
+   }
+  }
+ ],
+ "selectors_with_condition_filters": 2121,
+ "unique_guid_count": 4628,
+ "unit_descriptors": 4628,
+ "unresolved_links": []
+}

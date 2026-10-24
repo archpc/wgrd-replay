@@ -1,0 +1,43 @@
+{
+  "analysis_baseline_commit": "167aa8b",
+  "files": [
+    {
+      "bytes": 8667,
+      "path": "BATTLE-REPORT.md",
+      "sha256": "2a97458862da50eb6d61a9b3092c665b339c1d7a7a6b8f369aaa77752937674a"
+    },
+    {
+      "bytes": 1017844,
+      "path": "events.csv",
+      "sha256": "b2fab07a3d31d3705c6fa46b3b7223ab1646ac186069dce4235337c617d300d3"
+    },
+    {
+      "bytes": 4310,
+      "path": "measurements.json",
+      "sha256": "d79ee11d21b2382ddf88d1ddd2ff52c7f0b3dfeb6b6e14b7f0ce073096e2b7aa"
+    },
+    {
+      "bytes": 29473,
+      "path": "anchors.json",
+      "sha256": "e9b3be6f7df7879068ba118d0635188314ce39a376669e79c2509bc7fc9e27ed"
+    },
+    {
+      "bytes": 55585,
+      "path": "reference-labels.json",
+      "sha256": "237d4512345242beb9e005b65b0c38f1e4d70d2e672bfc77e321929427d91b1f"
+    },
+    {
+      "bytes": 5227,
+      "path": "ReportContent.jsx",
+      "sha256": "097c724d11d856e0db53a1ceb3a726803f10b4d5fbaec6ecbbbb786e9c625022"
+    },
+    {
+      "bytes": 9054,
+      "path": "report-copy.json",
+      "sha256": "3e2abe4bc983ba2a63e0296fa4fb01961b483c3d2034a010b50703f174f287a2"
+    }
+  ],
+  "portable_html_sha256": "dae2ecd9e4e07260617e375d6c794896c0088e0fe0fa8a472e96405773bd1124",
+  "report_scope": "Sample1 requested actions and static configured-type labels; no execution outcomes",
+  "schema": "wgrd_sample1_battle_report_artifacts/1"
+}

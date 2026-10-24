@@ -45,7 +45,7 @@ Summary:
 - FUN_0093c670: handles 'rply' (JSON chunk) and 'cmpg'.
 - FUN_016fd070: SHA-224 IV constants, digest length 0x1c.
 - Parser comparison: structure CONFIRMED. The parser is stricter than the executable on
-  version, fields A/B, file-size equality, and frame order; it does not check the SHA-224 digest.
+  version, fields A/B, file-size equality, and frame order. Current code verifies the SHA-224 digest; the older comparison was stale.
 
 Earlier (pre-executable) REA use: Ghidra raw-binary import of Sample2 for byte
 cross-checks (read_bytes/search_bytes matched Python). provider_id=rizin is rejected by
@@ -73,3 +73,15 @@ python3 wgrd_replay.py --summary ~/.hermes/artifacts/wgrd-replay/samples/raw/kop
 
 ## Open questions
 See NEXT-STEPS.md.
+
+## Counted-block implementation milestone (2026-10-23)
+
+REA 6.7.0 MCP/Rizin findings and immutable-artifact evidence now retained in
+research/COMMAND-LAYOUTS.md and research/evidence/. Shared-cursor implementation
+splits 594/594 multi-command blocks exactly: 571 complete field layouts, 23
+framed with opaque 0d serializer content. Raw blocks, prefix boundaries and
+unresolved tails are retained. No speculative names for new fields.
+
+Across all nonempty blocks: 10,830/10,942 split; 112 unresolved singles remain.
+Build provenance, opaque interiors and one-source limitation stay explicit.
+31 tests pass; authentic coverage/reassembly census in research/coverage.json.

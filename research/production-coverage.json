@@ -1,0 +1,523 @@
+{
+  "checkpoint": "79ff879",
+  "evidence_build": "59638",
+  "limitations": [
+    "All totals describe serialized requests, not accepted purchases or units on the map.",
+    "All samples share one acquisition source; Sample2 has an unmatched executable build.",
+    "Contextual39 and all execution outcomes remain unresolved."
+  ],
+  "samples": [
+    {
+      "cancellation_channels": {
+        "3": 2,
+        "6": 2,
+        "8": 2,
+        "9": 6,
+        "10": 4
+      },
+      "cancellation_requests": 16,
+      "contextual39_orders": 3318,
+      "events": 4162,
+      "examples": [
+        {
+          "declared_types": [
+            {
+              "bundle_index": 0,
+              "configured_type_status": "unique",
+              "name": "#command STAF EENHEID"
+            },
+            {
+              "bundle_index": 1,
+              "configured_type_status": "unique",
+              "name": "DAF YA 4440"
+            }
+          ],
+          "deployment_points": [
+            [
+              1131642.25,
+              986633.375,
+              32760.0
+            ]
+          ],
+          "file_offset": 2894,
+          "frame": 1,
+          "quantity": 1,
+          "slot": 0,
+          "variant": 1
+        },
+        {
+          "declared_types": [
+            {
+              "bundle_index": 0,
+              "configured_type_status": "missing",
+              "name": null
+            }
+          ],
+          "deployment_points": [
+            [
+              1092067.875,
+              953829.6875,
+              32760.0
+            ]
+          ],
+          "file_offset": 3039,
+          "frame": 1,
+          "quantity": 1,
+          "slot": 0,
+          "variant": 1
+        },
+        {
+          "declared_types": [
+            {
+              "bundle_index": 0,
+              "configured_type_status": "unique",
+              "name": "#command GROUPE DE CMDT"
+            },
+            {
+              "bundle_index": 1,
+              "configured_type_status": "unique",
+              "name": "VAB"
+            }
+          ],
+          "deployment_points": [
+            [
+              1025346.625,
+              856632.6875,
+              32760.0
+            ]
+          ],
+          "file_offset": 3239,
+          "frame": 1,
+          "quantity": 1,
+          "slot": 1,
+          "variant": 1
+        }
+      ],
+      "file": "koppeltar-Sample1.wargamerpl2",
+      "game_version": "59638",
+      "mode_obj90_histogram": {
+        "1": 49,
+        "2": 153
+      },
+      "named_reference_occurrences": 314,
+      "null_reference_occurrences_by_bundle_index": {
+        "1": 148,
+        "2": 233
+      },
+      "opaque_change_production_commands": 13,
+      "per_recorded_slot": {
+        "0": {
+          "commands": 67,
+          "quantity_variants_1_3": 62,
+          "variant2_commands": 6
+        },
+        "1": {
+          "commands": 69,
+          "quantity_variants_1_3": 66,
+          "variant2_commands": 10
+        },
+        "2": {
+          "commands": 47,
+          "quantity_variants_1_3": 63,
+          "variant2_commands": 8
+        },
+        "3": {
+          "commands": 50,
+          "quantity_variants_1_3": 64,
+          "variant2_commands": 7
+        }
+      },
+      "production_commands": 233,
+      "production_type_mapping": {
+        "ambiguous": 0,
+        "missing": 4,
+        "unique": 107
+      },
+      "quantity_histogram_variants_1_3": {
+        "1": 165,
+        "2": 25,
+        "3": 8,
+        "4": 4
+      },
+      "quantity_sum_variants_1_3": 255,
+      "semantics": "matching59638",
+      "sha256": "c5f8eff1298cf38c1d9967d29f98a22dfc869c150405630f9f695bb80a521df8",
+      "unique_localized_names": 107,
+      "unresolved_reference_occurrences": {
+        "missing": 4
+      },
+      "variants": {
+        "1": 49,
+        "2": 31,
+        "3": 153
+      },
+      "verification": {
+        "all_commands_and_bytes_retained": true,
+        "default_parser_matches_checkpoint": true,
+        "timeline_sha256": "68d19eba01f9d6935a38ae76b49d11260bac969af1ed632d700b937efb271397",
+        "two_timeline_exports_identical": true
+      }
+    },
+    {
+      "cancellation_channels": {},
+      "cancellation_requests": 0,
+      "contextual39_orders": 55,
+      "events": 132,
+      "examples": [
+        {
+          "declared_types": [
+            {
+              "bundle_index": 0,
+              "configured_type_status": "unique",
+              "name": "#command ILTIS KdoW"
+            }
+          ],
+          "deployment_points": [
+            [
+              680541.3125,
+              1777282.5,
+              30420.0
+            ]
+          ],
+          "file_offset": 2677,
+          "frame": 1,
+          "quantity": 1,
+          "slot": 0,
+          "variant": 1
+        },
+        {
+          "declared_types": [
+            {
+              "bundle_index": 0,
+              "configured_type_status": "missing",
+              "name": null
+            }
+          ],
+          "deployment_points": [
+            [
+              651260.6875,
+              1791448.25,
+              32760.0
+            ]
+          ],
+          "file_offset": 2822,
+          "frame": 1,
+          "quantity": 1,
+          "slot": 0,
+          "variant": 1
+        },
+        {
+          "declared_types": [
+            {
+              "bundle_index": 0,
+              "configured_type_status": "unique",
+              "name": "#command M151A1 CP"
+            }
+          ],
+          "deployment_points": [
+            [
+              839072.375,
+              1806895.625,
+              36860.0
+            ]
+          ],
+          "file_offset": 3022,
+          "frame": 1,
+          "quantity": 1,
+          "slot": 1,
+          "variant": 1
+        }
+      ],
+      "file": "koppeltar-Sample2.wargamerpl2",
+      "game_version": "510117427",
+      "mode_obj90_histogram": {
+        "1": 12,
+        "2": 8
+      },
+      "named_reference_occurrences": 25,
+      "null_reference_occurrences_by_bundle_index": {
+        "1": 22,
+        "2": 24
+      },
+      "opaque_change_production_commands": 6,
+      "per_recorded_slot": {
+        "0": {
+          "commands": 14,
+          "quantity_variants_1_3": 22,
+          "variant2_commands": 3
+        },
+        "1": {
+          "commands": 10,
+          "quantity_variants_1_3": 21,
+          "variant2_commands": 1
+        }
+      },
+      "production_commands": 24,
+      "production_type_mapping": {
+        "ambiguous": 0,
+        "missing": 1,
+        "unique": 19
+      },
+      "quantity_histogram_variants_1_3": {
+        "1": 12,
+        "2": 2,
+        "3": 2,
+        "4": 2,
+        "5": 1,
+        "8": 1
+      },
+      "quantity_sum_variants_1_3": 43,
+      "semantics": "inferred59638",
+      "sha256": "132a1a1bce9f214152beea9035055c45d6336527d830de266246526272eae48c",
+      "unique_localized_names": 19,
+      "unresolved_reference_occurrences": {
+        "missing": 1
+      },
+      "variants": {
+        "1": 12,
+        "2": 4,
+        "3": 8
+      },
+      "verification": {
+        "all_commands_and_bytes_retained": true,
+        "default_parser_matches_checkpoint": true,
+        "timeline_sha256": "60f073a5fac7fe2dadc4ee7e6037a39206e488381fd01e32abf59a0fffd35c9b",
+        "two_timeline_exports_identical": true
+      }
+    },
+    {
+      "cancellation_channels": {
+        "3": 28,
+        "6": 24,
+        "10": 6,
+        "12": 2,
+        "13": 4
+      },
+      "cancellation_requests": 64,
+      "contextual39_orders": 5260,
+      "events": 7271,
+      "examples": [
+        {
+          "declared_types": [
+            {
+              "bundle_index": 0,
+              "configured_type_status": "unique",
+              "name": "#command SZTAB DOWODZENIA"
+            },
+            {
+              "bundle_index": 1,
+              "configured_type_status": "unique",
+              "name": "SKOT-2AP"
+            }
+          ],
+          "deployment_points": [
+            [
+              1107014.25,
+              1515882.375,
+              32760.0
+            ]
+          ],
+          "file_offset": 18799,
+          "frame": 12,
+          "quantity": 1,
+          "slot": 13,
+          "variant": 1
+        },
+        {
+          "declared_types": [
+            {
+              "bundle_index": 0,
+              "configured_type_status": "missing",
+              "name": null
+            }
+          ],
+          "deployment_points": [
+            [
+              1006173.875,
+              1525285.5,
+              32760.0
+            ]
+          ],
+          "file_offset": 18944,
+          "frame": 12,
+          "quantity": 1,
+          "slot": 13,
+          "variant": 1
+        },
+        {
+          "declared_types": [
+            {
+              "bundle_index": 0,
+              "configured_type_status": "unique",
+              "name": "#command FÜHRUNGSGRUPPE"
+            },
+            {
+              "bundle_index": 1,
+              "configured_type_status": "unique",
+              "name": "TPz FUCHS"
+            }
+          ],
+          "deployment_points": [
+            [
+              234178.296875,
+              954409.125,
+              32760.0
+            ]
+          ],
+          "file_offset": 19351,
+          "frame": 13,
+          "quantity": 1,
+          "slot": 0,
+          "variant": 1
+        }
+      ],
+      "file": "koppeltar-Sample3.wargamerpl2",
+      "game_version": "59638",
+      "mode_obj90_histogram": {
+        "1": 118,
+        "2": 130
+      },
+      "named_reference_occurrences": 367,
+      "null_reference_occurrences_by_bundle_index": {
+        "1": 133,
+        "2": 256
+      },
+      "opaque_change_production_commands": 28,
+      "per_recorded_slot": {
+        "0": {
+          "commands": 12,
+          "quantity_variants_1_3": 16,
+          "variant2_commands": 1
+        },
+        "1": {
+          "commands": 9,
+          "quantity_variants_1_3": 15,
+          "variant2_commands": 0
+        },
+        "10": {
+          "commands": 11,
+          "quantity_variants_1_3": 10,
+          "variant2_commands": 2
+        },
+        "11": {
+          "commands": 11,
+          "quantity_variants_1_3": 19,
+          "variant2_commands": 0
+        },
+        "12": {
+          "commands": 26,
+          "quantity_variants_1_3": 31,
+          "variant2_commands": 0
+        },
+        "13": {
+          "commands": 13,
+          "quantity_variants_1_3": 23,
+          "variant2_commands": 0
+        },
+        "14": {
+          "commands": 12,
+          "quantity_variants_1_3": 17,
+          "variant2_commands": 0
+        },
+        "15": {
+          "commands": 12,
+          "quantity_variants_1_3": 17,
+          "variant2_commands": 0
+        },
+        "16": {
+          "commands": 11,
+          "quantity_variants_1_3": 10,
+          "variant2_commands": 2
+        },
+        "17": {
+          "commands": 11,
+          "quantity_variants_1_3": 12,
+          "variant2_commands": 0
+        },
+        "18": {
+          "commands": 11,
+          "quantity_variants_1_3": 23,
+          "variant2_commands": 0
+        },
+        "19": {
+          "commands": 17,
+          "quantity_variants_1_3": 19,
+          "variant2_commands": 0
+        },
+        "2": {
+          "commands": 15,
+          "quantity_variants_1_3": 25,
+          "variant2_commands": 0
+        },
+        "3": {
+          "commands": 8,
+          "quantity_variants_1_3": 9,
+          "variant2_commands": 0
+        },
+        "4": {
+          "commands": 14,
+          "quantity_variants_1_3": 19,
+          "variant2_commands": 0
+        },
+        "5": {
+          "commands": 5,
+          "quantity_variants_1_3": 6,
+          "variant2_commands": 0
+        },
+        "6": {
+          "commands": 13,
+          "quantity_variants_1_3": 21,
+          "variant2_commands": 0
+        },
+        "7": {
+          "commands": 17,
+          "quantity_variants_1_3": 22,
+          "variant2_commands": 0
+        },
+        "8": {
+          "commands": 8,
+          "quantity_variants_1_3": 11,
+          "variant2_commands": 2
+        },
+        "9": {
+          "commands": 21,
+          "quantity_variants_1_3": 26,
+          "variant2_commands": 2
+        }
+      },
+      "production_commands": 257,
+      "production_type_mapping": {
+        "ambiguous": 0,
+        "missing": 8,
+        "unique": 185
+      },
+      "quantity_histogram_variants_1_3": {
+        "1": 181,
+        "2": 47,
+        "3": 10,
+        "4": 8,
+        "6": 1,
+        "8": 1
+      },
+      "quantity_sum_variants_1_3": 351,
+      "semantics": "matching59638",
+      "sha256": "ce6a60bb1f74c6ef6d6e2e779afbc6792208964dc94777dabf7c45cb98557da9",
+      "unique_localized_names": 181,
+      "unresolved_reference_occurrences": {
+        "missing": 15
+      },
+      "variants": {
+        "1": 118,
+        "2": 9,
+        "3": 130
+      },
+      "verification": {
+        "all_commands_and_bytes_retained": true,
+        "default_parser_matches_checkpoint": true,
+        "timeline_sha256": "e649e5eadb6a181dd6dcb3b6979c2c1e8c806d92eb8b14727a0b819e2985d40d",
+        "two_timeline_exports_identical": true
+      }
+    }
+  ],
+  "schema": "wgrd_production_coverage/1"
+}

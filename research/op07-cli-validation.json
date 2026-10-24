@@ -1,0 +1,29 @@
+{
+ "samples": [
+  {
+   "default_matches_starting_commit": true,
+   "events": 4162,
+   "sample": "koppeltar-Sample1.wargamerpl2",
+   "sample_unchanged": true,
+   "timeline_sha256": "f1fc2a695c705dd456c34c54704275a98e7e91940977c35fb36390ab8e6d7035",
+   "timeline_two_cli_runs_identical": true
+  },
+  {
+   "default_matches_starting_commit": true,
+   "events": 132,
+   "sample": "koppeltar-Sample2.wargamerpl2",
+   "sample_unchanged": true,
+   "timeline_sha256": "b858bb206acc6af00e11e8669fdbe7cb8e502420e48ada57ecf3835ca9cc8435",
+   "timeline_two_cli_runs_identical": true
+  },
+  {
+   "default_matches_starting_commit": true,
+   "events": 7271,
+   "sample": "koppeltar-Sample3.wargamerpl2",
+   "sample_unchanged": true,
+   "timeline_sha256": "c1275a2564aee195cfbc19f6fb5766928cb2a9944e0f9eaf27d1a761503382e3",
+   "timeline_two_cli_runs_identical": true
+  }
+ ],
+ "starting_commit": "902e1368e60dd9302b750e98cfb45564f15d5060"
+}

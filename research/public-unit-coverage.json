@@ -1,0 +1,93 @@
+{
+ "ndf_other_descriptor_rows": 2529,
+ "ndf_unit_rows": 2099,
+ "samples": [
+  {
+   "company_debug_references": 284,
+   "contextual_requests": 3318,
+   "direct_unit_card_names": [
+    "COMMANDOS PARA"
+   ],
+   "direct_unit_card_occurrences": {
+    "actor": 0,
+    "target": 1
+   },
+   "direct_unit_card_references": 1,
+   "exact_guid_matches": 285,
+   "game_version": "59638",
+   "ndf_classes": {
+    "TUniteAuSolDescriptor": 1,
+    "TUniteDescriptor": 284
+   },
+   "reference_mapping_status": "verified_build_59638",
+   "references": 285,
+   "resolved_effective_orders": 0,
+   "resolved_live_unit_identities": 0,
+   "runtime_key_equal_to_ndf_instance_id": 0,
+   "sample": "koppeltar-Sample1.wargamerpl2",
+   "sha256": "c5f8eff1298cf38c1d9967d29f98a22dfc869c150405630f9f695bb80a521df8",
+   "snapshot_version_matches_replay": false,
+   "toolbox_direct_guid_matches": 1
+  },
+  {
+   "company_debug_references": 41,
+   "contextual_requests": 55,
+   "direct_unit_card_names": [],
+   "direct_unit_card_occurrences": {
+    "actor": 0,
+    "target": 0
+   },
+   "direct_unit_card_references": 0,
+   "exact_guid_matches": 41,
+   "game_version": "510117427",
+   "ndf_classes": {
+    "TUniteDescriptor": 41
+   },
+   "reference_mapping_status": "inferred_build_59638",
+   "references": 41,
+   "resolved_effective_orders": 0,
+   "resolved_live_unit_identities": 0,
+   "runtime_key_equal_to_ndf_instance_id": 0,
+   "sample": "koppeltar-Sample2.wargamerpl2",
+   "sha256": "132a1a1bce9f214152beea9035055c45d6336527d830de266246526272eae48c",
+   "snapshot_version_matches_replay": false,
+   "toolbox_direct_guid_matches": 0
+  },
+  {
+   "company_debug_references": 397,
+   "contextual_requests": 5260,
+   "direct_unit_card_names": [
+    "BTR-90",
+    "COMMANDO-MARINE",
+    "PPK FAGOT"
+   ],
+   "direct_unit_card_occurrences": {
+    "actor": 0,
+    "target": 3
+   },
+   "direct_unit_card_references": 3,
+   "exact_guid_matches": 400,
+   "game_version": "59638",
+   "ndf_classes": {
+    "TUniteAuSolDescriptor": 3,
+    "TUniteDescriptor": 397
+   },
+   "reference_mapping_status": "verified_build_59638",
+   "references": 400,
+   "resolved_effective_orders": 0,
+   "resolved_live_unit_identities": 0,
+   "runtime_key_equal_to_ndf_instance_id": 0,
+   "sample": "koppeltar-Sample3.wargamerpl2",
+   "sha256": "ce6a60bb1f74c6ef6d6e2e779afbc6792208964dc94777dabf7c45cb98557da9",
+   "snapshot_version_matches_replay": false,
+   "toolbox_direct_guid_matches": 3
+  }
+ ],
+ "schema": "wgrd_public_unit_comparison/1",
+ "snapshot_version": "58710",
+ "toolbox_dataset_version": null,
+ "toolbox_rows": 2202,
+ "toolbox_shared_exact_other_descriptor_guids": 22,
+ "toolbox_shared_exact_unit_guids": 2075,
+ "verified_matching_version_unit_names": 0
+}

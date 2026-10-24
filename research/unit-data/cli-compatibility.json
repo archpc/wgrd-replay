@@ -1,0 +1,54 @@
+{
+  "baseline_commit": "02b4081",
+  "samples": [
+    {
+      "modes": {
+        "default": {
+          "byte_identical_to_02b4081": true,
+          "bytes": 5933386,
+          "sha256": "9f6de95384d1ec82ef83e5321ec4f8bdf30e9c3188a04576568d0bf50dfa8118"
+        },
+        "timeline": {
+          "byte_identical_to_02b4081": true,
+          "bytes": 16465214,
+          "sha256": "a648d9ab8d8f3dab734a09e7075df4db1a2ca8e711a062d784c807c691ddc240"
+        }
+      },
+      "sample": "koppeltar-Sample1.wargamerpl2",
+      "source_sha256": "c5f8eff1298cf38c1d9967d29f98a22dfc869c150405630f9f695bb80a521df8"
+    },
+    {
+      "modes": {
+        "default": {
+          "byte_identical_to_02b4081": true,
+          "bytes": 189260,
+          "sha256": "137bda7f5b9096533a9cc4b6761cea123c1a8277c5e6a14f46a0d62c24ab9738"
+        },
+        "timeline": {
+          "byte_identical_to_02b4081": true,
+          "bytes": 477022,
+          "sha256": "694db7fffc0959a878072d7a0dc531efbe873c13b419d75a4b716a10eab77b05"
+        }
+      },
+      "sample": "koppeltar-Sample2.wargamerpl2",
+      "source_sha256": "132a1a1bce9f214152beea9035055c45d6336527d830de266246526272eae48c"
+    },
+    {
+      "modes": {
+        "default": {
+          "byte_identical_to_02b4081": true,
+          "bytes": 10509719,
+          "sha256": "2e053e16e0b5a5f4aaa270a13d725a5e6de8bb075af391c0ada6fdbdd3622665"
+        },
+        "timeline": {
+          "byte_identical_to_02b4081": true,
+          "bytes": 29098985,
+          "sha256": "0835da01813ab9491e535da0a21f31f03a529560adf423c5e9d6b28e83408e1d"
+        }
+      },
+      "sample": "koppeltar-Sample3.wargamerpl2",
+      "source_sha256": "ce6a60bb1f74c6ef6d6e2e779afbc6792208964dc94777dabf7c45cb98557da9"
+    }
+  ],
+  "scope": "actual CLI stdout, full default JSON and plain timeline JSON; no summary omissions"
+}

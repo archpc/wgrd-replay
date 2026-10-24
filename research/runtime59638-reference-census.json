@@ -1,0 +1,248 @@
+{
+  "conclusion": "Single commanding slot is not a valid global ownership invariant. No physical-identity or ownership mapping assigned.",
+  "coverage": "decoded opcode07 actor/target arrays only; actor slot census uses actors only",
+  "samples": [
+    {
+      "actor_references": 274,
+      "actor_references_under_multiple_slots": 0,
+      "cross_slot_references": [],
+      "full20_references": 285,
+      "game_build": "59638",
+      "sample": "koppeltar-Sample1.wargamerpl2",
+      "sample_sha256": "c5f8eff1298cf38c1d9967d29f98a22dfc869c150405630f9f695bb80a521df8",
+      "validation_guids": 103
+    },
+    {
+      "actor_references": 23,
+      "actor_references_under_multiple_slots": 0,
+      "cross_slot_references": [],
+      "full20_references": 41,
+      "game_build": "510117427",
+      "sample": "koppeltar-Sample2.wargamerpl2",
+      "sample_sha256": "132a1a1bce9f214152beea9035055c45d6336527d830de266246526272eae48c",
+      "validation_guids": 29
+    },
+    {
+      "actor_references": 389,
+      "actor_references_under_multiple_slots": 30,
+      "cross_slot_references": [
+        {
+          "actor_slots": [
+            0,
+            2
+          ],
+          "reference_hex": "0f1a00c0000000000b0000000300000014040000"
+        },
+        {
+          "actor_slots": [
+            0,
+            8
+          ],
+          "reference_hex": "331a00c000000000000000000300000026050000"
+        },
+        {
+          "actor_slots": [
+            0,
+            7
+          ],
+          "reference_hex": "362200c00000000000000000030000009a060000"
+        },
+        {
+          "actor_slots": [
+            0,
+            8
+          ],
+          "reference_hex": "381a00c0000000000000000003000000f7070000"
+        },
+        {
+          "actor_slots": [
+            0,
+            8
+          ],
+          "reference_hex": "3f0600c000000000000000000300000009090000"
+        },
+        {
+          "actor_slots": [
+            0,
+            7
+          ],
+          "reference_hex": "400100c0000000000000000003000000a0050000"
+        },
+        {
+          "actor_slots": [
+            9,
+            15
+          ],
+          "reference_hex": "4e1400c0000000000000000003000000ff050000"
+        },
+        {
+          "actor_slots": [
+            0,
+            1
+          ],
+          "reference_hex": "520100c000000000000000000300000009040000"
+        },
+        {
+          "actor_slots": [
+            0,
+            8
+          ],
+          "reference_hex": "531a00c0000000000000000003000000f7070000"
+        },
+        {
+          "actor_slots": [
+            0,
+            7
+          ],
+          "reference_hex": "570700c000000000000000000300000038060000"
+        },
+        {
+          "actor_slots": [
+            0,
+            5
+          ],
+          "reference_hex": "5a0000c0000000000000000003000000bc070000"
+        },
+        {
+          "actor_slots": [
+            0,
+            5
+          ],
+          "reference_hex": "5c0000c000000000000000000300000037060000"
+        },
+        {
+          "actor_slots": [
+            0,
+            1
+          ],
+          "reference_hex": "600100c0000000000000000003000000f3040000"
+        },
+        {
+          "actor_slots": [
+            10,
+            19
+          ],
+          "reference_hex": "821f00c00000000007000000030000000d040000"
+        },
+        {
+          "actor_slots": [
+            0,
+            1
+          ],
+          "reference_hex": "840000c00000000000000000030000007c060000"
+        },
+        {
+          "actor_slots": [
+            0,
+            1
+          ],
+          "reference_hex": "8c0000c00000000000000000030000009f050000"
+        },
+        {
+          "actor_slots": [
+            7,
+            18
+          ],
+          "reference_hex": "970e00c0000000000000000003000000ea070000"
+        },
+        {
+          "actor_slots": [
+            0,
+            1
+          ],
+          "reference_hex": "9a0000c00000000000000000030000009f050000"
+        },
+        {
+          "actor_slots": [
+            0,
+            2
+          ],
+          "reference_hex": "9b0100c0000000000b000000030000000e040000"
+        },
+        {
+          "actor_slots": [
+            0,
+            8
+          ],
+          "reference_hex": "9e0500c000000000000000000300000009090000"
+        },
+        {
+          "actor_slots": [
+            0,
+            19
+          ],
+          "reference_hex": "9f1400c00000000000000000030000004f070000"
+        },
+        {
+          "actor_slots": [
+            0,
+            2
+          ],
+          "reference_hex": "bc0100c0000000000b0000000300000021040000"
+        },
+        {
+          "actor_slots": [
+            0,
+            7
+          ],
+          "reference_hex": "c51900c0000000000000000003000000f3040000"
+        },
+        {
+          "actor_slots": [
+            0,
+            2
+          ],
+          "reference_hex": "c70100c0000000000b0000000300000014040000"
+        },
+        {
+          "actor_slots": [
+            0,
+            1
+          ],
+          "reference_hex": "ce0000c000000000000000000300000002040000"
+        },
+        {
+          "actor_slots": [
+            0,
+            5
+          ],
+          "reference_hex": "dd0d00c000000000000000000300000021060000"
+        },
+        {
+          "actor_slots": [
+            0,
+            1
+          ],
+          "reference_hex": "eb0000c00000000000000000030000005c080000"
+        },
+        {
+          "actor_slots": [
+            0,
+            2
+          ],
+          "reference_hex": "f10c00c0000000000b0000000300000000040000"
+        },
+        {
+          "actor_slots": [
+            0,
+            7
+          ],
+          "reference_hex": "f10d00c0000000000000000003000000af060000"
+        },
+        {
+          "actor_slots": [
+            0,
+            7
+          ],
+          "reference_hex": "f30000c0000000000000000003000000af060000"
+        }
+      ],
+      "full20_references": 400,
+      "game_build": "59638",
+      "sample": "koppeltar-Sample3.wargamerpl2",
+      "sample_sha256": "ce6a60bb1f74c6ef6d6e2e779afbc6792208964dc94777dabf7c45cb98557da9",
+      "validation_guids": 181
+    }
+  ],
+  "schema": "wgrd_runtime_reference_census/1"
+}

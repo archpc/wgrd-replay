@@ -1,0 +1,141 @@
+{
+ "samples": [
+  {
+   "opcodes": {
+    "04": 8,
+    "07": 3794,
+    "08": 39,
+    "09": 5,
+    "0a": 16,
+    "0c": 13,
+    "0d": 233,
+    "0e": 8,
+    "13": 10,
+    "17": 17,
+    "18": 19
+   },
+   "sample": "koppeltar-Sample1.wargamerpl2",
+   "sha256": "c5f8eff1298cf38c1d9967d29f98a22dfc869c150405630f9f695bb80a521df8",
+   "stats": {
+    "container": {
+     "empty_pact": 72266,
+     "endt": 19033,
+     "frames": 19033,
+     "fully_decoded_multi_blocks": 285,
+     "fully_decoded_nonempty_blocks": 3596,
+     "fully_split_multi_blocks": 290,
+     "fully_split_nonempty_blocks": 3824,
+     "multi_command_blocks": 290,
+     "pact": 76132,
+     "slots_per_frame": 4,
+     "star": 19033,
+     "unknown_chunks": 0
+    },
+    "decode_status": {
+     "layout": 3887,
+     "opaque": 233,
+     "unknown": 42
+    },
+    "events": 4162,
+    "interpretations": {
+     "partial": 3318,
+     "unknown": 324,
+     "verified": 520
+    },
+    "unresolved_spans": 0
+   },
+   "version": "59638"
+  },
+  {
+   "opcodes": {
+    "02": 2,
+    "04": 4,
+    "07": 86,
+    "08": 2,
+    "09": 2,
+    "0c": 6,
+    "0d": 24,
+    "0e": 4,
+    "13": 2
+   },
+   "sample": "koppeltar-Sample2.wargamerpl2",
+   "sha256": "132a1a1bce9f214152beea9035055c45d6336527d830de266246526272eae48c",
+   "stats": {
+    "container": {
+     "empty_pact": 8899,
+     "endt": 4513,
+     "frames": 4513,
+     "fully_decoded_multi_blocks": 2,
+     "fully_decoded_nonempty_blocks": 94,
+     "fully_split_multi_blocks": 4,
+     "fully_split_nonempty_blocks": 117,
+     "multi_command_blocks": 4,
+     "pact": 9026,
+     "slots_per_frame": 2,
+     "star": 4513,
+     "unknown_chunks": 0
+    },
+    "decode_status": {
+     "layout": 98,
+     "opaque": 24,
+     "unknown": 10
+    },
+    "events": 132,
+    "interpretations": {
+     "inferred": 90,
+     "unknown": 42
+    },
+    "unresolved_spans": 0
+   },
+   "version": "510117427"
+  },
+  {
+   "opcodes": {
+    "02": 3,
+    "04": 40,
+    "07": 6581,
+    "08": 185,
+    "09": 24,
+    "0a": 64,
+    "0c": 28,
+    "0d": 257,
+    "0e": 20,
+    "13": 4,
+    "17": 40,
+    "18": 25
+   },
+   "sample": "koppeltar-Sample3.wargamerpl2",
+   "sha256": "ce6a60bb1f74c6ef6d6e2e779afbc6792208964dc94777dabf7c45cb98557da9",
+   "stats": {
+    "container": {
+     "empty_pact": 216351,
+     "endt": 11165,
+     "frames": 11165,
+     "fully_decoded_multi_blocks": 284,
+     "fully_decoded_nonempty_blocks": 6647,
+     "fully_split_multi_blocks": 300,
+     "fully_split_nonempty_blocks": 6889,
+     "multi_command_blocks": 300,
+     "pact": 223300,
+     "slots_per_frame": 20,
+     "star": 11165,
+     "unknown_chunks": 0
+    },
+    "decode_status": {
+     "layout": 6954,
+     "opaque": 257,
+     "unknown": 60
+    },
+    "events": 7271,
+    "interpretations": {
+     "partial": 5260,
+     "unknown": 481,
+     "verified": 1530
+    },
+    "unresolved_spans": 0
+   },
+   "version": "59638"
+  }
+ ],
+ "schema": "wgrd_timeline_census/1"
+}

@@ -1,0 +1,50 @@
+{
+ "samples": [
+  {
+   "ambiguous_lookup_key_count": 0,
+   "contextual_requests": 3318,
+   "game_version": "59638",
+   "layout_status": "matching_build_59638",
+   "lookup_key_count": 285,
+   "reference_count": 285,
+   "reference_occurrences": 4552,
+   "resolved_effective_orders": 0,
+   "resolved_unit_identities": 0,
+   "sample": "koppeltar-Sample1.wargamerpl2",
+   "sha256": "c5f8eff1298cf38c1d9967d29f98a22dfc869c150405630f9f695bb80a521df8",
+   "shared_validation_guid_count": 70,
+   "validation_guid_count": 103
+  },
+  {
+   "ambiguous_lookup_key_count": 0,
+   "contextual_requests": 55,
+   "game_version": "510117427",
+   "layout_status": "inferred_build_59638",
+   "lookup_key_count": 41,
+   "reference_count": 41,
+   "reference_occurrences": 136,
+   "resolved_effective_orders": 0,
+   "resolved_unit_identities": 0,
+   "sample": "koppeltar-Sample2.wargamerpl2",
+   "sha256": "132a1a1bce9f214152beea9035055c45d6336527d830de266246526272eae48c",
+   "shared_validation_guid_count": 9,
+   "validation_guid_count": 29
+  },
+  {
+   "ambiguous_lookup_key_count": 0,
+   "contextual_requests": 5260,
+   "game_version": "59638",
+   "layout_status": "matching_build_59638",
+   "lookup_key_count": 400,
+   "reference_count": 400,
+   "reference_occurrences": 8968,
+   "resolved_effective_orders": 0,
+   "resolved_unit_identities": 0,
+   "sample": "koppeltar-Sample3.wargamerpl2",
+   "sha256": "ce6a60bb1f74c6ef6d6e2e779afbc6792208964dc94777dabf7c45cb98557da9",
+   "shared_validation_guid_count": 79,
+   "validation_guid_count": 181
+  }
+ ],
+ "schema": "wgrd_entity_census/1"
+}

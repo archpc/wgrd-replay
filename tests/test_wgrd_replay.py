@@ -123,6 +123,184 @@ class RealSamples(unittest.TestCase):
         self.assertEqual(a1, a2)
 
 
+class CommandBlocks(unittest.TestCase):
+    op09 = b"\x09" + struct.pack("<I", 0xC0000020) + bytes(12) + struct.pack("<II", 50, 7)
+
+    def test_shared_cursor_and_op08_variable_string(self):
+        op08 = b"\x08" + bytes(36) + struct.pack("<H", 3) + b"abc"
+        result = w.decode_command_block(self.op09 + op08 + self.op09, 3, 2)
+        self.assertEqual(result["status"], "complete")
+        self.assertEqual(result["consumed_bytes"], 92)
+        self.assertEqual([c["offset"] for c in result["commands"]], [0, 25, 67])
+        self.assertEqual([c["length"] for c in result["commands"]], [25, 42, 25])
+        self.assertEqual(result["commands"][0]["fields"],
+                         {"obj_04_u32": 0xC0000020, "obj_08_hex": (bytes(12) + struct.pack("<I", 50)).hex(),
+                          "obj_18_u32": 7})
+        self.assertEqual(result["commands"][1]["fields"]["text"], "abc")
+
+    def test_authentic_op09_boundaries(self):
+        seen = 0
+        for name in EXPECTED:
+            b = load(name)
+            header, _ = w.parse_header(b)
+            for off, tag, payload in w.iter_chunks(b, header["payload_offset"]):
+                if tag != b"pact":
+                    continue
+                _, slot, count, length = struct.unpack_from("<IIIH", payload)
+                block = payload[14:]
+                if count != 1 or block[0] != 9:
+                    continue
+                result = w.decode_command_block(block, count, slot)
+                self.assertEqual(result["status"], "complete", (name, off))
+                self.assertEqual(result["consumed_bytes"], length)
+                self.assertEqual(length, 25)
+                seen += 1
+        self.assertEqual(seen, 31)
+
+    def test_truncated_fixed_fields_and_bad_string_lengths(self):
+        for n in range(25):
+            result = w.decode_command_block(self.op09[:n], 1, 2)
+            self.assertEqual(result["status"], "malformed", n)
+            self.assertEqual(result["commands"], [])
+        for text_length in (1, 65535):
+            block = b"\x08" + bytes(36) + struct.pack("<H", text_length)
+            self.assertEqual(w.decode_command_block(block, 1, 2)["status"], "malformed")
+
+    def test_count_and_trailing_byte_mismatches(self):
+        for block, count in ((self.op09, 2), (self.op09 + b"\x00", 1), (self.op09, 0)):
+            self.assertEqual(w.decode_command_block(block, count, 2)["status"], "malformed")
+        self.assertEqual(w.decode_command_block(b"", 0, 2)["status"], "complete")
+
+    def test_unknown_suffix_retains_prefix_without_resynchronizing(self):
+        block = self.op09 + b"\xff" + self.op09
+        result = w.decode_command_block(block, 3, 2)
+        self.assertEqual(result["status"], "unresolved")
+        self.assertEqual(len(result["commands"]), 1)
+        self.assertEqual(result["consumed_bytes"], 25)
+        self.assertEqual(result["remaining_hex"], block[25:].hex())
+
+    @staticmethod
+    def op07(first=1, second=0, enum=0, text=b""):
+        return (b"\x07" + struct.pack("<I", first) + bytes(20 * first)
+                + struct.pack("<I", second) + bytes(20 * second) + bytes(56)
+                + struct.pack("<IH", enum, len(text)) + text)
+
+    def test_op07_counted_sections_and_shared_cursor(self):
+        for first, second in ((0, 0), (1, 0), (4, 5), (5, 4)):
+            block = self.op07(first, second, 3, b"hello")
+            result = w.decode_command_block(block + self.op09, 2, 2)
+            self.assertEqual(result["status"], "complete")
+            self.assertEqual(result["commands"][0]["length"], 76 + 20 * (first + second))
+            fields = result["commands"][0]["fields"]
+            self.assertEqual(fields["obj_04_array"]["count_u32"], first)
+            self.assertEqual(fields["obj_60_array"]["count_u32"], second)
+            self.assertEqual(fields["obj_f8_string"]["bytes_hex"], b"hello".hex())
+
+    def test_op07_truncated_array_enum_and_string(self):
+        cases = [b"\x07" + struct.pack("<I", 0xFFFFFFFF), self.op07(enum=4),
+                 self.op07()[:-1], self.op07(text=b"hello")[:-1]]
+        for block in cases:
+            self.assertEqual(w.decode_command_block(block, 1, 2)["status"], "malformed")
+
+    def test_authentic_op07_boundaries(self):
+        seen = 0
+        for name in EXPECTED:
+            b = load(name)
+            header, _ = w.parse_header(b)
+            for off, tag, p in w.iter_chunks(b, header["payload_offset"]):
+                if tag != b"pact" or struct.unpack_from("<I", p, 8)[0] != 1 or p[14] != 7:
+                    continue
+                block = p[14:]
+                # Independent wire-length calculation from creator reads.
+                n1 = struct.unpack_from("<I", block, 1)[0]
+                n2 = struct.unpack_from("<I", block, 5 + 20 * n1)[0]
+                t = struct.unpack_from("<H", block, 69 + 20 * (n1 + n2))[0]
+                self.assertEqual(len(block), 71 + 20 * (n1 + n2) + t)
+                result = w.decode_command_block(block, 1, 0)
+                self.assertEqual(result["status"], "complete", (name, off))
+                self.assertEqual(result["consumed_bytes"], len(block))
+                seen += 1
+        self.assertGreater(seen, 9000)
+
+    def test_op04_and_op0a_fixed_reads(self):
+        op04 = b"\x04" + self.op09[1:]
+        op0a = b"\x0a" + bytes(20) + struct.pack("<II", 14, 123)
+        result = w.decode_command_block(op04 + op0a + self.op09, 3, 0)
+        self.assertEqual(result["status"], "complete")
+        self.assertEqual([c["length"] for c in result["commands"]], [25, 29, 25])
+        self.assertEqual(result["commands"][1]["fields"]["obj_1c_u32"], 123)
+        for cmd in (op04, op0a):
+            for n in range(len(cmd)):
+                self.assertEqual(w.decode_command_block(cmd[:n], 1, 0)["status"], "malformed")
+        invalid = b"\x0a" + bytes(20) + struct.pack("<II", 15, 123)
+        self.assertEqual(w.decode_command_block(invalid, 1, 0)["status"], "malformed")
+
+    def test_op17_array_and_trailing_byte(self):
+        for count in (0, 1, 5):
+            block = b"\x17" + struct.pack("<II", 99, count) + bytes(8 * count) + b"\xff"
+            result = w.decode_command_block(block + self.op09, 2, 0)
+            self.assertEqual(result["status"], "complete")
+            self.assertEqual(result["commands"][0]["length"], 10 + 8 * count)
+            self.assertEqual(result["commands"][0]["fields"]["obj_18_u8"], 255)
+            self.assertEqual(w.decode_command_block(block[:-1], 1, 0)["status"], "malformed")
+        bad = b"\x17" + struct.pack("<II", 0, 0xFFFFFFFF)
+        self.assertEqual(w.decode_command_block(bad, 1, 0)["status"], "malformed")
+
+    @staticmethod
+    def op0d(variant=1, payload=b"opaque", length=None):
+        return (b"\x0d" + struct.pack("<IIBII", variant, 32, 0, 32,
+                                       len(payload) if length is None else length) + payload)
+
+    def test_op0d_envelope_is_framed_and_explicitly_opaque(self):
+        for variant in (1, 2, 3):
+            block = self.op0d(variant)
+            result = w.decode_command_block(self.op09 + block + self.op09, 3, 0)
+            self.assertEqual(result["status"], "framed")
+            self.assertEqual(result["consumed_bytes"], 74)
+            command = result["commands"][1]
+            self.assertEqual(command["field_decode_status"], "opaque")
+            self.assertEqual(command["fields"]["serializer_payload_hex"], b"opaque".hex())
+            self.assertEqual(command["offset"], 25)
+            self.assertEqual(command["length"], 24)
+
+    def test_op0d_envelope_malformed_lengths_and_unknown_variants(self):
+        block = self.op0d()
+        for n in range(len(block)):
+            self.assertEqual(w.decode_command_block(block[:n], 1, 0)["status"], "malformed", n)
+        for variant in (0, 4, 0xFFFFFFFF):
+            self.assertEqual(w.decode_command_block(self.op0d(variant), 1, 0)["status"], "malformed")
+        for length in (0, 5, 7, 0xFFFFFFFF):
+            self.assertEqual(w.decode_command_block(self.op0d(length=length), 1, 0)["status"], "malformed")
+
+    def test_op0e_fixed_fields(self):
+        block = b"\x0e" + struct.pack("<II", 123, 456) + bytes(range(16))
+        result = w.decode_command_block(block + self.op09, 2, 0)
+        self.assertEqual(result["status"], "complete")
+        self.assertEqual(result["commands"][0]["fields"],
+                         {"obj_04_u32": 123, "obj_08_u32": 456,
+                          "obj_0c_hex": bytes(range(16)).hex()})
+        for n in range(len(block)):
+            self.assertEqual(w.decode_command_block(block[:n], 1, 0)["status"], "malformed")
+
+    def test_authentic_multi_blocks_reassemble_and_opaque_is_not_decoded(self):
+        expected = [(290, 285), (4, 2), (300, 284)]
+        for name, (total, decoded) in zip(EXPECTED, expected):
+            result = w.parse_replay(load(name))
+            self.assertEqual(result["stats"]["multi_command_blocks"], total)
+            self.assertEqual(result["stats"]["fully_split_multi_blocks"], total)
+            self.assertEqual(result["stats"]["fully_decoded_multi_blocks"], decoded)
+            for record in result["commands"]:
+                split = record["command_decode"]
+                if record["count"] <= 1:
+                    continue
+                self.assertIn(split["status"], ("complete", "framed"), (name, record["offset"]))
+                commands = split["commands"]
+                self.assertEqual(len(commands), record["count"])
+                self.assertEqual("".join(c["raw_hex"] for c in commands), record["block_hex"])
+                self.assertEqual(sum(c["length"] for c in commands), record["block_length"])
+                self.assertEqual(split["remaining_hex"], "")
+
+
 class Malformed(unittest.TestCase):
     def setUp(self):
         self.b = bytearray(load("koppeltar-Sample2.wargamerpl2"))

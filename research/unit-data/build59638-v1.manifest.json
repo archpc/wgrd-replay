@@ -1,0 +1,83 @@
+{
+  "canonical_json_sha256": "6bd4c4ffa9533259cee9b0e9aeb5d4ee9174d8c5cf7ba4b385adfbdbfc5c9a4f",
+  "canonical_json_size": 3829505,
+  "counts": {
+    "configured_unit_types": 2121,
+    "name_tokens": 2088,
+    "projected_nodes": 8872,
+    "source_descriptors": 4628,
+    "unit_types_with_unique_localized_name": 2121
+  },
+  "game_build": "59638",
+  "index_schema": "wgrd_unit_index/1",
+  "index_sha256": "e73c0826b59c4fc6ad5940bb437fae71a8bb9b2080e91e604e2de7a9f4e15a5a",
+  "index_size": 367448,
+  "localization": {
+    "archive_path": "Data/WarGame/PC/59095/59638/ZZ_Win.dat",
+    "archive_sha1": "743a93ec96fc3f90caab466cd9ebe60b8c7b24b2",
+    "archive_sha256": "d684e21667666c3285d3d52cbef96f729b4bceb1a99dafef9cf5a8157e0f5450",
+    "archive_size": 1875968,
+    "depot_id": "251062",
+    "dictionary_sha256": "b03474130ee873a7af793cba476a82c5582e6d7ce940414d8412dbb854deda16",
+    "format": "TRAD/raw8-token/u32-byte-offset/u32-UTF16-code-unit-count",
+    "format_source_manifest": "research/public-unit-sources.json",
+    "format_sources": [
+      "research/ndf59638-format-sources.json",
+      "https://github.com/fmdostoyevskiy/wgrd-toolbox/blob/69b0b662fd6aa799474432d2391e7ececcf8a44f/scripts/extract.py"
+    ],
+    "locale": "us",
+    "lookup": "exact_raw_token_bytes",
+    "manifest_id": "7569342467126442184",
+    "member": {
+      "md5": "131961df111e7caa602e3fbc809166cf",
+      "offset": 1728512,
+      "path": "pc\\localisation\\us\\localisation\\unites.dic",
+      "size": 146404
+    },
+    "overlay": "59638 member only; all exported tokens present; no older/newer dictionary merge"
+  },
+  "schema": "wgrd_unit_index_export/1",
+  "source": {
+    "bridge": "explicit CompanyUnit slot -> selector Default -> CompanyDescriptor; inverse retained as candidate arrays",
+    "direct": "TUniteAuSolDescriptor exact GUID only; no GUID edits or debug-name joins",
+    "ndf": {
+      "archive_entries": 2664,
+      "archive_sha1": "bfd6c3e8affaad83a08ccff3271f6e4a5447e590",
+      "archive_sha256": "97d7442eecff5d0f836d5caee4d01cdf93bd7fe262ff12fef75f59fbc84638c0",
+      "archive_size": 24199168,
+      "dictionary_md5_valid": true,
+      "dictionary_offset": 1037,
+      "dictionary_size": 184684,
+      "entry": {
+        "md5": "5b782ad5e6acd2d5af8e967609ae2ac4",
+        "md5_valid": true,
+        "offset": 843776,
+        "path": "pc\\ndf\\patchable\\gfx\\everything.ndfbin",
+        "sha256": "327361b98ddb5764eb535a573686a1c3788252d49a0c54202939d55f346a5468",
+        "size": 1505922
+      },
+      "expanded_declared_size_valid": true,
+      "expanded_sha256": "0f11779d9e5592f3fa6e46602d63f1a5022c913f823121d451a385b9c74a6f31",
+      "expanded_size": 20229318,
+      "source_header_hex": "4555473000000000434e444680000000e6ab3401000000002800000000000000c6ac3401000000009eac3401",
+      "zlib_eof_marker_present": false
+    },
+    "node_properties": "mapping and naming projection only; offsets absolute in authenticated expanded NDF",
+    "parsed_artifact_provenance": {
+      "expanded_sha256": "0f11779d9e5592f3fa6e46602d63f1a5022c913f823121d451a385b9c74a6f31",
+      "objects_sha256": "0c857e55be1750b8cc6348db943e970e33954b920ec52ce17f21b534edcc95a7",
+      "parser_path": "research/ndf59638_parse.py",
+      "parser_sha256": "72a4a59f44a88b5d789dd0d06141c63ba643924fa37edf7216b63ad2f6897aca",
+      "schema": "wgrd_ndf59638_source_artifacts/1",
+      "validation": "Existing parser rerun against authenticated expanded NDF; objects JSON byte-identical to bridge artifacts. Export requires these pinned hashes."
+    },
+    "parsed_objects_sha256": "0c857e55be1750b8cc6348db943e970e33954b920ec52ce17f21b534edcc95a7",
+    "research": [
+      "research/NDF59638-BRIDGE.md",
+      "research/ndf59638-extraction.json",
+      "research/ndf59638-bridge-coverage.json",
+      "research/ndf59638_parse.py",
+      "research/export_unit_index59638.py"
+    ]
+  }
+}

@@ -1,0 +1,15 @@
+{
+ "app": 251060,
+ "chunk_count": 26,
+ "compressed_chunk_bytes": 4790480,
+ "content_sha1": "bfd6c3e8affaad83a08ccff3271f6e4a5447e590",
+ "depot": 251062,
+ "file_cached": false,
+ "manifest": "7569342467126442184",
+ "manifest_creation_unix": 1725980694,
+ "manifest_sha256": "09747c171db5743e2ad8b5bcd52d0369ae2ff91f5856960ea56676e749c5510c",
+ "path": "Data/WarGame/PC/59638/NDF_Win.dat",
+ "schema_source": "https://github.com/SteamTracking/Protobufs/blob/master/steam/content_manifest.proto",
+ "size": 24199168,
+ "verification": "Cached manifest entry only; file bytes absent; signature not independently revalidated."
+}
