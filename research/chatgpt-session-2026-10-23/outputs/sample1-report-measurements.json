@@ -1,0 +1,166 @@
+{
+  "coverage": [
+    {
+      "commands": 324,
+      "percent": 7.7847,
+      "tier": "opaque_to_narrative"
+    },
+    {
+      "commands": 520,
+      "percent": 12.494,
+      "tier": "meaningful_request"
+    },
+    {
+      "commands": 3318,
+      "percent": 79.7213,
+      "tier": "partial"
+    }
+  ],
+  "descriptor_index_sha256": "e73c0826b59c4fc6ad5940bb437fae71a8bb9b2080e91e604e2de7a9f4e15a5a",
+  "distinct_configured_types": 102,
+  "events_with_verified_execution_outcome": 0,
+  "explicit_order_commands": 476,
+  "explicit_order_counts": {
+    "Land": 7,
+    "MergeCompany": 3,
+    "Move": 153,
+    "Reverse": 34,
+    "Shoot": 136,
+    "SplitCompany": 4,
+    "Stop": 56,
+    "UnloadFromTransport": 83
+  },
+  "game_build": "59638",
+  "limits": [
+    "Frames, not seconds. Slots, not identified players/teams/owners.",
+    "Configured static types, not accepted physical-unit identities or verified deployment.",
+    "Shoot requests are not shots/hits/kills; marker text is player assertion.",
+    "Positions are transmitted arguments in uncalibrated coordinates, not trajectories."
+  ],
+  "marker_messages": 12,
+  "marker_requests": 44,
+  "named_references": 285,
+  "opaque_breakdown": {
+    "layout": 49,
+    "opaque": 233,
+    "unknown": 42
+  },
+  "phases": [
+    {
+      "events": 264,
+      "first_frame": 0,
+      "frame_range": "0–1499",
+      "last_frame": 1499,
+      "meaningful_request": 51,
+      "opaque_to_narrative": 99,
+      "partial": 114
+    },
+    {
+      "events": 936,
+      "first_frame": 1500,
+      "frame_range": "1500–4999",
+      "last_frame": 4999,
+      "meaningful_request": 84,
+      "opaque_to_narrative": 49,
+      "partial": 803
+    },
+    {
+      "events": 1317,
+      "first_frame": 5000,
+      "frame_range": "5000–9999",
+      "last_frame": 9999,
+      "meaningful_request": 145,
+      "opaque_to_narrative": 68,
+      "partial": 1104
+    },
+    {
+      "events": 926,
+      "first_frame": 10000,
+      "frame_range": "10000–14999",
+      "last_frame": 14999,
+      "meaningful_request": 128,
+      "opaque_to_narrative": 58,
+      "partial": 740
+    },
+    {
+      "events": 719,
+      "first_frame": 15000,
+      "frame_range": "15000–19032",
+      "last_frame": 19032,
+      "meaningful_request": 112,
+      "opaque_to_narrative": 50,
+      "partial": 557
+    }
+  ],
+  "push_window": {
+    "actions": {
+      "Contextual39": 50,
+      "Move": 2,
+      "Reverse": 1,
+      "UnloadFromTransport": 1
+    },
+    "first_frame": 6321,
+    "last_frame": 6999,
+    "slot": 2,
+    "standard_orders": 54
+  },
+  "rubric": {
+    "meaningful_request": "Explicit order with named actor references, or verified marker action. Request-level readability only.",
+    "opaque_to_narrative": "No gameplay interpretation: separate known-layout, opaque-interior and unsupported-layout breakdown below.",
+    "partial": "Contextual39: configured actor/target labels known, effective verb/outcome unknown."
+  },
+  "sample_sha256": "c5f8eff1298cf38c1d9967d29f98a22dfc869c150405630f9f695bb80a521df8",
+  "schema": "wgrd_battle_report_measurements/1",
+  "selected_anchor_tiers": {
+    "meaningful_request": 39,
+    "opaque_to_narrative": 2,
+    "partial": 4
+  },
+  "selected_report_anchors": 45,
+  "selection_policy": "Hand-selected chronological examples, explicitly not an unbiased coverage sample. All4162 events used for coverage.",
+  "shoot_actor_occurrences_by_type": {
+    "AVIA 28": 4,
+    "ETENDARD IVM": 8,
+    "M110A2": 1,
+    "MARS": 10,
+    "MIG-29 9-12A": 9,
+    "NF-5A": 2,
+    "ONDAVA": 5,
+    "RAKH 91": 10,
+    "RM-70": 3,
+    "ShM vz.85 PRAM-S": 36,
+    "TORNADO IDS ": 4,
+    "VPM 120": 44
+  },
+  "slots": [
+    {
+      "contextual_orders": 1470,
+      "explicit_orders": 104,
+      "explicit_percent": 6.6074,
+      "slot": 0,
+      "standard_orders": 1574
+    },
+    {
+      "contextual_orders": 517,
+      "explicit_orders": 152,
+      "explicit_percent": 22.7205,
+      "slot": 1,
+      "standard_orders": 669
+    },
+    {
+      "contextual_orders": 435,
+      "explicit_orders": 81,
+      "explicit_percent": 15.6977,
+      "slot": 2,
+      "standard_orders": 516
+    },
+    {
+      "contextual_orders": 896,
+      "explicit_orders": 139,
+      "explicit_percent": 13.43,
+      "slot": 3,
+      "standard_orders": 1035
+    }
+  ],
+  "standard_orders": 3794
+}
