@@ -94,3 +94,9 @@ only when samples unavailable. Existing public58710 integration also retained.
 Full default and plain timeline CLI stdout compared byte-for-byte to02b4081 on
 all3 samples: research/unit-data/cli-compatibility.json. Review found input-object
 authentication and invalid-DEFLATE error gaps; both fixed with focused tests.
+
+User-created Sample1 export inspected directly and reproduced byte-for-byte:
+research/SAMPLE1-TIMELINE-VALIDATION.md and unit-data/sample1-timeline-validation.json.
+285/285 references localized; 102 configured types; 4162 events. Legacy generic
+limitations still say names unresolved; enrichment candidate records supersede
+that wording for configured static labels only. Runtime identity remains unknown.

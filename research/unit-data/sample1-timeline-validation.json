@@ -1,0 +1,119 @@
+{
+  "artifact": {
+    "bytes": 16917666,
+    "local_path": "/tmp/sample1.timeline.json",
+    "retention": "temporary export; not committed",
+    "schema": "wgrd_timeline/1",
+    "sha256": "c8cd1b668f889b404651be59a8dcde8d432a0e44b63a50bfe6ece79def7b51ef"
+  },
+  "fresh_export_byte_identical": true,
+  "implementation_commit": "f5e41cc6b0cc842187df9e400f044cbc95527417",
+  "index": {
+    "evidence_status": "matching_build_static_configuration",
+    "path": "research/unit-data/build59638-v1.json.gz",
+    "sha256": "e73c0826b59c4fc6ad5940bb437fae71a8bb9b2080e91e604e2de7a9f4e15a5a"
+  },
+  "known_wording_issue": "Legacy catalog/event limitations still describe descriptor names as unresolved. Configured-type names are now available in enrichment; accepted runtime identity and membership remain unresolved.",
+  "reference_mapping": {
+    "distinct_configured_types": 102,
+    "localized_references": 285,
+    "mapping_counts": {
+      "ambiguous": 0,
+      "missing": 0,
+      "unique": 285
+    },
+    "projected_provenance_nodes": 410,
+    "references": 285
+  },
+  "safeguards": {
+    "all_contextual39_effective_kinds_null": true,
+    "all_contextual39_fallback_reached_null": true,
+    "all_runtime_unit_identities_null": true,
+    "all_selector_conditions_unevaluated": true,
+    "frame_duration_seconds": null,
+    "player_slot_identity_status": "unresolved"
+  },
+  "schema": "wgrd_sample_timeline_validation/1",
+  "source": {
+    "digest_valid": true,
+    "game_build": "59638",
+    "map": "Destruction_2x3_Tohoku_Alt",
+    "sample": "koppeltar-Sample1.wargamerpl2",
+    "sha256": "c5f8eff1298cf38c1d9967d29f98a22dfc869c150405630f9f695bb80a521df8"
+  },
+  "standard_order_requests": [
+    {
+      "commands": 7,
+      "kind_u32": 1,
+      "name": "Land"
+    },
+    {
+      "commands": 153,
+      "kind_u32": 4,
+      "name": "Move"
+    },
+    {
+      "commands": 56,
+      "kind_u32": 10,
+      "name": "Stop"
+    },
+    {
+      "commands": 83,
+      "kind_u32": 14,
+      "name": "UnloadFromTransport"
+    },
+    {
+      "commands": 3,
+      "kind_u32": 15,
+      "name": "MergeCompany"
+    },
+    {
+      "commands": 136,
+      "kind_u32": 19,
+      "name": "Shoot"
+    },
+    {
+      "commands": 4,
+      "kind_u32": 20,
+      "name": "SplitCompany"
+    },
+    {
+      "commands": 34,
+      "kind_u32": 27,
+      "name": "Reverse"
+    },
+    {
+      "commands": 3318,
+      "kind_u32": 39,
+      "name": null
+    }
+  ],
+  "stats": {
+    "container": {
+      "empty_pact": 72266,
+      "endt": 19033,
+      "frames": 19033,
+      "fully_decoded_multi_blocks": 285,
+      "fully_decoded_nonempty_blocks": 3596,
+      "fully_split_multi_blocks": 290,
+      "fully_split_nonempty_blocks": 3824,
+      "multi_command_blocks": 290,
+      "pact": 76132,
+      "slots_per_frame": 4,
+      "star": 19033,
+      "unknown_chunks": 0
+    },
+    "decode_status": {
+      "layout": 3887,
+      "opaque": 233,
+      "unknown": 42
+    },
+    "events": 4162,
+    "interpretations": {
+      "partial": 3318,
+      "unknown": 324,
+      "verified": 520
+    },
+    "unresolved_spans": 0
+  }
+}
