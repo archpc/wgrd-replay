@@ -155,7 +155,7 @@ class AuthenticTimeline(unittest.TestCase):
         root = Path(__file__).resolve().parents[1]
         manifest = json.loads((root / "samples/manifest.json").read_text())
         samples = Path(os.environ.get("WGRD_SAMPLES_DIR", str(Path.home() / ".hermes/artifacts/wgrd-replay/samples/raw")))
-        expected = [(4162, 520, 3318, 233, 42), (132, 0, 0, 24, 10), (7271, 1530, 5260, 257, 60)]
+        expected = [(4162, 769, 3318, 233, 42), (132, 0, 0, 24, 10), (7271, 1851, 5260, 257, 60)]
         for sample, (count, verified, partial, opaque, unknown) in zip(manifest["samples"], expected):
             b = (samples / sample["file"]).read_bytes()
             self.assertEqual(hashlib.sha256(b).hexdigest(), sample["sha256"])
@@ -166,6 +166,12 @@ class AuthenticTimeline(unittest.TestCase):
             self.assertEqual(out["stats"]["interpretations"].get("partial", 0), partial)
             self.assertEqual(out["stats"]["decode_status"].get("opaque", 0), opaque)
             self.assertEqual(out["stats"]["decode_status"].get("unknown", 0), unknown)
+            production = [e for e in out['events'] if e['opcode'] == 0x0d]
+            self.assertEqual(len(production), opaque)
+            self.assertTrue(all(e['interpretation']['payload_layout_status'] == 'complete'
+                                for e in production))
+            self.assertTrue(all(e['interpretation']['execution_outcome'] == 'unknown'
+                                for e in production))
             self.assertEqual(out["unresolved_spans"], [])
             # Independent container walk: each declared command represented, each byte once.
             header, _ = w.parse_header(b)

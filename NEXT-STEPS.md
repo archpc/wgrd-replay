@@ -36,10 +36,18 @@ research/TIMELINE-SEMANTICS.md, timeline-coverage.json, timeline-cli-validation.
    identity/position unproven. Establish playback on a complete matching install
    before deeper world-loop analysis. Sample3 has30 actor references under
    multiple slots: commanding slot cannot be assumed to establish ownership.
-2. **Decode 0d serializer interiors.** Boundary is proven: 18+L from root
-   FUN_00b584e0 -> child FUN_00b580a0. Field bodies FUN_00c06ba0 (variant2) and
-   FUN_00c06c20 (1/3) use nested scopes, helper reads and runtime references.
-   Current output reports framed/opaque, not complete. 514 opaque commands total.
+2. **Production request milestone implemented in the optional timeline.** All514
+   observed 0d interiors decoded with exact consumption (490 matching59638,
+   24 Sample2 inferred). Three declared type references, grouped quantities,
+   deployment-point arguments and neutral controls recovered. Existing NDF index
+   supplies exact static names/candidates, with missing candidates kept explicit.
+   80 matching-build0a cancellation requests expose manager channel and queue
+   request ID; purchase correlation remains unresolved. Variant2 scalar roles,
+   0c ChangeProduction interiors and0b semantics remain open. Default parser and
+   first battle report unchanged. See research/PRODUCTION-COMMANDS.md,
+   production-coverage.json and production59638-native.json. User's next milestone:
+   once matching playback works, targeted world observation for positions, combat
+   and destruction. Parallels Windows guest proposed; playback not yet verified.
 3. **Remaining 112 single-command blocks:** 0c=47, 18=44, 13=16, 02=5.
    Recover exact creators/helpers before implementing; no more multi blocks
    are blocked by these opcodes in the authenticated sample set.

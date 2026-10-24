@@ -28,6 +28,16 @@ def _json_safe(value):
 
 
 def _interpretation(opcode, fields, matched):
+    if opcode in (0x0a, 0x0d):
+        from wgrd_production import decode_production_action
+        try:
+            production = decode_production_action(opcode, fields, None, matched)
+        except ReplayFormatError as error:
+            return {"status": "unknown", "action": None, "parameters": None,
+                    "evidence": [], "payload_layout_status": "malformed",
+                    "payload_layout_reason": str(error), "execution_outcome": "unknown"}
+        if production is not None:
+            return production
     result = {"status": "unknown", "action": None, "parameters": None, "evidence": []}
     if fields is None or opcode not in (0x07, 0x08, 0x09):
         return result
@@ -127,7 +137,10 @@ def build_timeline(parsed, unit_data=None):
                            "unresolved_boundary", span_id)
     from wgrd_entities import build_reference_catalog, contextual_fallback_rules
     reference_catalog = build_reference_catalog(events, parsed["sha256"], matched)
+    production_types = None
     if unit_data is not None:
+        from wgrd_production import enrich_production_types
+        production_types = enrich_production_types(events, unit_data, str(parsed["header"]["game_version"]))
         from wgrd_unit_data import enrich_references
         enrich_references(reference_catalog, unit_data, str(parsed["header"]["game_version"]))
     return _json_safe({
@@ -146,5 +159,6 @@ def build_timeline(parsed, unit_data=None):
                   "unresolved_spans": len(spans)},
         "events": events, "unresolved_spans": spans, "unknown_chunks": parsed["unknown_chunks"],
         "entity_references": reference_catalog,
+        "production_types": production_types,
         "contextual_order_rules": contextual_fallback_rules(),
     })
