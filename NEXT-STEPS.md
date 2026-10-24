@@ -1,7 +1,7 @@
 # NEXT-STEPS.md (prioritized)
 
 Milestone: **594/594 multi-command blocks split**, with exact count and EOF.
-571 complete layouts; 23 explicitly opaque-framed blocks. 71 tests pass.
+571 complete layouts; 23 explicitly opaque-framed blocks. 81 tests pass.
 See research/COMMAND-LAYOUTS.md, research/coverage.json and research/evidence/.
 
 Timeline milestone: `--timeline` retains all 11,565 authentic commands. 08/09
