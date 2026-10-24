@@ -5,6 +5,11 @@ SHA-256 1c7533eb5387a3e82db66595c782f23c20f5871250d6b6a24d630b9d074bda46, PE32 i
 compiled 2021-10-12, ImageBase 0x400000, PDB path WarGame.Final.Win32.pdb (PDB not loaded).
 Tools: REA 6.7.0 / Ghidra 12.1.4 (decompile), rizin (independent disassembly), Python (byte scans).
 
+Original-playback feasibility follow-up: research/RUNTIME59638-FEASIBILITY.md.
+Fresh REA/Rizin candidate c7e350 -> da4d20 returns a stored-vector pointer;
+not yet validated as an individual-unit position. No game execution. Runtime/
+asset prerequisites block local playback; tick/health/spawn/destruction untraced.
+
 Address conversion (VERIFIED from section table):
 - RVA = VA - 0x400000
 - .text:  file = VA - 0x401000 + 0x400

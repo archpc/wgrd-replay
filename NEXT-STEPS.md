@@ -29,6 +29,13 @@ research/TIMELINE-SEMANTICS.md, timeline-coverage.json, timeline-cli-validation.
    pursue simulation reconstruction; filters/reference history/request summaries
    can make existing facts useful. No GUID arithmetic, ownership inference,
    condition evaluation or effective-order claims from static type association.
+   Bounded original-playback feasibility now recorded in
+   research/RUNTIME59638-FEASIBILITY.md. Local ARM Mac lacks a checked compatible
+   execution environment and most candidate assets; no game execution attempted.
+   Stored-vector observation candidate da4d20 found, but individual-member
+   identity/position unproven. Establish playback on a complete matching install
+   before deeper world-loop analysis. Sample3 has30 actor references under
+   multiple slots: commanding slot cannot be assumed to establish ownership.
 2. **Decode 0d serializer interiors.** Boundary is proven: 18+L from root
    FUN_00b584e0 -> child FUN_00b580a0. Field bodies FUN_00c06ba0 (variant2) and
    FUN_00c06c20 (1/3) use nested scopes, helper reads and runtime references.

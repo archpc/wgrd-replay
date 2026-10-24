@@ -1,0 +1,401 @@
+{
+  "binary": {
+    "format": "PE32/i386; Windows GUI; original bytes only",
+    "path": "/Users/sein/.hermes/artifacts/wgrd-replay/game/win64/Data/PC/59638/WarGame3.exe",
+    "sha256": "1c7533eb5387a3e82db66595c782f23c20f5871250d6b6a24d630b9d074bda46",
+    "size": 30049312
+  },
+  "candidate_count": 58,
+  "candidate_logical_bytes": 11103890752,
+  "candidate_missing_from_game_tree": 56,
+  "checked_steamapps_exists": false,
+  "checked_steamapps_path": "/Users/sein/Library/Application Support/Steam/steamapps",
+  "downloads_or_installs_attempted": false,
+  "game_execution_attempted": false,
+  "host": {
+    "architecture": "arm64",
+    "os": "Darwin"
+  },
+  "limitations": [
+    "Candidate asset set is not a proven minimum or sufficient install; runtime file opens and patch selection not observed.",
+    "Full cached depot also contains later builds; whole-depot size is not a59638 minimum.",
+    "Localization archive exists separately in project work/; not staged into original game tree.",
+    "PATH/application-root checks do not exclude unindexed tools, external installs or remote Windows hosts."
+  ],
+  "manifest": {
+    "depot": 251062,
+    "files": 640,
+    "id": "7569342467126442184",
+    "logical_bytes": 22894585504,
+    "path": "/Users/sein/.hermes/artifacts/wgrd-replay/game/win64/.DepotDownloader/251062_7569342467126442184.manifest",
+    "sha256": "09747c171db5743e2ad8b5bcd52d0369ae2ff91f5856960ea56676e749c5510c",
+    "signature_revalidated": false
+  },
+  "matching_app_names_in_checked_roots": [],
+  "runtime_tools_on_path": {
+    "VBoxManage": null,
+    "lldb": "/usr/bin/lldb",
+    "prlctl": null,
+    "qemu-system-x86_64": null,
+    "rizin": "/opt/homebrew/bin/rizin",
+    "vmrun": null,
+    "wine": null,
+    "wine32": null,
+    "wine64": null
+  },
+  "sample1_asset_candidates": [
+    {
+      "content_sha1": "f2873c15a48a47ba4b7522535b3c5bf666e3a131",
+      "content_sha1_matches": true,
+      "local_size": 30049312,
+      "path": "Data/PC/59638/WarGame3.exe",
+      "present_in_game_tree": true,
+      "size": 30049312
+    },
+    {
+      "content_sha1": "442d13718a999a20dc490777b8917f52f8d44590",
+      "path": "Data/PC/59638/atimgpud.dll",
+      "present_in_game_tree": false,
+      "size": 159744
+    },
+    {
+      "content_sha1": "4ee43374520904fa6d80c12c273d67eb7b5c984e",
+      "path": "Data/PC/59638/steam_api.dll",
+      "present_in_game_tree": false,
+      "size": 219424
+    },
+    {
+      "content_sha1": "c3f023567939039a1ffe819a8a9b9436c7737e1e",
+      "path": "Data/WarGame/PC/48574/49125/Data.dat",
+      "present_in_game_tree": false,
+      "size": 8192
+    },
+    {
+      "content_sha1": "c3f023567939039a1ffe819a8a9b9436c7737e1e",
+      "path": "Data/WarGame/PC/48574/49125/DataMap.dat",
+      "present_in_game_tree": false,
+      "size": 8192
+    },
+    {
+      "content_sha1": "f862f60554a3d34c1c48f66195c2351f8c91c99f",
+      "path": "Data/WarGame/PC/48574/49125/ZZ_1.dat",
+      "present_in_game_tree": false,
+      "size": 10756096
+    },
+    {
+      "content_sha1": "c3f023567939039a1ffe819a8a9b9436c7737e1e",
+      "path": "Data/WarGame/PC/48574/49125/ZZ_2.dat",
+      "present_in_game_tree": false,
+      "size": 8192
+    },
+    {
+      "content_sha1": "c3f023567939039a1ffe819a8a9b9436c7737e1e",
+      "path": "Data/WarGame/PC/48574/49125/ZZ_3a.dat",
+      "present_in_game_tree": false,
+      "size": 8192
+    },
+    {
+      "content_sha1": "c3f023567939039a1ffe819a8a9b9436c7737e1e",
+      "path": "Data/WarGame/PC/48574/49125/ZZ_3b.dat",
+      "present_in_game_tree": false,
+      "size": 8192
+    },
+    {
+      "content_sha1": "c3f023567939039a1ffe819a8a9b9436c7737e1e",
+      "path": "Data/WarGame/PC/48574/49125/ZZ_4.dat",
+      "present_in_game_tree": false,
+      "size": 8192
+    },
+    {
+      "content_sha1": "c3f023567939039a1ffe819a8a9b9436c7737e1e",
+      "path": "Data/WarGame/PC/48574/49125/ZZ_Win.dat",
+      "present_in_game_tree": false,
+      "size": 8192
+    },
+    {
+      "content_sha1": "c3f023567939039a1ffe819a8a9b9436c7737e1e",
+      "path": "Data/WarGame/PC/48574/49125/_2x3_Tohoku_v11.dat",
+      "present_in_game_tree": false,
+      "size": 8192
+    },
+    {
+      "content_sha1": "7e893f7182440a8ff2a40c7dee1f1456b82507c5",
+      "path": "Data/WarGame/PC/48574/Data.dat",
+      "present_in_game_tree": false,
+      "size": 1090150400
+    },
+    {
+      "content_sha1": "1996a5fde529ff5dd1a2714340da17d61d8ece08",
+      "path": "Data/WarGame/PC/48574/DataMap.dat",
+      "present_in_game_tree": false,
+      "size": 89399296
+    },
+    {
+      "content_sha1": "818b7f717375a9a4664c215f2457781bbefd40a5",
+      "path": "Data/WarGame/PC/48574/ZZ_1.dat",
+      "present_in_game_tree": false,
+      "size": 707559424
+    },
+    {
+      "content_sha1": "a531b85c4248c7fe63dafbd77f91a9827b8d79dd",
+      "path": "Data/WarGame/PC/48574/ZZ_2.dat",
+      "present_in_game_tree": false,
+      "size": 587022336
+    },
+    {
+      "content_sha1": "5fcfe978a41fc8f86c7974e190af3298bd1111a6",
+      "path": "Data/WarGame/PC/48574/ZZ_3a.dat",
+      "present_in_game_tree": false,
+      "size": 4165189632
+    },
+    {
+      "content_sha1": "246b29f4cd1d031b99aa4255128c30815ea575ca",
+      "path": "Data/WarGame/PC/48574/ZZ_3b.dat",
+      "present_in_game_tree": false,
+      "size": 3068952576
+    },
+    {
+      "content_sha1": "19f9e5c9c37fa02cc236fdbaeb3bb6047b46859f",
+      "path": "Data/WarGame/PC/48574/ZZ_4.dat",
+      "present_in_game_tree": false,
+      "size": 306790400
+    },
+    {
+      "content_sha1": "e561db2ad91f35b62e10c0e496c59ac22410c8a9",
+      "path": "Data/WarGame/PC/48574/ZZ_Win.dat",
+      "present_in_game_tree": false,
+      "size": 65724416
+    },
+    {
+      "content_sha1": "c3f023567939039a1ffe819a8a9b9436c7737e1e",
+      "path": "Data/WarGame/PC/49125/49964/Data.dat",
+      "present_in_game_tree": false,
+      "size": 8192
+    },
+    {
+      "content_sha1": "c3f023567939039a1ffe819a8a9b9436c7737e1e",
+      "path": "Data/WarGame/PC/49125/49964/DataMap.dat",
+      "present_in_game_tree": false,
+      "size": 8192
+    },
+    {
+      "content_sha1": "1857e7592565049c33852ec532f97ed93d249b7f",
+      "path": "Data/WarGame/PC/49125/49964/ZZ_1.dat",
+      "present_in_game_tree": false,
+      "size": 10772480
+    },
+    {
+      "content_sha1": "c3f023567939039a1ffe819a8a9b9436c7737e1e",
+      "path": "Data/WarGame/PC/49125/49964/ZZ_2.dat",
+      "present_in_game_tree": false,
+      "size": 8192
+    },
+    {
+      "content_sha1": "c3f023567939039a1ffe819a8a9b9436c7737e1e",
+      "path": "Data/WarGame/PC/49125/49964/ZZ_3a.dat",
+      "present_in_game_tree": false,
+      "size": 8192
+    },
+    {
+      "content_sha1": "c3f023567939039a1ffe819a8a9b9436c7737e1e",
+      "path": "Data/WarGame/PC/49125/49964/ZZ_3b.dat",
+      "present_in_game_tree": false,
+      "size": 8192
+    },
+    {
+      "content_sha1": "c3f023567939039a1ffe819a8a9b9436c7737e1e",
+      "path": "Data/WarGame/PC/49125/49964/ZZ_4.dat",
+      "present_in_game_tree": false,
+      "size": 8192
+    },
+    {
+      "content_sha1": "c3f023567939039a1ffe819a8a9b9436c7737e1e",
+      "path": "Data/WarGame/PC/49125/49964/ZZ_Win.dat",
+      "present_in_game_tree": false,
+      "size": 8192
+    },
+    {
+      "content_sha1": "c3f023567939039a1ffe819a8a9b9436c7737e1e",
+      "path": "Data/WarGame/PC/49125/49964/_2x3_Tohoku_v11.dat",
+      "present_in_game_tree": false,
+      "size": 8192
+    },
+    {
+      "content_sha1": "c3f023567939039a1ffe819a8a9b9436c7737e1e",
+      "path": "Data/WarGame/PC/49964/58710/Data.dat",
+      "present_in_game_tree": false,
+      "size": 8192
+    },
+    {
+      "content_sha1": "3f4bbafda5cb20023c667af1ad99771e9325d16e",
+      "path": "Data/WarGame/PC/49964/58710/DataMap.dat",
+      "present_in_game_tree": false,
+      "size": 696320
+    },
+    {
+      "content_sha1": "f9faa063442d137665d0ccde6ab50b674c94a8e0",
+      "path": "Data/WarGame/PC/49964/58710/ZZ_1.dat",
+      "present_in_game_tree": false,
+      "size": 229605376
+    },
+    {
+      "content_sha1": "1abafd506b1cb5afbc7f155ccc7e8ca365168e27",
+      "path": "Data/WarGame/PC/49964/58710/ZZ_2.dat",
+      "present_in_game_tree": false,
+      "size": 663552
+    },
+    {
+      "content_sha1": "51d1ccae7ec2a84102959da7a8e575ba7e169e32",
+      "path": "Data/WarGame/PC/49964/58710/ZZ_3a.dat",
+      "present_in_game_tree": false,
+      "size": 13934592
+    },
+    {
+      "content_sha1": "2c4bba48a426f9e9194dfde49353696649ac0791",
+      "path": "Data/WarGame/PC/49964/58710/ZZ_3b.dat",
+      "present_in_game_tree": false,
+      "size": 340688896
+    },
+    {
+      "content_sha1": "f153453c87b41027b265831fca9b1a9a21e20ce6",
+      "path": "Data/WarGame/PC/49964/58710/ZZ_4.dat",
+      "present_in_game_tree": false,
+      "size": 165019648
+    },
+    {
+      "content_sha1": "67f3057720dcff5ae2a3acf6b32cd56f06acff56",
+      "path": "Data/WarGame/PC/49964/58710/ZZ_Win.dat",
+      "present_in_game_tree": false,
+      "size": 22650880
+    },
+    {
+      "content_sha1": "c3f023567939039a1ffe819a8a9b9436c7737e1e",
+      "path": "Data/WarGame/PC/49964/58710/_2x3_Tohoku_v11.dat",
+      "present_in_game_tree": false,
+      "size": 8192
+    },
+    {
+      "content_sha1": "c3f023567939039a1ffe819a8a9b9436c7737e1e",
+      "path": "Data/WarGame/PC/58710/59095/Data.dat",
+      "present_in_game_tree": false,
+      "size": 8192
+    },
+    {
+      "content_sha1": "c3f023567939039a1ffe819a8a9b9436c7737e1e",
+      "path": "Data/WarGame/PC/58710/59095/DataMap.dat",
+      "present_in_game_tree": false,
+      "size": 8192
+    },
+    {
+      "content_sha1": "1e4ac0ae62e700953842315cad44cdd70f60348c",
+      "path": "Data/WarGame/PC/58710/59095/ZZ_1.dat",
+      "present_in_game_tree": false,
+      "size": 5357568
+    },
+    {
+      "content_sha1": "c3f023567939039a1ffe819a8a9b9436c7737e1e",
+      "path": "Data/WarGame/PC/58710/59095/ZZ_2.dat",
+      "present_in_game_tree": false,
+      "size": 8192
+    },
+    {
+      "content_sha1": "c3f023567939039a1ffe819a8a9b9436c7737e1e",
+      "path": "Data/WarGame/PC/58710/59095/ZZ_3a.dat",
+      "present_in_game_tree": false,
+      "size": 8192
+    },
+    {
+      "content_sha1": "c3f023567939039a1ffe819a8a9b9436c7737e1e",
+      "path": "Data/WarGame/PC/58710/59095/ZZ_3b.dat",
+      "present_in_game_tree": false,
+      "size": 8192
+    },
+    {
+      "content_sha1": "c3f023567939039a1ffe819a8a9b9436c7737e1e",
+      "path": "Data/WarGame/PC/58710/59095/ZZ_4.dat",
+      "present_in_game_tree": false,
+      "size": 8192
+    },
+    {
+      "content_sha1": "c3f023567939039a1ffe819a8a9b9436c7737e1e",
+      "path": "Data/WarGame/PC/58710/59095/ZZ_Win.dat",
+      "present_in_game_tree": false,
+      "size": 8192
+    },
+    {
+      "content_sha1": "c3f023567939039a1ffe819a8a9b9436c7737e1e",
+      "path": "Data/WarGame/PC/58710/59095/_2x3_Tohoku_v11.dat",
+      "present_in_game_tree": false,
+      "size": 8192
+    },
+    {
+      "content_sha1": "c3f023567939039a1ffe819a8a9b9436c7737e1e",
+      "path": "Data/WarGame/PC/59095/59638/Data.dat",
+      "present_in_game_tree": false,
+      "size": 8192
+    },
+    {
+      "content_sha1": "c3f023567939039a1ffe819a8a9b9436c7737e1e",
+      "path": "Data/WarGame/PC/59095/59638/DataMap.dat",
+      "present_in_game_tree": false,
+      "size": 8192
+    },
+    {
+      "content_sha1": "c2a3eef51c65279a2255f6536fbb08bfc1d62693",
+      "path": "Data/WarGame/PC/59095/59638/ZZ_1.dat",
+      "present_in_game_tree": false,
+      "size": 311296
+    },
+    {
+      "content_sha1": "c3f023567939039a1ffe819a8a9b9436c7737e1e",
+      "path": "Data/WarGame/PC/59095/59638/ZZ_2.dat",
+      "present_in_game_tree": false,
+      "size": 8192
+    },
+    {
+      "content_sha1": "c3f023567939039a1ffe819a8a9b9436c7737e1e",
+      "path": "Data/WarGame/PC/59095/59638/ZZ_3a.dat",
+      "present_in_game_tree": false,
+      "size": 8192
+    },
+    {
+      "content_sha1": "c3f023567939039a1ffe819a8a9b9436c7737e1e",
+      "path": "Data/WarGame/PC/59095/59638/ZZ_3b.dat",
+      "present_in_game_tree": false,
+      "size": 8192
+    },
+    {
+      "content_sha1": "c3f023567939039a1ffe819a8a9b9436c7737e1e",
+      "path": "Data/WarGame/PC/59095/59638/ZZ_4.dat",
+      "present_in_game_tree": false,
+      "size": 8192
+    },
+    {
+      "content_sha1": "743a93ec96fc3f90caab466cd9ebe60b8c7b24b2",
+      "path": "Data/WarGame/PC/59095/59638/ZZ_Win.dat",
+      "present_in_game_tree": false,
+      "size": 1875968
+    },
+    {
+      "content_sha1": "c3f023567939039a1ffe819a8a9b9436c7737e1e",
+      "path": "Data/WarGame/PC/59095/59638/_2x3_Tohoku_v11.dat",
+      "present_in_game_tree": false,
+      "size": 8192
+    },
+    {
+      "content_sha1": "bfd6c3e8affaad83a08ccff3271f6e4a5447e590",
+      "content_sha1_matches": true,
+      "local_size": 24199168,
+      "path": "Data/WarGame/PC/59638/NDF_Win.dat",
+      "present_in_game_tree": true,
+      "size": 24199168
+    },
+    {
+      "content_sha1": "0b83f25997187d5c1deaae85d793f09d16483aa8",
+      "path": "Maps/WarGame/PC/_2x3_Tohoku_v11.dat",
+      "present_in_game_tree": false,
+      "size": 165871616
+    }
+  ],
+  "schema": "wgrd_runtime59638_prerequisites/1"
+}
