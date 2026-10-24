@@ -243,3 +243,23 @@ bfd6c3e8affaad83a08ccff3271f6e4a5447e590. NDF not cached. Values extraction
 blocked by missing original file, not proven transient-only reconstruction.
 See research/COMPANY-BRIDGE.md and matching-ndf-target.json; canonical
 REA ev_5a0ebdad / ev_c4c3078f / ev_01688e53. No decoder change or test rerun.
+
+## Matching original NDF values recovered (2026-10-23)
+
+Original59638 NDF_Win.dat verified:24,199,168 bytes, manifest SHA1
+bfd6c3e8affaad83a08ccff3271f6e4a5447e590; independent SHA25697d7442eecff5d0f836d5caee4d01cdf93bd7fe262ff12fef75f59fbc84638c0.
+EDAT dictionary and everything.ndfbin entry MD5s pass. Read-only extraction,
+expanded lengths/footer spans/120516-object count checked;367499 non-null
+object refs match exact class IDs. No separator scanning/resynchronization.
+
+Actual values:2121 CompanyUnit selector Default -> CompanyDescriptor paths,
+all distinct inverse company GUIDs with one configured unit candidate. All685
+matching-build replay references resolve (681 company paths +4 direct unit GUIDs).
+Sample2's41 remain inferred. All selectors include an unevaluated shared filter:
+ParamEquals_Integer ParamId11,ParamValue1. No claim that module is active.
+Source debug names available; localized display-name dictionary absent.
+
+Current REA ev_c71bc22a reconfirms typed CompanyDescriptor property; ev_1de49c5f
+and ev_5c5c9e64 capture expanded NDF bytes/header/illustrative link endpoints.
+Full durable result research/NDF59638-BRIDGE.md, extraction/coverage JSON and
+research-only reproduction scripts. Decoder untouched; no simulation behavior.

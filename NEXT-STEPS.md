@@ -10,27 +10,21 @@ partial. Sample2 semantics inferred only (different build). Default CLI output
 matches starting commit byte-for-byte on all samples. See
 research/TIMELINE-SEMANTICS.md, timeline-coverage.json, timeline-cli-validation.json.
 
-1. **One matching-NDF extraction pass; keep static identity separate from live orders.** Requested-kind
-   classifier now covers1797 matched-build explicit orders.8578 contextual39
-   requests require runtime actor/module/target state to recover effective kinds.
-   Timeline now catalogs726 replay-scoped full references (685 matched,41 inferred),
-   linking13656 occurrences; unit names unresolved. c9a140 fallback conditions
-   recovered, not evaluated without registry/module/member state and earlier-path
-   results. Do not merge shared GUIDs or use slot provenance as ownership.
-   See research/ENTITY-CONTEXT.md and entity-coverage.json. Next useful dependency:
-   descriptor/state data (possibly opaque0d), before effective-order classification.
-   Public dataset follow-up: all726 GUIDs match58710 static descriptors,722 company
-   and4 individual. Optional --timeline --unit-data adds cross-version debug
-   names/module references/direct card attributes. Matching executable now proves
-   a static reverse bridge: unit.CompanyUnit selector -> TCompanyUnitModuleDescriptor
-   .CompanyDescriptor -> company descriptor. PorteurDescriptor is graphics, not
-   the member-unit link. Original59638 NDF bytes absent; exact Steam file entry,
-   expected size/SHA1 pinned in research/matching-ndf-target.json. Need actual
-   values and inverse-link cardinality before assigning company unit types.
-   See research/COMPANY-BRIDGE.md. If the file remains unavailable, park static
-   names and improve timeline navigation/history; no simulation reconstruction.
-   Runtime membership/flags/state still block effective39; a static type link
-   will not resolve those outcomes. No GUID-word substitution.
+1. **Matching-NDF static bridge recovered; useful timeline analysis next.** Original
+   59638 archive size/SHA1 verified; everything.ndfbin extracted read-only.
+   2121 explicit CompanyUnit -> selector Default -> CompanyDescriptor paths;
+   all inverse cardinalities1, no observed ambiguity. All685 matching-build
+   references have configured static unit types/source debug names; Sample2's41
+   stay inferred. Conditions retained unevaluated; no live member identities.
+   Research artifacts: research/NDF59638-BRIDGE.md and ndf59638-bridge-coverage.json.
+   Decoder intentionally unchanged for this request. A later scoped change can
+   consume the static index with provenance and ambiguous-candidate preservation.
+   Matching localization data still needed for exact UI labels.
+   Timeline currently retains1797 explicit requested kinds and8578 contextual39
+   requests requiring live flags/module state and earlier path results. Do not
+   pursue simulation reconstruction; filters/reference history/request summaries
+   can make existing facts useful. No GUID arithmetic, ownership inference,
+   condition evaluation or effective-order claims from static type association.
 2. **Decode 0d serializer interiors.** Boundary is proven: 18+L from root
    FUN_00b584e0 -> child FUN_00b580a0. Field bodies FUN_00c06ba0 (variant2) and
    FUN_00c06c20 (1/3) use nested scopes, helper reads and runtime references.

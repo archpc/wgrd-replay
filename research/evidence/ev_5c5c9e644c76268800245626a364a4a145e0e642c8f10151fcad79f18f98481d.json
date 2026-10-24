@@ -1,0 +1,69 @@
+{
+  "evidence_id": "ev_5c5c9e644c76268800245626a364a4a145e0e642c8f10151fcad79f18f98481d",
+  "subject": {
+    "name": "everything.expanded.ndfbin",
+    "digest": {
+      "sha256": "0f11779d9e5592f3fa6e46602d63f1a5022c913f823121d451a385b9c74a6f31"
+    },
+    "local_path": "/Users/sein/Code/wgrd-replay/work/ndf59638/everything.expanded.ndfbin",
+    "format": "unknown",
+    "architecture": null
+  },
+  "provider": {
+    "id": "rizin",
+    "name": "Rizin",
+    "version": null
+  },
+  "analysis_profile": null,
+  "predicate_type": "rea.reverse-engineering.command-observation",
+  "operation": "execute_rizin_command",
+  "parameters": {
+    "path": "/Users/sein/Code/wgrd-replay/work/ndf59638/everything.expanded.ndfbin",
+    "command": "e scr.color=0; px 0x40 @ 4607454; px 0x28 @ 6110734; px 0x24 @ 8734936",
+    "provider_executable": "/opt/homebrew/bin/rizin",
+    "command_arguments": [
+      "-N",
+      "-q",
+      "-c",
+      "e scr.color=0; px 0x40 @ 4607454; px 0x28 @ 6110734; px 0x24 @ 8734936",
+      "/Users/sein/Code/wgrd-replay/work/ndf59638/everything.expanded.ndfbin"
+    ]
+  },
+  "raw_result": {
+    "stdout": "- offset -   0 1  2 3  4 5  6 7  8 9  A B  C D  E F  0123456789ABCDEF\n0x00464dde  5300 0000 ec01 0000 0700 0000 ac26 0000  S............&..\n0x00464dee  ed01 0000 1100 0000 0100 0000 0900 0000  ................\n0x00464dfe  bbbb bbbb e37f 0000 5f00 0000 ee01 0000  ........_.......\n0x00464e0e  0900 0000 bbbb bbbb b3a3 0000 6500 0000  ............e...\n- offset -   0 1  2 3  4 5  6 7  8 9  A B  C D  E F  0123456789ABCDEF\n0x005d3e0e  6500 0000 5002 0000 0700 0000 ac26 0000  e...P........&..\n0x005d3e1e  5102 0000 0900 0000 bbbb bbbb d0cf 0000  Q...............\n0x005d3e2e  5200 0000 abab abab                      R.......\n- offset -   0 1  2 3  4 5  6 7  8 9  A B  C D  E F  0123456789ABCDEF\n0x008548d8  5200 0000 d801 0000 1a00 0000 0000 0000  R...............\n0x008548e8  0000 0000 0300 0000 5f08 0000 d901 0000  ........_.......\n0x008548f8  1100 0000                                ....\n",
+    "stderr": "",
+    "exit_code": 0,
+    "signal": null,
+    "output_truncated": false,
+    "completion_status": "complete",
+    "artifact_sha256_after": "0f11779d9e5592f3fa6e46602d63f1a5022c913f823121d451a385b9c74a6f31",
+    "artifact_changed": false
+  },
+  "normalized_result": {
+    "stdout": "- offset -   0 1  2 3  4 5  6 7  8 9  A B  C D  E F  0123456789ABCDEF\n0x00464dde  5300 0000 ec01 0000 0700 0000 ac26 0000  S............&..\n0x00464dee  ed01 0000 1100 0000 0100 0000 0900 0000  ................\n0x00464dfe  bbbb bbbb e37f 0000 5f00 0000 ee01 0000  ........_.......\n0x00464e0e  0900 0000 bbbb bbbb b3a3 0000 6500 0000  ............e...\n- offset -   0 1  2 3  4 5  6 7  8 9  A B  C D  E F  0123456789ABCDEF\n0x005d3e0e  6500 0000 5002 0000 0700 0000 ac26 0000  e...P........&..\n0x005d3e1e  5102 0000 0900 0000 bbbb bbbb d0cf 0000  Q...............\n0x005d3e2e  5200 0000 abab abab                      R.......\n- offset -   0 1  2 3  4 5  6 7  8 9  A B  C D  E F  0123456789ABCDEF\n0x008548d8  5200 0000 d801 0000 1a00 0000 0000 0000  R...............\n0x008548e8  0000 0000 0300 0000 5f08 0000 d901 0000  ........_.......\n0x008548f8  1100 0000                                ....\n",
+    "stderr": "",
+    "exit_code": 0,
+    "signal": null,
+    "output_truncated": false,
+    "completion_status": "complete",
+    "artifact_sha256_after": "0f11779d9e5592f3fa6e46602d63f1a5022c913f823121d451a385b9c74a6f31",
+    "artifact_changed": false
+  },
+  "confidence": "observed",
+  "authority": "shipped-artifact",
+  "environment": null,
+  "limitations": [
+    "The executable version and supported formats are reported as unknown because no reliable version probe was performed.",
+    "A non-zero process exit is preserved as an observed command result.",
+    "Rizin commands and retained plugins may read files or access network resources outside the selected artifact; those external inputs are not bound to Evidence.",
+    "When both are available, pre-run and post-run digests detect artifact changes across the provider call but cannot prove the exact bytes consumed during the call."
+  ],
+  "relationship_coverage": null,
+  "locations": [
+    {
+      "kind": "artifact-path",
+      "path": "/Users/sein/Code/wgrd-replay/work/ndf59638/everything.expanded.ndfbin"
+    }
+  ],
+  "evidence_links": []
+}

@@ -1,0 +1,110 @@
+{
+ "parse": {
+  "blocks": {
+   "CHNK": [
+    17899745,
+    8
+   ],
+   "CLAS": [
+    17899753,
+    11266
+   ],
+   "EXPR": [
+    19984090,
+    245004
+   ],
+   "IMPR": [
+    19978238,
+    5852
+   ],
+   "OBJE": [
+    40,
+    17783473
+   ],
+   "PROP": [
+    17911019,
+    48001
+   ],
+   "STRG": [
+    17959020,
+    1525865
+   ],
+   "TOPO": [
+    17783513,
+    116232
+   ],
+   "TRAN": [
+    19484885,
+    493353
+   ]
+  },
+  "class_count": 375,
+  "import_path_count": 15653,
+  "non_null_object_references_class_checked": 367499,
+  "null_object_references": 398,
+  "object_bytes_consumed": 17783473,
+  "objects": 120516,
+  "property_count": 1996,
+  "selected_classes": {
+   "TCompanyUnitModuleDescriptor": 2121,
+   "TModuleSelector": 10422,
+   "TUnitListCompanyModuleDescriptor": 7,
+   "TUniteAuSolDescriptor": 2099,
+   "TUniteDescriptor": 2529
+  },
+  "string_count": 29016,
+  "value_types": {
+   "0x0": 46051,
+   "0x1": 172,
+   "0x11": 94266,
+   "0x12": 6675,
+   "0x19": 178,
+   "0x1a": 6674,
+   "0x1c": 21190,
+   "0x1d": 56144,
+   "0x1f": 2,
+   "0x2": 174579,
+   "0x21": 778,
+   "0x22": 75227,
+   "0x3": 44739,
+   "0x5": 101248,
+   "0x6": 244,
+   "0x7": 397889,
+   "0x8": 4086,
+   "0x9": 380398,
+   "0xaaaaaaaa": 12501,
+   "0xb": 178,
+   "0xbbbbbbbb": 367897,
+   "0xc": 21,
+   "0xd": 248
+  }
+ },
+ "repacked": false,
+ "schema": "wgrd_ndf59638_extraction/1",
+ "source_open_mode": "read_only",
+ "source_path": "~/.hermes/artifacts/wgrd-replay/game/win64/Data/WarGame/PC/59638/NDF_Win.dat",
+ "source_sha256_after": "97d7442eecff5d0f836d5caee4d01cdf93bd7fe262ff12fef75f59fbc84638c0",
+ "source_unchanged_after_analysis": true,
+ "unpack": {
+  "archive_entries": 2664,
+  "archive_sha1": "bfd6c3e8affaad83a08ccff3271f6e4a5447e590",
+  "archive_sha256": "97d7442eecff5d0f836d5caee4d01cdf93bd7fe262ff12fef75f59fbc84638c0",
+  "archive_size": 24199168,
+  "dictionary_md5_valid": true,
+  "dictionary_offset": 1037,
+  "dictionary_size": 184684,
+  "entry": {
+   "md5": "5b782ad5e6acd2d5af8e967609ae2ac4",
+   "md5_valid": true,
+   "offset": 843776,
+   "path": "pc\\ndf\\patchable\\gfx\\everything.ndfbin",
+   "sha256": "327361b98ddb5764eb535a573686a1c3788252d49a0c54202939d55f346a5468",
+   "size": 1505922
+  },
+  "expanded_declared_size_valid": true,
+  "expanded_sha256": "0f11779d9e5592f3fa6e46602d63f1a5022c913f823121d451a385b9c74a6f31",
+  "expanded_size": 20229318,
+  "source_header_hex": "4555473000000000434e444680000000e6ab3401000000002800000000000000c6ac3401000000009eac3401",
+  "zlib_eof_marker_present": false
+ }
+}

@@ -1,5 +1,10 @@
 # Company/member bridge — matching executable59638
 
+Follow-up: original NDF acquired and verified. NDF59638-BRIDGE.md records2121
+explicit static paths and unique configured type associations for all685
+matching-build replay references. Missing-file discussion below is historical.
+Live membership, selector conditions and effective order remain unresolved.
+
 Baseline4b77c21. Bounded REA6.7.0 MCP / Rizin pass. No game execution,
 NDF download, registry mutation, public-table substitution or simulation.
 
