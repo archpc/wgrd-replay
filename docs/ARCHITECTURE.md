@@ -84,7 +84,7 @@ Field-level meanings and their confidence are in the per-opcode notes (section 4
   and the issuing slot is among its observed slots. Otherwise `resolution` is `unreferenced_key`, `ambiguous_key`,
   or `slot_mismatch`, and no reference or unit type is assigned.
 - `wgrd_unit_data.py` / `wgrd_unit_index.py` join the static build 59638 NDF descriptor index through the validation GUID.
-  Source: `research/unit-data/build59638-v1.json.gz` with `build59638-v1.manifest.json`. The public 58710 snapshot is opt-in and not cached in this repo.
+  Source: `research/unit-data/build59638-v1.json.gz` with `research/unit-data/build59638-v1.manifest.json`. The public 58710 snapshot is opt-in and not cached in this repo.
 
 ## 4. Generated files and their scripts
 

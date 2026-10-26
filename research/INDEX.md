@@ -31,21 +31,19 @@ verify with `research/maintenance/preservation_manifest.py verify`) and
 artifacts; see `research/maintenance/WORK-ARTIFACTS.md`, verify with
 `research/maintenance/work_artifacts_verify.py`).
 
-Known evidence gap: eight REA evidence IDs cited in `REA-NOTES-59638.md`
+Evidence recovery: eight REA evidence IDs cited in `REA-NOTES-59638.md`
 Sessions 1-3 (ev_b44efd7d, ev_7841a093, ev_4ea358ce, ev_1e924a6e, ev_37b97e85,
-ev_d3d3f966, ev_0ea526f5, ev_06018019) have no record file under
-`research/evidence/` or anywhere on the analysis machine. The findings they
-support (header reader, tag handler, frame loop, pact consumer, block reader,
-block store, 0x08 creator, string reader) rest on the disassembly/decompile
-excerpts quoted in the notes and, for the dispatcher chain, on later
-independent re-derivation by `research/op0c_layout.py` and
-`research/op_fixed_layout.py`. Rows citing those IDs are marked **E\*** below.
+ev_d3d3f966, ev_0ea526f5, ev_06018019) had no record file in `research/evidence/`
+at the start of the maintenance milestone. They were recovered from 2026-10-23
+session transcripts and added; provenance and limitations in
+`research/evidence/RECOVERED-2026-10-26.md`. Rows citing them are marked **E\*** (record
+recovered from transcript, not from the original REA store).
 
 ## 1. ESAV container and integrity validation
 
 | Finding | Canonical | Original note | Evidence | Status |
 |---|---|---|---|---|
-| ESAV v1 header, declared length, SHA-224 over file[0x28:], 'rply' JSON chunk | `FORMAT.md` | `REPLAY-RESEARCH.md` Phase 2; `REA-NOTES-59638.md` Findings 1-6 (FUN_010b9300 header reader, FUN_010b9790 ntohl u32, SHA-224 init FUN_016fd070) | ev_b44efd7d…, ev_7841a093… (Ghidra; records missing); rizin pd sites in notes | E\*, T (`tests/test_wgrd_replay.py`) |
+| ESAV v1 header, declared length, SHA-224 over file[0x28:], 'rply' JSON chunk | `FORMAT.md` | `REPLAY-RESEARCH.md` Phase 2; `REA-NOTES-59638.md` Findings 1-6 (FUN_010b9300 header reader, FUN_010b9790 ntohl u32, SHA-224 init FUN_016fd070) | ev_b44efd7d…, ev_7841a093… (Ghidra; recovered); rizin pd sites in notes | E\*, T (`tests/test_wgrd_replay.py`) |
 | Executable accepts version <= 1; decoder accepts only 1 (policy, NEXT-STEPS 4) | `FORMAT.md`, `NEXT-STEPS.md` | `REA-NOTES-59638.md` Parser comparison | notes | N |
 | this[5] digest origin / mismatch fatality | open | `REA-NOTES-59638.md` Open | none | X |
 
@@ -53,7 +51,7 @@ independent re-derivation by `research/op0c_layout.py` and
 
 | Finding | Canonical | Original note | Evidence | Status |
 |---|---|---|---|---|
-| star / pact x S / endt frame; pact = u32 frame, u32 slot, u32 count, u16 len + block | `FORMAT.md` | `REA-NOTES-59638.md` Session 3 items 11-14 (FUN_00b3db10 frame loop, FUN_00b3ea20 pact consumer, FUN_00b29440 block reader, FUN_00b2c170 store) | ev_4ea358ce…, ev_1e924a6e…, ev_37b97e85…, ev_d3d3f966… (records missing) | E\*, T |
+| star / pact x S / endt frame; pact = u32 frame, u32 slot, u32 count, u16 len + block | `FORMAT.md` | `REA-NOTES-59638.md` Session 3 items 11-14 (FUN_00b3db10 frame loop, FUN_00b3ea20 pact consumer, FUN_00b29440 block reader, FUN_00b2c170 store) | ev_4ea358ce…, ev_1e924a6e…, ev_37b97e85…, ev_d3d3f966… (recovered) | E\*, T |
 | Counted command loop (count copied from third pact u32; NULL creator continues; exact-EOF is decoder policy) | `FORMAT.md`, `research/COMMAND-LAYOUTS.md` | `research/count-loop.md`; `REA-NOTES-59638.md` Session 4 | ev_* cited in count-loop.md; `research/chatgpt-session-2026-10-23/outputs/wgrd-count-loop-*` | E, T |
 | 594/594 multi-command blocks split; 571 complete, 23 framed (opaque 0x0D) | `research/coverage.json` | `research/COMMAND-LAYOUTS.md`; `REPLAY-RESEARCH.md` counted-block milestone | coverage script | S (`research/coverage.py`), T |
 | Frame duration (tick -> seconds) | open | `REA-NOTES-59638.md`; `research/TIMELINE-SEMANTICS.md` "Player identity and time" | two bounded clock passes, negative | X |
@@ -77,7 +75,7 @@ Canonical table: `research/COMMAND-LAYOUTS.md`. Implementation:
 | 0x02 Surrender | 22 B fixed | FUN_00b30660 | `research/FIXED-OPCODES-02-13-18.md`; evidence `research/evidence/rizin-creators-02-13-18-59638.txt` | `research/op_fixed_layout.py` | `tests/test_fixed_opcodes.py` | S, T, E |
 | 0x04 CommitOptionPlayer, 0x09 CancelFumigene, 0x0A AnnuleProduction | FUN_00b2edc0 / FUN_00b2e870 | `research/COMMAND-LAYOUTS.md` | ev_* in note | coverage | `tests/test_wgrd_replay.py`, `tests/test_production.py` | E, T |
 | 0x07 GiveOrderStandard | FUN_00b2f850, helper FUN_00b35e30 (20-byte references) | `research/OP07-ORDERS.md`, `research/OP07-PLAN.md` (plan) | ev_* in note; `research/op07_coverage.py` | `tests/test_orders.py` | E, T |
-| 0x08 LaunchFumigene | FUN_00b2fbc0, 39+T bytes | `REA-NOTES-59638.md` Session 3 | ev_0ea526f5…, ev_06018019… (records missing) | `tests/test_wgrd_replay.py` | E\*, T |
+| 0x08 LaunchFumigene | FUN_00b2fbc0, 39+T bytes | `REA-NOTES-59638.md` Session 3 | ev_0ea526f5…, ev_06018019… (recovered) | `tests/test_wgrd_replay.py` | E\*, T |
 | 0x0C ChangeProduction | FUN_00b2eeb0, variable | `research/CHANGEPRODUCTION-0C.md` | `research/op0c_layout.py` | `tests/test_op0c_layout.py`, `tests/test_op0c_decoder.py`, `tests/test_timeline_0c.py` | S, T |
 | 0x0D ProductionUnite | FUN_00b28ef0 -> FUN_00b584e0 / FUN_00b580a0 serializer envelope; interiors per `research/PRODUCTION-COMMANDS.md` | `research/PRODUCTION-COMMANDS.md`, `research/PRODUCTION-PLAN.md`; `research/evidence/production59638-native.json` | `research/production_coverage.py`, `research/production_evidence.py` | `tests/test_production.py` | E, T |
 | 0x0E ItemFinished, 0x17 DeactivateWeapon | FUN_00b2f9e0, FUN_00b2f3b0 | `research/COMMAND-LAYOUTS.md` | ev_* in note | | `tests/test_wgrd_replay.py` | E, T |

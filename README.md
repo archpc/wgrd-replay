@@ -43,7 +43,7 @@ The 2026-10-26 research notes under `research/` name their artifacts (build, SHA
 - `REA-NOTES-59638.md`: reverse-engineering notes on game build 59638 (addresses, evidence IDs).
 - `REPLAY-RESEARCH.md`: investigation log and method.
 - `NEXT-STEPS.md`: open work, prioritized. `research/ROADMAP-2026-10-26.md`: assessment and ranked plan.
-- `research/`: coverage JSON, command layouts, per-opcode findings (`CHANGEPRODUCTION-0C.md`, `FIXED-OPCODES-02-13-18.md`, `OP18-REFERENCE-KEYS.md`), timeline semantics, NDF bridge, reproduction scripts, bounded disassembly evidence.
+- `research/`: coverage JSON, command layouts, per-opcode findings (`research/CHANGEPRODUCTION-0C.md`, `research/FIXED-OPCODES-02-13-18.md`, `research/OP18-REFERENCE-KEYS.md`, `research/OP18-SUPPLY-TARGETS.md`), timeline semantics, NDF bridge, reproduction scripts, bounded disassembly evidence.
 - `samples/`: manifest and binary inventory. Replay files are not in Git (see `.gitignore`).
 
 ## Not included
@@ -64,4 +64,4 @@ Research and development in this repository were carried out by AI models direct
 - Earlier sessions (container, digest, framing, dispatcher, opcodes 04/07/08/09/0A/0D/0E/17, NDF bridge, timeline) are recorded in `REPLAY-RESEARCH.md`, `REA-NOTES-59638.md` and `research/chatgpt-session-2026-10-23/`.
 - Tooling: rizin, Ghidra, REA MCP, Python 3 standard library.
 
-The 2026-10-26 findings (`CHANGEPRODUCTION-0C.md`, `FIXED-OPCODES-02-13-18.md`, `OP18-REFERENCE-KEYS.md`) are each backed by a reproduction script and regression tests that exercise the claim against the artifacts named in the note. Earlier research is documented with evidence IDs and notes in `research/evidence/` and `REA-NOTES-59638.md`; not all of it has a standalone script.
+The 2026-10-26 findings (`research/CHANGEPRODUCTION-0C.md`, `research/FIXED-OPCODES-02-13-18.md`, `research/OP18-REFERENCE-KEYS.md`, `research/OP18-SUPPLY-TARGETS.md`) are each backed by a reproduction script and regression tests that exercise the claim against the artifacts named in the note. Earlier research is documented with evidence IDs and notes in `research/evidence/` and `REA-NOTES-59638.md`; not all of it has a standalone script.

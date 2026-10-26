@@ -28,12 +28,11 @@ counts tracked text files mentioning the path or a parent directory of it
 1. Eight REA evidence IDs cited in `REA-NOTES-59638.md` Sessions 1-3
    (ev_b44efd7d, ev_7841a093, ev_4ea358ce, ev_1e924a6e, ev_37b97e85,
    ev_d3d3f966, ev_0ea526f5, ev_06018019) are not present under
-   `research/evidence/`, `work/`, or `~/.hermes/artifacts/wgrd-replay/`. Those
-   findings are supported by the notes' quoted disassembly/decompile excerpts
-   and by later independent re-derivation (dispatcher and creator addresses are
-   re-resolved by `research/op0c_layout.py` and `research/op_fixed_layout.py`),
-   but the original Ghidra evidence records are not recoverable from this
-   machine. Recorded as a known gap in `research/INDEX.md`.
+   `research/evidence/`, `work/`, or `~/.hermes/artifacts/wgrd-replay/` at audit
+   time. They were subsequently recovered verbatim from 2026-10-23 Hermes
+   session transcripts and added to `research/evidence/`
+   (`research/evidence/RECOVERED-2026-10-26.md`). Time Machine could not be
+   read from this session (no Full Disk Access; snapshot mount refused).
 2. The small text evidence above (about 3 MB: `.asm`, `rea-mcp-*.json`, logs,
    probe scripts) and the report app source (7.8 MB) exist only in the ignored
    directory. Loss of `work/` would lose the original evidence trail for the

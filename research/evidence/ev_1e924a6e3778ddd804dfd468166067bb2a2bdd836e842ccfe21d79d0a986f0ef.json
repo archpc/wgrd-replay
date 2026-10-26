@@ -1,0 +1,90 @@
+{
+  "evidence_id": "ev_1e924a6e3778ddd804dfd468166067bb2a2bdd836e842ccfe21d79d0a986f0ef",
+  "subject": {
+    "name": "WarGame3.exe",
+    "digest": {
+      "sha256": "1c7533eb5387a3e82db66595c782f23c20f5871250d6b6a24d630b9d074bda46"
+    },
+    "local_path": "/Users/sein/.hermes/artifacts/wgrd-replay/game/win64/Data/PC/59638/WarGame3.exe",
+    "format": "pe",
+    "architecture": "x86"
+  },
+  "provider": {
+    "id": "ghidra",
+    "name": "Ghidra",
+    "version": "12.1.4"
+  },
+  "analysis_profile": {
+    "provider": {
+      "id": "ghidra",
+      "name": "Ghidra",
+      "version": "12.1.4"
+    },
+    "parameters": {
+      "target_kind": "executable",
+      "target_format": "pe",
+      "executable_role": "application",
+      "managed": false,
+      "native_aot_metadata": {
+        "contract_revision": "rtr-9.1-x64-pe-read-only-v5",
+        "source_bytes": 134217728,
+        "work_units": 67108864,
+        "working_memory_bytes": 67108864,
+        "report_bytes": 4194304
+      },
+      "architecture": "x86",
+      "available_architectures": [
+        "x86"
+      ],
+      "import_mode": "ephemeral-source-immutable",
+      "pdb_observations": "program-info-v5",
+      "annotation_policy": "atomic-function-entry-metadata-v1",
+      "load_image_observations": "source-mappings-entry-context-v2",
+      "function_body_evidence": "complete-inclusive-ranges-v1",
+      "function_references": "complete-body-and-entry-reference-manager-v2",
+      "call_relationship_coverage": "function-body-call-coverage-v5",
+      "function_dossier_coverage": "observed-facets-and-call-relationships-v1",
+      "string_inventory_evidence": "defined-data-coverage-v1",
+      "location_resolution": "explicit-address-exact-entry-symbol-first-v3",
+      "procedure_file_offset_resolution": "address-first-unique-target-source-mapping-v2",
+      "instruction_flow_evidence": "decoded-return-pcode-v1",
+      "instruction_references": "exact-address-incoming-without-synthetic-entry-v2",
+      "function_boundary_observations": "ghidra-function-boundary-limitations-v4",
+      "no_return_repair": "returning-imports-decoded-return-v2",
+      "process_launch": "inspected-jvm-launch-support-v1",
+      "jump_table_evidence": "typed-case-default-blocks-v1",
+      "decompiler_jump_loads": true,
+      "loader": "auto-from-header",
+      "language_id": "auto-from-header",
+      "compiler_spec_id": "auto-default",
+      "analyzer_preset": "ghidra-default"
+    },
+    "digest": "7810ea9437da59780820ec6fedb47ce47390841a95d527ddb6c3b3700fe180cb"
+  },
+  "predicate_type": "rea.analysis",
+  "operation": "procedure_pseudo_code",
+  "parameters": {
+    "procedure": "0xb3ea20"
+  },
+  "raw_result": {
+    "value": "\nundefined4 FUN_00b3ea20(int param_1,int *param_2)\n\n{\n  int iVar1;\n  int iVar2;\n  void **ppvVar3;\n  char cVar4;\n  uint uVar5;\n  undefined4 uVar6;\n  undefined4 uVar7;\n  int iVar8;\n  int iVar9;\n  undefined1 local_cc [80];\n  void *local_7c;\n  undefined1 *puStack_78;\n  undefined4 local_74;\n  undefined1 local_70 [88];\n  undefined4 local_18 [2];\n  undefined4 local_10;\n  undefined **local_c;\n  \n  local_74 = 0xffffffff;\n  puStack_78 = &LAB_0186a688;\n  uVar5 = DAT_01dd2708 ^ (uint)local_70;\n  iVar9 = *(int *)(param_1 + 0xc);\n  iVar1 = iVar9 + *(int *)(param_1 + 0x10) * 4;\n  ppvVar3 = &local_7c;\n  local_7c = ExceptionList;\n  while( true ) {\n    ExceptionList = ppvVar3;\n    if (iVar9 == iVar1) {\n      ExceptionList = local_7c;\n      return 1;\n    }\n    uVar6 = FUN_00520710(uVar5);\n    uVar7 = FUN_00525130();\n    FUN_004f7e50(uVar6,uVar7,1);\n    local_74 = 0;\n    FUN_010b3cd0(local_cc);\n    local_74._0_1_ = 1;\n    param_1 = 0;\n    local_10 = 0xffffffff;\n    FUN_004f76b0(0);\n    local_18[0] = 0;\n    local_74 = CONCAT31(local_74._1_3_,2);\n    cVar4 = (*(code *)local_c[1])(&param_1,4);\n    if ((((cVar4 == '\\0') || (cVar4 = (*(code *)local_c[1])(&local_10,4), cVar4 == '\\0')) ||\n        (cVar4 = (*(code *)local_c[1])(local_18,4), cVar4 == '\\0')) ||\n       (cVar4 = FUN_00b29440(local_70), iVar2 = param_1, cVar4 == '\\0')) break;\n    iVar8 = FUN_00b34480(local_10);\n    if (iVar8 != 0) {\n      FUN_00b2c170(iVar2,local_70);\n      if ((*(char *)(*param_2 + 0xa4) != '\\0') && (*(char *)(*param_2 + 0xa5) == '\\0')) {\n        FUN_00b37d40();\n      }\n    }\n    FUN_004fb700();\n    local_c = Eugen::Network::INetworkPacketReader::vftable;\n    local_74 = 0xffffffff;\n    FUN_004fbab0();\n    iVar9 = iVar9 + 4;\n    ppvVar3 = ExceptionList;\n  }\n  FUN_004fb700();\n  local_c = Eugen::Network::INetworkPacketReader::vftable;\n  FUN_004fbab0();\n  ExceptionList = local_7c;\n  return 0;\n}\n\n",
+    "limitations": []
+  },
+  "normalized_result": "\nundefined4 FUN_00b3ea20(int param_1,int *param_2)\n\n{\n  int iVar1;\n  int iVar2;\n  void **ppvVar3;\n  char cVar4;\n  uint uVar5;\n  undefined4 uVar6;\n  undefined4 uVar7;\n  int iVar8;\n  int iVar9;\n  undefined1 local_cc [80];\n  void *local_7c;\n  undefined1 *puStack_78;\n  undefined4 local_74;\n  undefined1 local_70 [88];\n  undefined4 local_18 [2];\n  undefined4 local_10;\n  undefined **local_c;\n  \n  local_74 = 0xffffffff;\n  puStack_78 = &LAB_0186a688;\n  uVar5 = DAT_01dd2708 ^ (uint)local_70;\n  iVar9 = *(int *)(param_1 + 0xc);\n  iVar1 = iVar9 + *(int *)(param_1 + 0x10) * 4;\n  ppvVar3 = &local_7c;\n  local_7c = ExceptionList;\n  while( true ) {\n    ExceptionList = ppvVar3;\n    if (iVar9 == iVar1) {\n      ExceptionList = local_7c;\n      return 1;\n    }\n    uVar6 = FUN_00520710(uVar5);\n    uVar7 = FUN_00525130();\n    FUN_004f7e50(uVar6,uVar7,1);\n    local_74 = 0;\n    FUN_010b3cd0(local_cc);\n    local_74._0_1_ = 1;\n    param_1 = 0;\n    local_10 = 0xffffffff;\n    FUN_004f76b0(0);\n    local_18[0] = 0;\n    local_74 = CONCAT31(local_74._1_3_,2);\n    cVar4 = (*(code *)local_c[1])(&param_1,4);\n    if ((((cVar4 == '\\0') || (cVar4 = (*(code *)local_c[1])(&local_10,4), cVar4 == '\\0')) ||\n        (cVar4 = (*(code *)local_c[1])(local_18,4), cVar4 == '\\0')) ||\n       (cVar4 = FUN_00b29440(local_70), iVar2 = param_1, cVar4 == '\\0')) break;\n    iVar8 = FUN_00b34480(local_10);\n    if (iVar8 != 0) {\n      FUN_00b2c170(iVar2,local_70);\n      if ((*(char *)(*param_2 + 0xa4) != '\\0') && (*(char *)(*param_2 + 0xa5) == '\\0')) {\n        FUN_00b37d40();\n      }\n    }\n    FUN_004fb700();\n    local_c = Eugen::Network::INetworkPacketReader::vftable;\n    local_74 = 0xffffffff;\n    FUN_004fbab0();\n    iVar9 = iVar9 + 4;\n    ppvVar3 = ExceptionList;\n  }\n  FUN_004fb700();\n  local_c = Eugen::Network::INetworkPacketReader::vftable;\n  FUN_004fbab0();\n  ExceptionList = local_7c;\n  return 0;\n}\n\n",
+  "confidence": "observed",
+  "authority": "shipped-artifact",
+  "environment": null,
+  "limitations": [
+    "The session serves operations only after Ghidra reports default auto-analysis complete; incomplete analysis does not expose partial results.",
+    "The imported Program and temporary project are ephemeral and deleted on close. Annotation operations edit session database metadata; original executable bytes are never written.",
+    "Cancelling an active Ghidra request terminates its ephemeral database and discards session annotations. The selected target remains open; the next provider query imports the original artifact again.",
+    "Default-space addresses use lowercase 0x-prefixed hexadecimal; other address spaces use <percent-encoded-space>:0x<hex>.",
+    "Pseudocode is Ghidra decompiler output, not original source and not text-equivalent to Hopper output.",
+    "External functions and functions without an analyzable body return null; other decompiler failures remain explicit.",
+    "macOS sessions require a matching executable Ghidra native decompiler; REA checks for it but does not build native components or change Gatekeeper quarantine state.",
+    "The Ghidra Program references PDB WarGame.Final.Win32.pdb (GUID c9524df3-23cb-4f38-b4cd-cfc25c5c9e72, age (hex) 1, signature unknown, version RSDS); Ghidra reports load state unknown. Original names and types may be missing; an empty name search does not prove a procedure is absent. Use list_procedures and address-based analysis to inspect recovered functions. REA does not admit a caller-selected PDB companion."
+  ],
+  "relationship_coverage": null,
+  "locations": [],
+  "evidence_links": []
+}
