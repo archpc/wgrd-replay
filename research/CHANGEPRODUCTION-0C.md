@@ -68,6 +68,6 @@ array path is exercised in data (on the non-matching build only).
 
 ## Not done
 
-- No decoder implementation yet (see NEXT-STEPS item 3).
+- Decoder implemented in wgrd_replay._decode_command (tests/test_op0c_decoder.py).
 - No REA evidence IDs recorded (REA session was closed; rizin used directly).
 - Consumer of obj+0x34 / obj+0xe8 not traced.

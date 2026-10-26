@@ -22,9 +22,9 @@
      "endt": 19033,
      "frames": 19033,
      "fully_decoded_multi_blocks": 285,
-     "fully_decoded_nonempty_blocks": 3596,
+     "fully_decoded_nonempty_blocks": 3609,
      "fully_split_multi_blocks": 290,
-     "fully_split_nonempty_blocks": 3824,
+     "fully_split_nonempty_blocks": 3837,
      "multi_command_blocks": 290,
      "pact": 76132,
      "slots_per_frame": 4,
@@ -32,15 +32,15 @@
      "unknown_chunks": 0
     },
     "decode_status": {
-     "layout": 3887,
+     "layout": 3900,
      "opaque": 233,
-     "unknown": 42
+     "unknown": 29
     },
     "events": 4162,
     "interpretations": {
      "partial": 3318,
-     "unknown": 324,
-     "verified": 520
+     "unknown": 75,
+     "verified": 769
     },
     "unresolved_spans": 0
    },
@@ -66,9 +66,9 @@
      "endt": 4513,
      "frames": 4513,
      "fully_decoded_multi_blocks": 2,
-     "fully_decoded_nonempty_blocks": 94,
+     "fully_decoded_nonempty_blocks": 100,
      "fully_split_multi_blocks": 4,
-     "fully_split_nonempty_blocks": 117,
+     "fully_split_nonempty_blocks": 123,
      "multi_command_blocks": 4,
      "pact": 9026,
      "slots_per_frame": 2,
@@ -76,14 +76,14 @@
      "unknown_chunks": 0
     },
     "decode_status": {
-     "layout": 98,
+     "layout": 104,
      "opaque": 24,
-     "unknown": 10
+     "unknown": 4
     },
     "events": 132,
     "interpretations": {
-     "inferred": 90,
-     "unknown": 42
+     "inferred": 114,
+     "unknown": 18
     },
     "unresolved_spans": 0
    },
@@ -112,9 +112,9 @@
      "endt": 11165,
      "frames": 11165,
      "fully_decoded_multi_blocks": 284,
-     "fully_decoded_nonempty_blocks": 6647,
+     "fully_decoded_nonempty_blocks": 6675,
      "fully_split_multi_blocks": 300,
-     "fully_split_nonempty_blocks": 6889,
+     "fully_split_nonempty_blocks": 6917,
      "multi_command_blocks": 300,
      "pact": 223300,
      "slots_per_frame": 20,
@@ -122,15 +122,15 @@
      "unknown_chunks": 0
     },
     "decode_status": {
-     "layout": 6954,
+     "layout": 6982,
      "opaque": 257,
-     "unknown": 60
+     "unknown": 32
     },
     "events": 7271,
     "interpretations": {
      "partial": 5260,
-     "unknown": 481,
-     "verified": 1530
+     "unknown": 160,
+     "verified": 1851
     },
     "unresolved_spans": 0
    },

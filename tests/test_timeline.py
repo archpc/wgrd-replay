@@ -155,7 +155,7 @@ class AuthenticTimeline(unittest.TestCase):
         root = Path(__file__).resolve().parents[1]
         manifest = json.loads((root / "samples/manifest.json").read_text())
         samples = Path(os.environ.get("WGRD_SAMPLES_DIR", str(Path.home() / ".hermes/artifacts/wgrd-replay/samples/raw")))
-        expected = [(4162, 769, 3318, 233, 42), (132, 0, 0, 24, 10), (7271, 1851, 5260, 257, 60)]
+        expected = [(4162, 769, 3318, 233, 29), (132, 0, 0, 24, 4), (7271, 1851, 5260, 257, 32)]
         for sample, (count, verified, partial, opaque, unknown) in zip(manifest["samples"], expected):
             b = (samples / sample["file"]).read_bytes()
             self.assertEqual(hashlib.sha256(b).hexdigest(), sample["sha256"])

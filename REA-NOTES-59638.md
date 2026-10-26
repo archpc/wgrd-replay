@@ -98,7 +98,7 @@ NOT ADDRESSED by the executable evidence: little-endian layout inside pact paylo
 (the decoding happens in the downstream consumer).
 
 ## Open
-- Remaining command fields: opcode 0d nested serializer content; unsupported 02/0c/13/18 layouts.
+- Remaining command fields: opcode 0d nested serializer content; unsupported 02/13/18 layouts.
 - this[5] origin; whether a digest mismatch aborts loading.
 - FUN_004e6d80, FUN_004fcc00, FUN_004f94a0, FUN_00522ec0 semantics.
 - Hopper not used (demo install; Ghidra + rizin were sufficient).

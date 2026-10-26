@@ -17,6 +17,23 @@ conditional field, or reader helper. Allocation-failure behavior is outside deco
 Authentic boundary validation: 31 count==1 records across all three SHA-256-bound
 samples; all exactly 25 bytes, fully consumed. No field meanings assigned.
 
+## 0x0c — FUN_00b2eeb0 (ChangeProduction); structural layout
+
+Creator 0xb2eeb0, dispatcher 0xb241f4[0x0c-2]. Read order (reader Read(dst,n)):
+u32 -> obj+04; raw16 -> obj+08; u32 n + n x u32 (FUN_00b35cd0) -> obj+18;
+u32 n + n x u32, each <= 0x0e (FUN_00b35fc0) -> obj+34; u32 m + m x (3 x float32 +
+u32 kind <= 6) (FUN_00b290c0) -> obj+50; same -> obj+9c; u32 n + n x u32 (FUN_00b35cd0)
+-> obj+e8; u32 -> obj+104; raw16 -> obj+108 (FUN_00b29080). Minimum 61 bytes incl. opcode.
+Decoder emits obj_04_u32, obj_08_hex, obj_18_array, obj_34_array, obj_50_points,
+obj_9c_points, obj_e8_array, obj_104_u32, obj_108_hex; arrays carry count_u32, items_hex
+and items_u32 (point arrays: items with xyz_f32, kind_u32). field_decode_status=layout.
+Field meanings unconfirmed; raw values only. See research/CHANGEPRODUCTION-0C.md.
+
+Corpus, single-command blocks, exact consumption: Sample1 (59638) 13 x 105 bytes;
+Sample3 (59638) 28 x 105 bytes; Sample2 (510117427, inferred, structural only)
+4 x 105 + 2 x 281 (11 extra 16-byte point elements). 47/47 complete.
+Observed (matching build): obj_04 = 0xC000001E + slot; obj_08 = `00*12 32000000`.
+
 ## Decoder policy
 
 One cursor shared by declared commands. Output command_decode.status is complete,

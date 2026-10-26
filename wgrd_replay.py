@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import struct
 import sys
 
@@ -170,6 +171,34 @@ def _read_string(cursor):
     return {"length_u16": length, "bytes_hex": cursor.take(length).hex()}
 
 
+def _read_u32_array(cursor):
+    count = cursor.uint(4)
+    raw = cursor.take(count * 4)
+    return {"count_u32": count, "items_hex": raw.hex(),
+            "items_u32": [int.from_bytes(raw[i:i + 4], "little") for i in range(0, len(raw), 4)]}
+
+
+def _f32_json(value):
+    """Strict JSON: non-finite floats use the wgrd_timeline._json_safe convention."""
+    if math.isfinite(value):
+        return value
+    return {"nonfinite": "NaN" if math.isnan(value) else ("+Infinity" if value > 0 else "-Infinity")}
+
+
+def _read_points(cursor):
+    # Element: 12 raw bytes (3 x float32 LE) then u32 kind; kind bound 6 per creator.
+    count = cursor.uint(4)
+    raw = cursor.take(count * 16)
+    items = []
+    for i in range(0, len(raw), 16):
+        kind = int.from_bytes(raw[i + 12:i + 16], "little")
+        if kind > 6:
+            raise ReplayFormatError("point kind %d exceeds creator bound 6" % kind)
+        xyz = [_f32_json(v) for v in struct.unpack_from("<3f", raw, i)]
+        items.append({"xyz_f32": xyz, "kind_u32": kind})
+    return {"count_u32": count, "items_hex": raw.hex(), "items": items}
+
+
 def _decode_command(cursor, slot):
     start = cursor.offset
     opcode = cursor.uint(1)
@@ -213,6 +242,21 @@ def _decode_command(cursor, slot):
                   "serializer_length_u32": cursor.uint(4)}
         fields["serializer_payload_hex"] = cursor.take(fields["serializer_length_u32"]).hex()
         field_status = "opaque"
+    elif opcode == 0x0C:
+        # FUN_00b2eeb0 (build 59638). Helpers: FUN_00b35cd0 (u32 count + u32 array),
+        # FUN_00b35fc0 (same, each element <= 0x0e), FUN_00b290c0 (count + 16-byte
+        # {3 x float32, u32 kind <= 6}), FUN_00b29080 (u32 + raw16). Field meanings unconfirmed.
+        fields = {"obj_04_u32": cursor.uint(4), "obj_08_hex": cursor.take(16).hex(),
+                  "obj_18_array": _read_u32_array(cursor)}
+        obj_34 = _read_u32_array(cursor)
+        if any(v > 0x0E for v in obj_34["items_u32"]):
+            raise ReplayFormatError("opcode 0c obj+0x34 element exceeds creator bound 14")
+        fields["obj_34_array"] = obj_34
+        fields["obj_50_points"] = _read_points(cursor)
+        fields["obj_9c_points"] = _read_points(cursor)
+        fields["obj_e8_array"] = _read_u32_array(cursor)
+        fields["obj_104_u32"] = cursor.uint(4)
+        fields["obj_108_hex"] = cursor.take(16).hex()
     elif opcode == 0x0E:
         # FUN_00b2f9e0: 4 -> obj+4, 4 -> obj+8, 16 -> obj+0x0c.
         fields = {"obj_04_u32": cursor.uint(4), "obj_08_u32": cursor.uint(4),

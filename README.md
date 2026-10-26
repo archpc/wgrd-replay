@@ -23,7 +23,7 @@ Default output is JSON with the header, metadata, and per-pact command decode. `
 
     python3 -m unittest discover -s tests -q
 
-88 tests pass.
+98 tests pass.
 
 ## Layout
 
