@@ -261,6 +261,18 @@ def _decode_command(cursor, slot):
         # FUN_00b2f9e0: 4 -> obj+4, 4 -> obj+8, 16 -> obj+0x0c.
         fields = {"obj_04_u32": cursor.uint(4), "obj_08_u32": cursor.uint(4),
                   "obj_0c_hex": cursor.take(16).hex()}
+    elif opcode == 0x02:
+        # FUN_00b30660 (build 59638): 4 -> obj+4, 16 -> obj+8, 1 -> obj+0x18. No bounds checks.
+        fields = {"obj_04_u32": cursor.uint(4), "obj_08_hex": cursor.take(16).hex(),
+                  "obj_18_u8": cursor.uint(1)}
+    elif opcode in (0x13, 0x18):
+        # FUN_00b2fdd0 (0x13): 4 -> obj+4, 4 -> obj+8, 4 -> obj+0x0c.
+        # FUN_00b2f2e0 (0x18): 4 -> obj+4, 4 -> obj+8, 1 -> obj+0x0c.
+        fields = {"obj_04_u32": cursor.uint(4), "obj_08_u32": cursor.uint(4)}
+        if opcode == 0x13:
+            fields["obj_0c_u32"] = cursor.uint(4)
+        else:
+            fields["obj_0c_u8"] = cursor.uint(1)
     else:
         return None
     return {"opcode": opcode, "class": OPCODE_CLASSES[opcode], "offset": start,

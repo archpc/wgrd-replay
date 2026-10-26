@@ -34,6 +34,15 @@ Sample3 (59638) 28 x 105 bytes; Sample2 (510117427, inferred, structural only)
 4 x 105 + 2 x 281 (11 extra 16-byte point elements). 47/47 complete.
 Observed (matching build): obj_04 = 0xC000001E + slot; obj_08 = `00*12 32000000`.
 
+## 0x02 / 0x13 / 0x18 — fixed-size creators (structural)
+
+Creators FUN_00b30660 (0x02, 22 bytes), FUN_00b2fdd0 (0x13, 13), FUN_00b2f2e0 (0x18, 10),
+incl. opcode byte. Read order: 0x02 u32 -> obj+4, raw16 -> +8, u8 -> +0x18;
+0x13 u32 -> +4, u32 -> +8, u32 -> +0x0c; 0x18 u32 -> +4, u32 -> +8, u8 -> +0x0c.
+Authentic single-command blocks, exact fit: 0x02 Sample3=3, Sample2=2 (inferred);
+0x13 Sample1=10, Sample3=4, Sample2=2; 0x18 Sample1=19, Sample3=25. No bounds checks.
+Field meanings unconfirmed. See research/FIXED-OPCODES-02-13-18.md.
+
 ## Decoder policy
 
 One cursor shared by declared commands. Output command_decode.status is complete,
@@ -168,6 +177,7 @@ multi blocks (after 0d) validate boundaries. No item/production semantics inferr
 opaque-framed (5 / 2 / 16). No multi block remains boundary-unresolved.
 Across nonempty blocks: 10,830 / 10,942 split; 112 single-command blocks remain
 unresolved: 02=5, 0c=47, 13=16, 18=44. No authentic block is malformed.
+(Superseded: 02/13/18 now decoded; see the 0x02/0x13/0x18 section above.)
 514 total 0d envelopes remain opaque (470 singles + 44 commands in multi blocks).
 Coverage is structural, not proof of gameplay semantics or cross-build equivalence.
 

@@ -48,12 +48,11 @@ research/TIMELINE-SEMANTICS.md, timeline-coverage.json, timeline-cli-validation.
    production-coverage.json and production59638-native.json. User's next milestone:
    once matching playback works, targeted world observation for positions, combat
    and destruction. Parallels Windows guest proposed; playback not yet verified.
-3. **Remaining 65 single-command blocks:** 18=44, 13=16, 02=5.
-   Recover exact creators/helpers before implementing; no more multi blocks
-   are blocked by these opcodes in the authenticated sample set.
-   0c ChangeProduction structurally decoded (creator FUN_00b2eeb0, 47/47 exact fit;
-   Sample2 structural only, inferred): research/CHANGEPRODUCTION-0C.md,
-   research/op0c_layout.py, tests/test_op0c_decoder.py. Field meanings still open.
+3. **Single-command blocks: all 112 now have layouts; zero unresolved.**
+   0c ChangeProduction (47/47 exact fit; Sample2 structural only, inferred):
+   research/CHANGEPRODUCTION-0C.md, research/op0c_layout.py, tests/test_op0c_decoder.py.
+   02/13/18 (5 + 16 + 44 exact fit): research/FIXED-OPCODES-02-13-18.md,
+   research/op_fixed_layout.py, tests/test_fixed_opcodes.py. Field meanings still open.
    Assessment and ranked plan: research/ROADMAP-2026-10-26.md.
 4. **Parser alignment decision.** SHA-224 is verified. Version <=1 and fields A/B
    differ from current strict policy; retain policy until separately decided.

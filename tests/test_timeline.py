@@ -60,21 +60,21 @@ class Timeline(unittest.TestCase):
         self.assertEqual(parsed, w.parse_replay(b))  # no mutation
 
     def test_opaque_and_unknown_single(self):
-        out = t.build_timeline(w.parse_replay(replay([[(1, OPAQUE), (1, b"\x18abc")]])))
+        out = t.build_timeline(w.parse_replay(replay([[(1, OPAQUE), (1, b"\x0babc")]])))
         opaque, unknown = out["events"]
         self.assertEqual(opaque["decode_status"], "opaque")
         self.assertEqual(opaque["parameters"]["serializer_payload_hex"], b"abc".hex())
         self.assertEqual(unknown["decode_status"], "unknown")
-        self.assertEqual(unknown["raw_hex"], b"\x18abc".hex())
+        self.assertEqual(unknown["raw_hex"], b"\x0babc".hex())
         self.assertTrue(unknown["source"]["boundary_known"])
         self.assertEqual(unknown["interpretation"]["status"], "unknown")
 
     def test_unknown_multi_preserves_span_without_inventing_boundaries(self):
-        tail = b"\x18abc\x09junk"
+        tail = b"\x0babc\x09junk"
         b = replay([[(3, OP09 + tail)]])
         out = t.build_timeline(w.parse_replay(b))
         known, first, second = out["events"]
-        self.assertEqual(first["opcode"], 0x18)
+        self.assertEqual(first["opcode"], 0x0B)
         self.assertIsNone(second["opcode"])
         for e in (first, second):
             self.assertEqual(e["decode_status"], "unresolved_boundary")
@@ -98,7 +98,7 @@ class Timeline(unittest.TestCase):
                     t.build_timeline(parsed)
 
     def test_unknown_tail_cannot_have_more_commands_than_bytes(self):
-        parsed = w.parse_replay(replay([[(3, OP09 + b"\x18")]]))
+        parsed = w.parse_replay(replay([[(3, OP09 + b"\x0b")]]))
         self.assertEqual(parsed["commands"][0]["command_decode"]["status"], "unresolved")
         with self.assertRaisesRegex(w.ReplayFormatError, "remaining command count exceeds opcode bytes"):
             t.build_timeline(parsed)
@@ -155,7 +155,7 @@ class AuthenticTimeline(unittest.TestCase):
         root = Path(__file__).resolve().parents[1]
         manifest = json.loads((root / "samples/manifest.json").read_text())
         samples = Path(os.environ.get("WGRD_SAMPLES_DIR", str(Path.home() / ".hermes/artifacts/wgrd-replay/samples/raw")))
-        expected = [(4162, 769, 3318, 233, 29), (132, 0, 0, 24, 4), (7271, 1851, 5260, 257, 32)]
+        expected = [(4162, 769, 3318, 233, 0), (132, 0, 0, 24, 0), (7271, 1851, 5260, 257, 0)]
         for sample, (count, verified, partial, opaque, unknown) in zip(manifest["samples"], expected):
             b = (samples / sample["file"]).read_bytes()
             self.assertEqual(hashlib.sha256(b).hexdigest(), sample["sha256"])

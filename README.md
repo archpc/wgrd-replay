@@ -23,7 +23,7 @@ Default output is JSON with the header, metadata, and per-pact command decode. `
 
     python3 -m unittest discover -s tests -q
 
-98 tests pass.
+110 tests pass (1 skipped without cached samples or WarGame3.exe).
 
 ## Layout
 
