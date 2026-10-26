@@ -1,0 +1,15 @@
+test_all_samples_count_bytes_order_and_semantic_coverage (test_timeline.AuthenticTimeline.test_all_samples_count_bytes_order_and_semantic_coverage) ... ok
+test_cli_default_unchanged_and_timeline_summary (test_timeline.Timeline.test_cli_default_unchanged_and_timeline_summary) ... ok
+test_cli_malformed_timeline_reports_error (test_timeline.Timeline.test_cli_malformed_timeline_reports_error) ... ok
+test_digest_enforced_before_timeline (test_timeline.Timeline.test_digest_enforced_before_timeline) ... ok
+test_malformed_commands_fail_closed (test_timeline.Timeline.test_malformed_commands_fail_closed) ... ok
+test_opaque_and_unknown_single (test_timeline.Timeline.test_opaque_and_unknown_single) ... ok
+test_order_provenance_and_verified_interpretations (test_timeline.Timeline.test_order_provenance_and_verified_interpretations) ... ok
+test_unknown_multi_preserves_span_without_inventing_boundaries (test_timeline.Timeline.test_unknown_multi_preserves_span_without_inventing_boundaries) ... ok
+test_unknown_tail_cannot_have_more_commands_than_bytes (test_timeline.Timeline.test_unknown_tail_cannot_have_more_commands_than_bytes) ... ok
+test_wrong_build_inference_and_nonfinite_raw_preservation (test_timeline.Timeline.test_wrong_build_inference_and_nonfinite_raw_preservation) ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 0.840s
+
+OK

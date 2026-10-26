@@ -11,7 +11,7 @@ counts tracked text files mentioning the path or a parent directory of it
 
 | Category | Files | Size | Identical tracked copy | Regenerability | Preservation status |
 |---|---:|---:|---:|---|---|
-| rizin-disassembly-excerpt (`work/*.asm`: production-*, entity-trace*, op07-finaltrace, b32690, c972a0) | 21 | 1.2 MB | 0 | In principle via rizin on the 59638 binary; exact commands not recorded per file | **ARCHIVAL RISK**: original evidence behind OP07-ORDERS, PRODUCTION-COMMANDS, ENTITY-CONTEXT addresses exists only here |
+| rizin-disassembly-excerpt (`work/*.asm`: production-*, entity-trace*, op07-finaltrace, b32690, c972a0) | 21 | 1.2 MB | 0 (now copied, see below) | In principle via rizin on the 59638 binary; exact commands not recorded per file | **ARCHIVAL RISK**: original evidence behind OP07-ORDERS, PRODUCTION-COMMANDS, ENTITY-CONTEXT addresses exists only here |
 | rea-mcp-raw-response (`work/rea-mcp-3..21.json`) | 19 | 1.8 MB | 0 (the 7 same-named files under `research/chatgpt-session-2026-10-23/work/` differ by hash) | Not regenerable as-is (REA session state) | **ARCHIVAL RISK** |
 | validation-log (`*.log`) | 6 | 16 KB | 0 | Historical output | risk, low value |
 | probe-or-validation-script (`rea_mcp.py`, `production_rea.py`, `production_probe.py`, `validate_*_cli.py`, `read_ndf_manifest.py`, `inspect_localization_manifests.py`, `*baseline_wgrd_replay.py`) | 11 | 53 KB | 0 | Original scripts | **ARCHIVAL RISK** (baseline decoder copies are also in git history) |
@@ -38,7 +38,21 @@ counts tracked text files mentioning the path or a parent directory of it
    directory. Loss of `work/` would lose the original evidence trail for the
    0x07, production and entity investigations.
 
-## Recommended preservation strategy (not executed in this session)
+## Preservation actions taken (2026-10-26 follow-up, user-authorized)
+
+- Copied (hash-verified, `copied_to` in the manifest; `work/` untouched): 57
+  text evidence files (21 `.asm`, 19 `rea-mcp-*.json`, 6 `.log`, 11 `.py`) to
+  `research/evidence/work-archive-2026-10-26/`; authored report content
+  (`src/content/`, `src/data.json`, 14 files) to
+  `research/reports/sample1/app-content/`.
+- Not copied: the rest of `work/sample1-battle-report-app/` (a copied
+  third-party data-app plugin runtime with `protected-runtime.json`;
+  redistribution unclear), decoder output snapshots, and proprietary-derived
+  NDF/localization extractions.
+- Secret/PII scan of the copied text: only false positives (the binary string
+  `"Token"` inside disassembly; sanitization code in the app).
+
+## Original recommended strategy (for reference)
 
 1. Review the `.asm`, `rea-mcp-*.json`, `.log` and `.py` files for
    redistribution concerns. Precedent: `research/evidence/` already tracks REA

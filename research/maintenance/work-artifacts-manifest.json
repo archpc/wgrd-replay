@@ -71,6 +71,8 @@
 "entries": [
 {
 "category": "rizin-disassembly-excerpt",
+"copied_to": "research/evidence/work-archive-2026-10-26/b32690.asm",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/b32690.asm",
 "provenance": "rizin against the 59638 binary; exact commands not recorded in tracked notes for every file",
@@ -111,6 +113,8 @@
 },
 {
 "category": "probe-or-validation-script",
+"copied_to": "research/evidence/work-archive-2026-10-26/baseline_wgrd_replay.py",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/baseline_wgrd_replay.py",
 "provenance": "research-only helper scripts",
@@ -131,6 +135,8 @@
 },
 {
 "category": "rizin-disassembly-excerpt",
+"copied_to": "research/evidence/work-archive-2026-10-26/c972a0.asm",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/c972a0.asm",
 "provenance": "rizin against the 59638 binary; exact commands not recorded in tracked notes for every file",
@@ -221,6 +227,8 @@
 },
 {
 "category": "rizin-disassembly-excerpt",
+"copied_to": "research/evidence/work-archive-2026-10-26/entity-trace.asm",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/entity-trace.asm",
 "provenance": "rizin against the 59638 binary; exact commands not recorded in tracked notes for every file",
@@ -231,6 +239,8 @@
 },
 {
 "category": "rizin-disassembly-excerpt",
+"copied_to": "research/evidence/work-archive-2026-10-26/entity-trace2.asm",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/entity-trace2.asm",
 "provenance": "rizin against the 59638 binary; exact commands not recorded in tracked notes for every file",
@@ -241,6 +251,8 @@
 },
 {
 "category": "rizin-disassembly-excerpt",
+"copied_to": "research/evidence/work-archive-2026-10-26/entity-trace3.asm",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/entity-trace3.asm",
 "provenance": "rizin against the 59638 binary; exact commands not recorded in tracked notes for every file",
@@ -251,6 +263,8 @@
 },
 {
 "category": "rizin-disassembly-excerpt",
+"copied_to": "research/evidence/work-archive-2026-10-26/entity-trace4.asm",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/entity-trace4.asm",
 "provenance": "rizin against the 59638 binary; exact commands not recorded in tracked notes for every file",
@@ -261,6 +275,8 @@
 },
 {
 "category": "rizin-disassembly-excerpt",
+"copied_to": "research/evidence/work-archive-2026-10-26/entity-trace5.asm",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/entity-trace5.asm",
 "provenance": "rizin against the 59638 binary; exact commands not recorded in tracked notes for every file",
@@ -271,6 +287,8 @@
 },
 {
 "category": "rizin-disassembly-excerpt",
+"copied_to": "research/evidence/work-archive-2026-10-26/entity-trace6.asm",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/entity-trace6.asm",
 "provenance": "rizin against the 59638 binary; exact commands not recorded in tracked notes for every file",
@@ -281,6 +299,8 @@
 },
 {
 "category": "probe-or-validation-script",
+"copied_to": "research/evidence/work-archive-2026-10-26/inspect_localization_manifests.py",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/inspect_localization_manifests.py",
 "provenance": "research-only helper scripts",
@@ -1161,6 +1181,8 @@
 },
 {
 "category": "rizin-disassembly-excerpt",
+"copied_to": "research/evidence/work-archive-2026-10-26/op07-finaltrace.asm",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/op07-finaltrace.asm",
 "provenance": "rizin against the 59638 binary; exact commands not recorded in tracked notes for every file",
@@ -1171,6 +1193,8 @@
 },
 {
 "category": "rizin-disassembly-excerpt",
+"copied_to": "research/evidence/work-archive-2026-10-26/production-cancel-index.asm",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/production-cancel-index.asm",
 "provenance": "rizin against the 59638 binary; exact commands not recorded in tracked notes for every file",
@@ -1181,6 +1205,8 @@
 },
 {
 "category": "rizin-disassembly-excerpt",
+"copied_to": "research/evidence/work-archive-2026-10-26/production-cancel.asm",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/production-cancel.asm",
 "provenance": "rizin against the 59638 binary; exact commands not recorded in tracked notes for every file",
@@ -1201,6 +1227,8 @@
 },
 {
 "category": "rizin-disassembly-excerpt",
+"copied_to": "research/evidence/work-archive-2026-10-26/production-dispatch.asm",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/production-dispatch.asm",
 "provenance": "rizin against the 59638 binary; exact commands not recorded in tracked notes for every file",
@@ -1211,6 +1239,8 @@
 },
 {
 "category": "validation-log",
+"copied_to": "research/evidence/work-archive-2026-10-26/production-enrichment-red.log",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/production-enrichment-red.log",
 "provenance": "historical command/test output",
@@ -1221,6 +1251,8 @@
 },
 {
 "category": "rizin-disassembly-excerpt",
+"copied_to": "research/evidence/work-archive-2026-10-26/production-execution.asm",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/production-execution.asm",
 "provenance": "rizin against the 59638 binary; exact commands not recorded in tracked notes for every file",
@@ -1231,6 +1263,8 @@
 },
 {
 "category": "rizin-disassembly-excerpt",
+"copied_to": "research/evidence/work-archive-2026-10-26/production-fields.asm",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/production-fields.asm",
 "provenance": "rizin against the 59638 binary; exact commands not recorded in tracked notes for every file",
@@ -1241,6 +1275,8 @@
 },
 {
 "category": "rizin-disassembly-excerpt",
+"copied_to": "research/evidence/work-archive-2026-10-26/production-final.asm",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/production-final.asm",
 "provenance": "rizin against the 59638 binary; exact commands not recorded in tracked notes for every file",
@@ -1251,6 +1287,8 @@
 },
 {
 "category": "validation-log",
+"copied_to": "research/evidence/work-archive-2026-10-26/production-full-tests.log",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/production-full-tests.log",
 "provenance": "historical command/test output",
@@ -1261,6 +1299,8 @@
 },
 {
 "category": "rizin-disassembly-excerpt",
+"copied_to": "research/evidence/work-archive-2026-10-26/production-helpers.asm",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/production-helpers.asm",
 "provenance": "rizin against the 59638 binary; exact commands not recorded in tracked notes for every file",
@@ -1271,6 +1311,8 @@
 },
 {
 "category": "rizin-disassembly-excerpt",
+"copied_to": "research/evidence/work-archive-2026-10-26/production-identities.asm",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/production-identities.asm",
 "provenance": "rizin against the 59638 binary; exact commands not recorded in tracked notes for every file",
@@ -1311,6 +1353,8 @@
 },
 {
 "category": "rizin-disassembly-excerpt",
+"copied_to": "research/evidence/work-archive-2026-10-26/production-prior.asm",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/production-prior.asm",
 "provenance": "rizin against the 59638 binary; exact commands not recorded in tracked notes for every file",
@@ -1321,6 +1365,8 @@
 },
 {
 "category": "rizin-disassembly-excerpt",
+"copied_to": "research/evidence/work-archive-2026-10-26/production-request.asm",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/production-request.asm",
 "provenance": "rizin against the 59638 binary; exact commands not recorded in tracked notes for every file",
@@ -1331,6 +1377,8 @@
 },
 {
 "category": "rizin-disassembly-excerpt",
+"copied_to": "research/evidence/work-archive-2026-10-26/production-scopes.asm",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/production-scopes.asm",
 "provenance": "rizin against the 59638 binary; exact commands not recorded in tracked notes for every file",
@@ -1341,6 +1389,8 @@
 },
 {
 "category": "validation-log",
+"copied_to": "research/evidence/work-archive-2026-10-26/production-tests.log",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/production-tests.log",
 "provenance": "historical command/test output",
@@ -1351,6 +1401,8 @@
 },
 {
 "category": "validation-log",
+"copied_to": "research/evidence/work-archive-2026-10-26/production-timeline-tests.log",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/production-timeline-tests.log",
 "provenance": "historical command/test output",
@@ -1361,6 +1413,8 @@
 },
 {
 "category": "rizin-disassembly-excerpt",
+"copied_to": "research/evidence/work-archive-2026-10-26/production-validation.asm",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/production-validation.asm",
 "provenance": "rizin against the 59638 binary; exact commands not recorded in tracked notes for every file",
@@ -1371,6 +1425,8 @@
 },
 {
 "category": "probe-or-validation-script",
+"copied_to": "research/evidence/work-archive-2026-10-26/production_probe.py",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/production_probe.py",
 "provenance": "research-only helper scripts",
@@ -1381,6 +1437,8 @@
 },
 {
 "category": "probe-or-validation-script",
+"copied_to": "research/evidence/work-archive-2026-10-26/production_rea.py",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/production_rea.py",
 "provenance": "research-only helper scripts",
@@ -1391,6 +1449,8 @@
 },
 {
 "category": "probe-or-validation-script",
+"copied_to": "research/evidence/work-archive-2026-10-26/public-baseline-wgrd_replay.py",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/public-baseline-wgrd_replay.py",
 "provenance": "research-only helper scripts",
@@ -1611,6 +1671,8 @@
 },
 {
 "category": "rea-mcp-raw-response",
+"copied_to": "research/evidence/work-archive-2026-10-26/rea-mcp-10.json",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/rea-mcp-10.json",
 "provenance": "raw REA MCP responses from earlier sessions",
@@ -1621,6 +1683,8 @@
 },
 {
 "category": "rea-mcp-raw-response",
+"copied_to": "research/evidence/work-archive-2026-10-26/rea-mcp-11.json",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/rea-mcp-11.json",
 "provenance": "raw REA MCP responses from earlier sessions",
@@ -1631,6 +1695,8 @@
 },
 {
 "category": "rea-mcp-raw-response",
+"copied_to": "research/evidence/work-archive-2026-10-26/rea-mcp-12.json",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/rea-mcp-12.json",
 "provenance": "raw REA MCP responses from earlier sessions",
@@ -1641,6 +1707,8 @@
 },
 {
 "category": "rea-mcp-raw-response",
+"copied_to": "research/evidence/work-archive-2026-10-26/rea-mcp-13.json",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/rea-mcp-13.json",
 "provenance": "raw REA MCP responses from earlier sessions",
@@ -1651,6 +1719,8 @@
 },
 {
 "category": "rea-mcp-raw-response",
+"copied_to": "research/evidence/work-archive-2026-10-26/rea-mcp-14.json",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/rea-mcp-14.json",
 "provenance": "raw REA MCP responses from earlier sessions",
@@ -1661,6 +1731,8 @@
 },
 {
 "category": "rea-mcp-raw-response",
+"copied_to": "research/evidence/work-archive-2026-10-26/rea-mcp-15.json",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/rea-mcp-15.json",
 "provenance": "raw REA MCP responses from earlier sessions",
@@ -1671,6 +1743,8 @@
 },
 {
 "category": "rea-mcp-raw-response",
+"copied_to": "research/evidence/work-archive-2026-10-26/rea-mcp-16.json",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/rea-mcp-16.json",
 "provenance": "raw REA MCP responses from earlier sessions",
@@ -1681,6 +1755,8 @@
 },
 {
 "category": "rea-mcp-raw-response",
+"copied_to": "research/evidence/work-archive-2026-10-26/rea-mcp-17.json",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/rea-mcp-17.json",
 "provenance": "raw REA MCP responses from earlier sessions",
@@ -1691,6 +1767,8 @@
 },
 {
 "category": "rea-mcp-raw-response",
+"copied_to": "research/evidence/work-archive-2026-10-26/rea-mcp-18.json",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/rea-mcp-18.json",
 "provenance": "raw REA MCP responses from earlier sessions",
@@ -1701,6 +1779,8 @@
 },
 {
 "category": "rea-mcp-raw-response",
+"copied_to": "research/evidence/work-archive-2026-10-26/rea-mcp-19.json",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/rea-mcp-19.json",
 "provenance": "raw REA MCP responses from earlier sessions",
@@ -1711,6 +1791,8 @@
 },
 {
 "category": "rea-mcp-raw-response",
+"copied_to": "research/evidence/work-archive-2026-10-26/rea-mcp-20.json",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/rea-mcp-20.json",
 "provenance": "raw REA MCP responses from earlier sessions",
@@ -1721,6 +1803,8 @@
 },
 {
 "category": "rea-mcp-raw-response",
+"copied_to": "research/evidence/work-archive-2026-10-26/rea-mcp-21.json",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/rea-mcp-21.json",
 "provenance": "raw REA MCP responses from earlier sessions",
@@ -1731,6 +1815,8 @@
 },
 {
 "category": "rea-mcp-raw-response",
+"copied_to": "research/evidence/work-archive-2026-10-26/rea-mcp-3.json",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/rea-mcp-3.json",
 "provenance": "raw REA MCP responses from earlier sessions",
@@ -1741,6 +1827,8 @@
 },
 {
 "category": "rea-mcp-raw-response",
+"copied_to": "research/evidence/work-archive-2026-10-26/rea-mcp-4.json",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/rea-mcp-4.json",
 "provenance": "raw REA MCP responses from earlier sessions",
@@ -1751,6 +1839,8 @@
 },
 {
 "category": "rea-mcp-raw-response",
+"copied_to": "research/evidence/work-archive-2026-10-26/rea-mcp-5.json",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/rea-mcp-5.json",
 "provenance": "raw REA MCP responses from earlier sessions",
@@ -1761,6 +1851,8 @@
 },
 {
 "category": "rea-mcp-raw-response",
+"copied_to": "research/evidence/work-archive-2026-10-26/rea-mcp-6.json",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/rea-mcp-6.json",
 "provenance": "raw REA MCP responses from earlier sessions",
@@ -1771,6 +1863,8 @@
 },
 {
 "category": "rea-mcp-raw-response",
+"copied_to": "research/evidence/work-archive-2026-10-26/rea-mcp-7.json",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/rea-mcp-7.json",
 "provenance": "raw REA MCP responses from earlier sessions",
@@ -1781,6 +1875,8 @@
 },
 {
 "category": "rea-mcp-raw-response",
+"copied_to": "research/evidence/work-archive-2026-10-26/rea-mcp-8.json",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/rea-mcp-8.json",
 "provenance": "raw REA MCP responses from earlier sessions",
@@ -1791,6 +1887,8 @@
 },
 {
 "category": "rea-mcp-raw-response",
+"copied_to": "research/evidence/work-archive-2026-10-26/rea-mcp-9.json",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/rea-mcp-9.json",
 "provenance": "raw REA MCP responses from earlier sessions",
@@ -1811,6 +1909,8 @@
 },
 {
 "category": "probe-or-validation-script",
+"copied_to": "research/evidence/work-archive-2026-10-26/rea_mcp.py",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/rea_mcp.py",
 "provenance": "research-only helper scripts",
@@ -1821,6 +1921,8 @@
 },
 {
 "category": "validation-log",
+"copied_to": "research/evidence/work-archive-2026-10-26/rea_mcp_stderr.log",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/rea_mcp_stderr.log",
 "provenance": "historical command/test output",
@@ -1831,6 +1933,8 @@
 },
 {
 "category": "probe-or-validation-script",
+"copied_to": "research/evidence/work-archive-2026-10-26/read_ndf_manifest.py",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/read_ndf_manifest.py",
 "provenance": "research-only helper scripts",
@@ -1841,6 +1945,8 @@
 },
 {
 "category": "validation-log",
+"copied_to": "research/evidence/work-archive-2026-10-26/rizin-native.log",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/rizin-native.log",
 "provenance": "historical command/test output",
@@ -3901,6 +4007,8 @@
 },
 {
 "category": "report-app-source",
+"copied_to": "research/reports/sample1/app-content/content/assets/README.md",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/sample1-battle-report-app/src/content/assets/README.md",
 "provenance": "Vite app source for the Sample1 battle report; only ReportContent.jsx and outputs are tracked under research/reports/sample1/",
@@ -3911,6 +4019,8 @@
 },
 {
 "category": "report-app-source",
+"copied_to": "research/reports/sample1/app-content/content/dashboard/DashboardContent.jsx",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/sample1-battle-report-app/src/content/dashboard/DashboardContent.jsx",
 "provenance": "Vite app source for the Sample1 battle report; only ReportContent.jsx and outputs are tracked under research/reports/sample1/",
@@ -3921,6 +4031,8 @@
 },
 {
 "category": "report-app-source",
+"copied_to": "research/reports/sample1/app-content/content/dashboard/dashboard.css",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/sample1-battle-report-app/src/content/dashboard/dashboard.css",
 "provenance": "Vite app source for the Sample1 battle report; only ReportContent.jsx and outputs are tracked under research/reports/sample1/",
@@ -3931,6 +4043,8 @@
 },
 {
 "category": "report-app-source",
+"copied_to": "research/reports/sample1/app-content/content/report/ReportContent.jsx",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": "research/reports/sample1/ReportContent.jsx",
 "path": "work/sample1-battle-report-app/src/content/report/ReportContent.jsx",
 "provenance": "Vite app source for the Sample1 battle report; only ReportContent.jsx and outputs are tracked under research/reports/sample1/",
@@ -3941,6 +4055,8 @@
 },
 {
 "category": "report-app-source",
+"copied_to": "research/reports/sample1/app-content/content/report/adoption-brief.js",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/sample1-battle-report-app/src/content/report/adoption-brief.js",
 "provenance": "Vite app source for the Sample1 battle report; only ReportContent.jsx and outputs are tracked under research/reports/sample1/",
@@ -3951,6 +4067,8 @@
 },
 {
 "category": "report-app-source",
+"copied_to": "research/reports/sample1/app-content/content/report/report-copy.json",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": "research/reports/sample1/report-copy.json",
 "path": "work/sample1-battle-report-app/src/content/report/report-copy.json",
 "provenance": "Vite app source for the Sample1 battle report; only ReportContent.jsx and outputs are tracked under research/reports/sample1/",
@@ -3961,6 +4079,8 @@
 },
 {
 "category": "report-app-source",
+"copied_to": "research/reports/sample1/app-content/content/report/report.css",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/sample1-battle-report-app/src/content/report/report.css",
 "provenance": "Vite app source for the Sample1 battle report; only ReportContent.jsx and outputs are tracked under research/reports/sample1/",
@@ -3971,6 +4091,8 @@
 },
 {
 "category": "report-app-source",
+"copied_to": "research/reports/sample1/app-content/content/shared/README.md",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/sample1-battle-report-app/src/content/shared/README.md",
 "provenance": "Vite app source for the Sample1 battle report; only ReportContent.jsx and outputs are tracked under research/reports/sample1/",
@@ -3981,6 +4103,8 @@
 },
 {
 "category": "report-app-source",
+"copied_to": "research/reports/sample1/app-content/content/shared/ReportDisclosure.jsx",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/sample1-battle-report-app/src/content/shared/ReportDisclosure.jsx",
 "provenance": "Vite app source for the Sample1 battle report; only ReportContent.jsx and outputs are tracked under research/reports/sample1/",
@@ -3991,6 +4115,8 @@
 },
 {
 "category": "report-app-source",
+"copied_to": "research/reports/sample1/app-content/content/shared/ReportTaskLink.jsx",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/sample1-battle-report-app/src/content/shared/ReportTaskLink.jsx",
 "provenance": "Vite app source for the Sample1 battle report; only ReportContent.jsx and outputs are tracked under research/reports/sample1/",
@@ -4001,6 +4127,8 @@
 },
 {
 "category": "report-app-source",
+"copied_to": "research/reports/sample1/app-content/content/shared/SortableDashboardLayout.jsx",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/sample1-battle-report-app/src/content/shared/SortableDashboardLayout.jsx",
 "provenance": "Vite app source for the Sample1 battle report; only ReportContent.jsx and outputs are tracked under research/reports/sample1/",
@@ -4011,6 +4139,8 @@
 },
 {
 "category": "report-app-source",
+"copied_to": "research/reports/sample1/app-content/content/shared/report-disclosure.css",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/sample1-battle-report-app/src/content/shared/report-disclosure.css",
 "provenance": "Vite app source for the Sample1 battle report; only ReportContent.jsx and outputs are tracked under research/reports/sample1/",
@@ -4021,6 +4151,8 @@
 },
 {
 "category": "report-app-source",
+"copied_to": "research/reports/sample1/app-content/content/shared/report-task-link.css",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/sample1-battle-report-app/src/content/shared/report-task-link.css",
 "provenance": "Vite app source for the Sample1 battle report; only ReportContent.jsx and outputs are tracked under research/reports/sample1/",
@@ -4141,6 +4273,8 @@
 },
 {
 "category": "report-app-source",
+"copied_to": "research/reports/sample1/app-content/data.json",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/sample1-battle-report-app/src/data.json",
 "provenance": "Vite app source for the Sample1 battle report; only ReportContent.jsx and outputs are tracked under research/reports/sample1/",
@@ -4531,6 +4665,8 @@
 },
 {
 "category": "probe-or-validation-script",
+"copied_to": "research/evidence/work-archive-2026-10-26/validate_entity_cli.py",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/validate_entity_cli.py",
 "provenance": "research-only helper scripts",
@@ -4541,6 +4677,8 @@
 },
 {
 "category": "probe-or-validation-script",
+"copied_to": "research/evidence/work-archive-2026-10-26/validate_op07_cli.py",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/validate_op07_cli.py",
 "provenance": "research-only helper scripts",
@@ -4551,6 +4689,8 @@
 },
 {
 "category": "probe-or-validation-script",
+"copied_to": "research/evidence/work-archive-2026-10-26/validate_public_unit_cli.py",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/validate_public_unit_cli.py",
 "provenance": "research-only helper scripts",
@@ -4561,6 +4701,8 @@
 },
 {
 "category": "probe-or-validation-script",
+"copied_to": "research/evidence/work-archive-2026-10-26/validate_timeline_cli.py",
+"disposition": "copied_to_tracked_2026-10-26",
 "identical_tracked_copy": null,
 "path": "work/validate_timeline_cli.py",
 "provenance": "research-only helper scripts",
@@ -4572,7 +4714,7 @@
 ],
 "file_count": 450,
 "inventory_date": "2026-10-26",
-"policy": "Nothing under work/ was deleted, moved, overwritten or committed in this audit. See research/maintenance/WORK-ARTIFACTS.md.",
+"policy": "Nothing under work/ was deleted, moved, overwritten or committed in this audit. See research/maintenance/WORK-ARTIFACTS.md. 2026-10-26 follow-up: text evidence and authored report content COPIED (not moved) into tracked paths listed in copied_to; work/ unchanged.",
 "scope": "git-ignored local research artifacts under work/",
 "total_bytes": 611004058
 }

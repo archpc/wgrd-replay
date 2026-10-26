@@ -1,0 +1,87 @@
+{
+  "result": {
+    "_meta": {
+      "provenance": {
+        "untrusted_content": true,
+        "source": "analysis_target"
+      }
+    },
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"evidence_id\":\"ev_091f83c9e2a410860f6ca602cc51c34335ffe3dc1b7f9c6418445e24e9429e41\",\"subject\":{\"name\":\"WarGame3.exe\",\"digest\":{\"sha256\":\"1c7533eb5387a3e82db66595c782f23c20f5871250d6b6a24d630b9d074bda46\"},\"local_path\":\"/Users/sein/.hermes/artifacts/wgrd-replay/game/win64/Data/PC/59638/WarGame3.exe\",\"format\":\"unknown\",\"architecture\":null},\"provider\":{\"id\":\"rizin\",\"name\":\"Rizin\",\"version\":null},\"analysis_profile\":null,\"predicate_type\":\"rea.reverse-engineering.command-observation\",\"operation\":\"execute_rizin_command\",\"parameters\":{\"path\":\"/Users/sein/.hermes/artifacts/wgrd-replay/game/win64/Data/PC/59638/WarGame3.exe\",\"command\":\"e scr.color=0; ps ascii @ 0x1e8f6ec; ps ascii @ 0x1e968ec; ps ascii @ 0x1e91ebc; pxw 0x18 @ 0x1ba5568; pxw 0x10 @ 0x1ba4a28; pxw 0x24 @ 0x1ba4a04; pxw 0x14 @ 0x1ba4a48; pxw 0x14 @ 0x1b975c0; pxw 0x14 @ 0x1b8a960\",\"provider_executable\":\"/opt/homebrew/bin/rizin\",\"command_arguments\":[\"-N\",\"-q\",\"-c\",\"e scr.color=0; ps ascii @ 0x1e8f6ec; ps ascii @ 0x1e968ec; ps ascii @ 0x1e91ebc; pxw 0x18 @ 0x1ba5568; pxw 0x10 @ 0x1ba4a28; pxw 0x24 @ 0x1ba4a04; pxw 0x14 @ 0x1ba4a48; pxw 0x14 @ 0x1b975c0; pxw 0x14 @ 0x1b8a960\",\"/Users/sein/.hermes/artifacts/wgrd-replay/game/win64/Data/PC/59638/WarGame3.exe\"]},\"raw_result\":{\"stdout\":\".?AVTModularUnitDescriptor@IA@Eugen@@\\n.?AVTSaveableDescriptor@IA@Eugen@@\\n.?AVTUniteDescriptor@IA@Eugen@@\\n0x01ba5568  0x00000000 0x00000000 0x00000000 0x01e91eb4  ................\\n0x01ba5578  0x01ba4a64 0x00000000                        dJ......\\n0x01ba4a28  0x00000000 0x01e91edc 0x00000009 0x00000000  ................\\n0x01ba4a04  0x01ba4a48 0x01b975c0 0x01b8a960 0x01afb808  HJ...u..`.......\\n0x01ba4a14  0x01afb784 0x01af5e2c 0x01af5e48 0x01af5ed0  ....,^..H^...^..\\n0x01ba4a24  0x01af5eec                                   .^..\\n0x01ba4a48  0x01e91eb4 0x00000008 0x00000000 0xffffffff  ................\\n0x01ba4a58  0x00000000                                   ....\\n0x01b975c0  0x01e8f6e4 0x00000007 0x00000000 0xffffffff  ................\\n0x01b975d0  0x00000000                                   ....\\n0x01b8a960  0x01e968e4 0x00000006 0x00000000 0xffffffff  .h..............\\n0x01b8a970  0x00000000                                   ....\\n\",\"stderr\":\"WARNING: bin_file_strings: search interval size (0x1512c00) exceeds max region size (0xa00000), skipping it.\\nWARNING: bin_file_strings: search interval size (0x1512c00) exceeds max region size (0xa00000), skipping it.\\n\",\"exit_code\":0,\"signal\":null,\"output_truncated\":false,\"completion_status\":\"complete\",\"artifact_sha256_after\":\"1c7533eb5387a3e82db66595c782f23c20f5871250d6b6a24d630b9d074bda46\",\"artifact_changed\":false},\"normalized_result\":{\"stdout\":\".?AVTModularUnitDescriptor@IA@Eugen@@\\n.?AVTSaveableDescriptor@IA@Eugen@@\\n.?AVTUniteDescriptor@IA@Eugen@@\\n0x01ba5568  0x00000000 0x00000000 0x00000000 0x01e91eb4  ................\\n0x01ba5578  0x01ba4a64 0x00000000                        dJ......\\n0x01ba4a28  0x00000000 0x01e91edc 0x00000009 0x00000000  ................\\n0x01ba4a04  0x01ba4a48 0x01b975c0 0x01b8a960 0x01afb808  HJ...u..`.......\\n0x01ba4a14  0x01afb784 0x01af5e2c 0x01af5e48 0x01af5ed0  ....,^..H^...^..\\n0x01ba4a24  0x01af5eec                                   .^..\\n0x01ba4a48  0x01e91eb4 0x00000008 0x00000000 0xffffffff  ................\\n0x01ba4a58  0x00000000                                   ....\\n0x01b975c0  0x01e8f6e4 0x00000007 0x00000000 0xffffffff  ................\\n0x01b975d0  0x00000000                                   ....\\n0x01b8a960  0x01e968e4 0x00000006 0x00000000 0xffffffff  .h..............\\n0x01b8a970  0x00000000                                   ....\\n\",\"stderr\":\"WARNING: bin_file_strings: search interval size (0x1512c00) exceeds max region size (0xa00000), skipping it.\\nWARNING: bin_file_strings: search interval size (0x1512c00) exceeds max region size (0xa00000), skipping it.\\n\",\"exit_code\":0,\"signal\":null,\"output_truncated\":false,\"completion_status\":\"complete\",\"artifact_sha256_after\":\"1c7533eb5387a3e82db66595c782f23c20f5871250d6b6a24d630b9d074bda46\",\"artifact_changed\":false},\"confidence\":\"observed\",\"authority\":\"shipped-artifact\",\"environment\":null,\"limitations\":[\"The executable version and supported formats are reported as unknown because no reliable version probe was performed.\",\"A non-zero process exit is preserved as an observed command result.\",\"Rizin commands and retained plugins may read files or access network resources outside the selected artifact; those external inputs are not bound to Evidence.\",\"When both are available, pre-run and post-run digests detect artifact changes across the provider call but cannot prove the exact bytes consumed during the call.\"],\"relationship_coverage\":null,\"locations\":[{\"kind\":\"artifact-path\",\"path\":\"/Users/sein/.hermes/artifacts/wgrd-replay/game/win64/Data/PC/59638/WarGame3.exe\"}],\"evidence_links\":[]}"
+      }
+    ],
+    "structuredContent": {
+      "evidence_id": "ev_091f83c9e2a410860f6ca602cc51c34335ffe3dc1b7f9c6418445e24e9429e41",
+      "subject": {
+        "name": "WarGame3.exe",
+        "digest": {
+          "sha256": "1c7533eb5387a3e82db66595c782f23c20f5871250d6b6a24d630b9d074bda46"
+        },
+        "local_path": "/Users/sein/.hermes/artifacts/wgrd-replay/game/win64/Data/PC/59638/WarGame3.exe",
+        "format": "unknown",
+        "architecture": null
+      },
+      "provider": {
+        "id": "rizin",
+        "name": "Rizin",
+        "version": null
+      },
+      "analysis_profile": null,
+      "predicate_type": "rea.reverse-engineering.command-observation",
+      "operation": "execute_rizin_command",
+      "parameters": {
+        "path": "/Users/sein/.hermes/artifacts/wgrd-replay/game/win64/Data/PC/59638/WarGame3.exe",
+        "command": "e scr.color=0; ps ascii @ 0x1e8f6ec; ps ascii @ 0x1e968ec; ps ascii @ 0x1e91ebc; pxw 0x18 @ 0x1ba5568; pxw 0x10 @ 0x1ba4a28; pxw 0x24 @ 0x1ba4a04; pxw 0x14 @ 0x1ba4a48; pxw 0x14 @ 0x1b975c0; pxw 0x14 @ 0x1b8a960",
+        "provider_executable": "/opt/homebrew/bin/rizin",
+        "command_arguments": [
+          "-N",
+          "-q",
+          "-c",
+          "e scr.color=0; ps ascii @ 0x1e8f6ec; ps ascii @ 0x1e968ec; ps ascii @ 0x1e91ebc; pxw 0x18 @ 0x1ba5568; pxw 0x10 @ 0x1ba4a28; pxw 0x24 @ 0x1ba4a04; pxw 0x14 @ 0x1ba4a48; pxw 0x14 @ 0x1b975c0; pxw 0x14 @ 0x1b8a960",
+          "/Users/sein/.hermes/artifacts/wgrd-replay/game/win64/Data/PC/59638/WarGame3.exe"
+        ]
+      },
+      "raw_result": {
+        "stdout": ".?AVTModularUnitDescriptor@IA@Eugen@@\n.?AVTSaveableDescriptor@IA@Eugen@@\n.?AVTUniteDescriptor@IA@Eugen@@\n0x01ba5568  0x00000000 0x00000000 0x00000000 0x01e91eb4  ................\n0x01ba5578  0x01ba4a64 0x00000000                        dJ......\n0x01ba4a28  0x00000000 0x01e91edc 0x00000009 0x00000000  ................\n0x01ba4a04  0x01ba4a48 0x01b975c0 0x01b8a960 0x01afb808  HJ...u..`.......\n0x01ba4a14  0x01afb784 0x01af5e2c 0x01af5e48 0x01af5ed0  ....,^..H^...^..\n0x01ba4a24  0x01af5eec                                   .^..\n0x01ba4a48  0x01e91eb4 0x00000008 0x00000000 0xffffffff  ................\n0x01ba4a58  0x00000000                                   ....\n0x01b975c0  0x01e8f6e4 0x00000007 0x00000000 0xffffffff  ................\n0x01b975d0  0x00000000                                   ....\n0x01b8a960  0x01e968e4 0x00000006 0x00000000 0xffffffff  .h..............\n0x01b8a970  0x00000000                                   ....\n",
+        "stderr": "WARNING: bin_file_strings: search interval size (0x1512c00) exceeds max region size (0xa00000), skipping it.\nWARNING: bin_file_strings: search interval size (0x1512c00) exceeds max region size (0xa00000), skipping it.\n",
+        "exit_code": 0,
+        "signal": null,
+        "output_truncated": false,
+        "completion_status": "complete",
+        "artifact_sha256_after": "1c7533eb5387a3e82db66595c782f23c20f5871250d6b6a24d630b9d074bda46",
+        "artifact_changed": false
+      },
+      "normalized_result": {
+        "stdout": ".?AVTModularUnitDescriptor@IA@Eugen@@\n.?AVTSaveableDescriptor@IA@Eugen@@\n.?AVTUniteDescriptor@IA@Eugen@@\n0x01ba5568  0x00000000 0x00000000 0x00000000 0x01e91eb4  ................\n0x01ba5578  0x01ba4a64 0x00000000                        dJ......\n0x01ba4a28  0x00000000 0x01e91edc 0x00000009 0x00000000  ................\n0x01ba4a04  0x01ba4a48 0x01b975c0 0x01b8a960 0x01afb808  HJ...u..`.......\n0x01ba4a14  0x01afb784 0x01af5e2c 0x01af5e48 0x01af5ed0  ....,^..H^...^..\n0x01ba4a24  0x01af5eec                                   .^..\n0x01ba4a48  0x01e91eb4 0x00000008 0x00000000 0xffffffff  ................\n0x01ba4a58  0x00000000                                   ....\n0x01b975c0  0x01e8f6e4 0x00000007 0x00000000 0xffffffff  ................\n0x01b975d0  0x00000000                                   ....\n0x01b8a960  0x01e968e4 0x00000006 0x00000000 0xffffffff  .h..............\n0x01b8a970  0x00000000                                   ....\n",
+        "stderr": "WARNING: bin_file_strings: search interval size (0x1512c00) exceeds max region size (0xa00000), skipping it.\nWARNING: bin_file_strings: search interval size (0x1512c00) exceeds max region size (0xa00000), skipping it.\n",
+        "exit_code": 0,
+        "signal": null,
+        "output_truncated": false,
+        "completion_status": "complete",
+        "artifact_sha256_after": "1c7533eb5387a3e82db66595c782f23c20f5871250d6b6a24d630b9d074bda46",
+        "artifact_changed": false
+      },
+      "confidence": "observed",
+      "authority": "shipped-artifact",
+      "environment": null,
+      "limitations": [
+        "The executable version and supported formats are reported as unknown because no reliable version probe was performed.",
+        "A non-zero process exit is preserved as an observed command result.",
+        "Rizin commands and retained plugins may read files or access network resources outside the selected artifact; those external inputs are not bound to Evidence.",
+        "When both are available, pre-run and post-run digests detect artifact changes across the provider call but cannot prove the exact bytes consumed during the call."
+      ],
+      "relationship_coverage": null,
+      "locations": [
+        {
+          "kind": "artifact-path",
+          "path": "/Users/sein/.hermes/artifacts/wgrd-replay/game/win64/Data/PC/59638/WarGame3.exe"
+        }
+      ],
+      "evidence_links": []
+    }
+  },
+  "jsonrpc": "2.0",
+  "id": 13
+}

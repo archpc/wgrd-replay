@@ -140,7 +140,9 @@ Canonical table: `research/COMMAND-LAYOUTS.md`. Implementation:
 - `research/*-PLAN.md`, `research/PLAN.md`: bounded plans that preceded each milestone. Archival.
 - `research/ROADMAP-2026-10-26.md`: assessment and ranked plan from the Fable evaluation session; priorities now maintained in `NEXT-STEPS.md`.
 - `REPLAY-RESEARCH.md`: phase log of the initial investigation.
-- `research/maintenance/`: preservation manifest and verifier, link checker.
+- `research/evidence/work-archive-2026-10-26/`: hash-verified copies of the rizin .asm excerpts, raw REA MCP responses, probe scripts and logs that previously existed only in git-ignored `work/` (mapping in `research/maintenance/work-artifacts-manifest.json`).
+- `research/reports/sample1/app-content/`: authored content of the Sample1 report app (runtime not tracked).
+- `research/maintenance/`: preservation manifests and verifiers, link checker.
 - `research/session-records/`: per-session reports.
 
 ## 12. Open investigations and unresolved evidence

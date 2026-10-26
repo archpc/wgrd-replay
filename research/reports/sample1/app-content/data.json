@@ -1,0 +1,1792 @@
+{
+  "surface": "report",
+  "title": "Sample1: named orders reveal intent; most tactical verbs remain unknown",
+  "generatedAt": "2026-10-24T02:03:02.746881+00:00",
+  "status": "verified",
+  "buildStatus": "complete",
+  "filters": [],
+  "queries": {
+    "coverage": {
+      "rows": [
+        {
+          "tier": "opaque_to_narrative",
+          "commands": 324,
+          "percent": 7.7847
+        },
+        {
+          "tier": "meaningful_request",
+          "commands": 520,
+          "percent": 12.494
+        },
+        {
+          "tier": "partial",
+          "commands": 3318,
+          "percent": 79.7213
+        }
+      ],
+      "source": {
+        "type": "local-files",
+        "name": "Authenticated Sample1 replay and original59638 descriptor index",
+        "files": [
+          "koppeltar-Sample1.wargamerpl2",
+          "build59638-v1.json.gz"
+        ],
+        "executedAt": "2026-10-24T02:03:02.746881+00:00",
+        "evidenceFlow": [
+          {
+            "title": "Authenticate",
+            "detail": "Replay SHA256 c5f8eff1298cf38c1d9967d29f98a22dfc869c150405630f9f695bb80a521df8; index SHA256 e73c0826b59c4fc6ad5940bb437fae71a8bb9b2080e91e604e2de7a9f4e15a5a"
+          },
+          {
+            "title": "Decode and classify",
+            "detail": "Existing parser and optional enrichment; rubric in research/sample1_battle_report.py; all4162 commands retained."
+          }
+        ],
+        "caveats": [
+          "Frames, not seconds. Slots, not identified players/teams/owners.",
+          "Configured static types, not accepted physical-unit identities or verified deployment.",
+          "Shoot requests are not shots/hits/kills; marker text is player assertion.",
+          "Positions are transmitted arguments in uncalibrated coordinates, not trajectories."
+        ],
+        "metricDefinitions": [
+          {
+            "label": "Commands",
+            "definition": "Command records, not actors, physical units, successful actions or outcomes."
+          }
+        ]
+      }
+    },
+    "phases": {
+      "rows": [
+        {
+          "frame_range": "0–1499",
+          "first_frame": 0,
+          "last_frame": 1499,
+          "events": 264,
+          "meaningful_request": 51,
+          "partial": 114,
+          "opaque_to_narrative": 99
+        },
+        {
+          "frame_range": "1500–4999",
+          "first_frame": 1500,
+          "last_frame": 4999,
+          "events": 936,
+          "meaningful_request": 84,
+          "partial": 803,
+          "opaque_to_narrative": 49
+        },
+        {
+          "frame_range": "5000–9999",
+          "first_frame": 5000,
+          "last_frame": 9999,
+          "events": 1317,
+          "meaningful_request": 145,
+          "partial": 1104,
+          "opaque_to_narrative": 68
+        },
+        {
+          "frame_range": "10000–14999",
+          "first_frame": 10000,
+          "last_frame": 14999,
+          "events": 926,
+          "meaningful_request": 128,
+          "partial": 740,
+          "opaque_to_narrative": 58
+        },
+        {
+          "frame_range": "15000–19032",
+          "first_frame": 15000,
+          "last_frame": 19032,
+          "events": 719,
+          "meaningful_request": 112,
+          "partial": 557,
+          "opaque_to_narrative": 50
+        }
+      ],
+      "source": {
+        "type": "local-files",
+        "name": "Authenticated Sample1 replay and original59638 descriptor index",
+        "files": [
+          "koppeltar-Sample1.wargamerpl2",
+          "build59638-v1.json.gz"
+        ],
+        "executedAt": "2026-10-24T02:03:02.746881+00:00",
+        "evidenceFlow": [
+          {
+            "title": "Authenticate",
+            "detail": "Replay SHA256 c5f8eff1298cf38c1d9967d29f98a22dfc869c150405630f9f695bb80a521df8; index SHA256 e73c0826b59c4fc6ad5940bb437fae71a8bb9b2080e91e604e2de7a9f4e15a5a"
+          },
+          {
+            "title": "Decode and classify",
+            "detail": "Existing parser and optional enrichment; rubric in research/sample1_battle_report.py; all4162 commands retained."
+          }
+        ],
+        "caveats": [
+          "Frames, not seconds. Slots, not identified players/teams/owners.",
+          "Configured static types, not accepted physical-unit identities or verified deployment.",
+          "Shoot requests are not shots/hits/kills; marker text is player assertion.",
+          "Positions are transmitted arguments in uncalibrated coordinates, not trajectories."
+        ],
+        "metricDefinitions": [
+          {
+            "label": "Commands",
+            "definition": "Command records, not actors, physical units, successful actions or outcomes."
+          }
+        ]
+      }
+    },
+    "slots": {
+      "rows": [
+        {
+          "slot": 0,
+          "standard_orders": 1574,
+          "explicit_orders": 104,
+          "contextual_orders": 1470,
+          "explicit_percent": 6.6074
+        },
+        {
+          "slot": 1,
+          "standard_orders": 669,
+          "explicit_orders": 152,
+          "contextual_orders": 517,
+          "explicit_percent": 22.7205
+        },
+        {
+          "slot": 2,
+          "standard_orders": 516,
+          "explicit_orders": 81,
+          "contextual_orders": 435,
+          "explicit_percent": 15.6977
+        },
+        {
+          "slot": 3,
+          "standard_orders": 1035,
+          "explicit_orders": 139,
+          "contextual_orders": 896,
+          "explicit_percent": 13.43
+        }
+      ],
+      "source": {
+        "type": "local-files",
+        "name": "Authenticated Sample1 replay and original59638 descriptor index",
+        "files": [
+          "koppeltar-Sample1.wargamerpl2",
+          "build59638-v1.json.gz"
+        ],
+        "executedAt": "2026-10-24T02:03:02.746881+00:00",
+        "evidenceFlow": [
+          {
+            "title": "Authenticate",
+            "detail": "Replay SHA256 c5f8eff1298cf38c1d9967d29f98a22dfc869c150405630f9f695bb80a521df8; index SHA256 e73c0826b59c4fc6ad5940bb437fae71a8bb9b2080e91e604e2de7a9f4e15a5a"
+          },
+          {
+            "title": "Decode and classify",
+            "detail": "Existing parser and optional enrichment; rubric in research/sample1_battle_report.py; all4162 commands retained."
+          }
+        ],
+        "caveats": [
+          "Frames, not seconds. Slots, not identified players/teams/owners.",
+          "Configured static types, not accepted physical-unit identities or verified deployment.",
+          "Shoot requests are not shots/hits/kills; marker text is player assertion.",
+          "Positions are transmitted arguments in uncalibrated coordinates, not trajectories."
+        ],
+        "metricDefinitions": [
+          {
+            "label": "Commands",
+            "definition": "Command records, not actors, physical units, successful actions or outcomes."
+          }
+        ]
+      }
+    },
+    "anchors": {
+      "rows": [
+        {
+          "command_order": 8,
+          "frame": 1,
+          "slot": 0,
+          "opcode_hex": "0x0d",
+          "class": "TNetworkActionProductionUnite",
+          "decode_status": "opaque",
+          "tier": "opaque_to_narrative",
+          "tier_reason": "no supported gameplay interpretation",
+          "requested_action": null,
+          "actors": [],
+          "actor_refs": [],
+          "targets": [],
+          "target_refs": [],
+          "position_argument": null,
+          "marker_text": null,
+          "file_offset": 2894,
+          "byte_length": 145,
+          "execution_outcome": "unknown"
+        },
+        {
+          "command_order": 26,
+          "frame": 56,
+          "slot": 2,
+          "opcode_hex": "0x0c",
+          "class": "TNetworkActionChangeProduction",
+          "decode_status": "unknown",
+          "tier": "opaque_to_narrative",
+          "tier_reason": "no supported gameplay interpretation",
+          "requested_action": null,
+          "actors": [],
+          "actor_refs": [],
+          "targets": [],
+          "target_refs": [],
+          "position_argument": null,
+          "marker_text": null,
+          "file_offset": 13832,
+          "byte_length": 105,
+          "execution_outcome": "unknown"
+        },
+        {
+          "command_order": 29,
+          "frame": 131,
+          "slot": 2,
+          "opcode_hex": "0x08",
+          "class": "TNetworkActionLaunchFumigene",
+          "decode_status": "layout",
+          "tier": "meaningful_request",
+          "tier_reason": "known marker create/remove request; outcome unresolved",
+          "requested_action": "create_map_marker",
+          "actors": [],
+          "actor_refs": [],
+          "targets": [],
+          "target_refs": [],
+          "position_argument": [
+            152058.109375,
+            1092370.75,
+            36862.16796875
+          ],
+          "marker_text": "leave your cv at base",
+          "file_offset": 27047,
+          "byte_length": 60,
+          "execution_outcome": "unknown"
+        },
+        {
+          "command_order": 105,
+          "frame": 1050,
+          "slot": 1,
+          "opcode_hex": "0x07",
+          "class": "TNetworkActionGiveOrderStandard",
+          "decode_status": "layout",
+          "tier": "meaningful_request",
+          "tier_reason": "named actor references and explicit requested order kind",
+          "requested_action": "Move",
+          "actors": [
+            "VAB",
+            "VAB",
+            "VAB VDAA",
+            "VAB",
+            "VAB",
+            "VAB T20/13",
+            "AMX-30 ROLAND 3",
+            "AMX-10 RC #reco1"
+          ],
+          "actor_refs": [
+            "R003",
+            "R004",
+            "R005",
+            "R006",
+            "R007",
+            "R008",
+            "R009",
+            "R010"
+          ],
+          "targets": [],
+          "target_refs": [],
+          "position_argument": [
+            931976.8125,
+            1192129.875,
+            32767.083984375
+          ],
+          "marker_text": null,
+          "file_offset": 193061,
+          "byte_length": 231,
+          "execution_outcome": "unknown"
+        },
+        {
+          "command_order": 107,
+          "frame": 1051,
+          "slot": 2,
+          "opcode_hex": "0x07",
+          "class": "TNetworkActionGiveOrderStandard",
+          "decode_status": "layout",
+          "tier": "meaningful_request",
+          "tier_reason": "named actor references and explicit requested order kind",
+          "requested_action": "Move",
+          "actors": [
+            "SKOT-2AP",
+            "T-72S ",
+            "W-3U SALAMANDRA #reco2",
+            "BTR-50",
+            "ZIL-157",
+            "9K33M2 ROMB ",
+            "T-72M1 WILK",
+            "ZIL-157",
+            "TOPAS"
+          ],
+          "actor_refs": [
+            "R012",
+            "R013",
+            "R014",
+            "R015",
+            "R016",
+            "R017",
+            "R018",
+            "R019",
+            "R020"
+          ],
+          "targets": [],
+          "target_refs": [],
+          "position_argument": [
+            415889.59375,
+            798875.8125,
+            36862.16796875
+          ],
+          "marker_text": null,
+          "file_offset": 193585,
+          "byte_length": 251,
+          "execution_outcome": "unknown"
+        },
+        {
+          "command_order": 109,
+          "frame": 1052,
+          "slot": 0,
+          "opcode_hex": "0x07",
+          "class": "TNetworkActionGiveOrderStandard",
+          "decode_status": "layout",
+          "tier": "meaningful_request",
+          "tier_reason": "named actor references and explicit requested order kind",
+          "requested_action": "Move",
+          "actors": [
+            "DAF YA 4440",
+            "MARDER 1A1",
+            "M113A1G",
+            "MARDER 1A1",
+            "LVT-4"
+          ],
+          "actor_refs": [
+            "R021",
+            "R022",
+            "R023",
+            "R024",
+            "R025"
+          ],
+          "targets": [],
+          "target_refs": [],
+          "position_argument": [
+            609511.5625,
+            826360.375,
+            32767.083984375
+          ],
+          "marker_text": null,
+          "file_offset": 194039,
+          "byte_length": 171,
+          "execution_outcome": "unknown"
+        },
+        {
+          "command_order": 111,
+          "frame": 1064,
+          "slot": 3,
+          "opcode_hex": "0x07",
+          "class": "TNetworkActionGiveOrderStandard",
+          "decode_status": "layout",
+          "tier": "meaningful_request",
+          "tier_reason": "named actor references and explicit requested order kind",
+          "requested_action": "Move",
+          "actors": [
+            "OT-64C"
+          ],
+          "actor_refs": [
+            "R026"
+          ],
+          "targets": [],
+          "target_refs": [],
+          "position_argument": [
+            415905.125,
+            1065434.5,
+            36862.16796875
+          ],
+          "marker_text": null,
+          "file_offset": 196455,
+          "byte_length": 91,
+          "execution_outcome": "unknown"
+        },
+        {
+          "command_order": 117,
+          "frame": 1078,
+          "slot": 1,
+          "opcode_hex": "0x07",
+          "class": "TNetworkActionGiveOrderStandard",
+          "decode_status": "layout",
+          "tier": "meaningful_request",
+          "tier_reason": "named actor references and explicit requested order kind",
+          "requested_action": "UnloadFromTransport",
+          "actors": [
+            "VAB"
+          ],
+          "actor_refs": [
+            "R032"
+          ],
+          "targets": [],
+          "target_refs": [],
+          "position_argument": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "marker_text": null,
+          "file_offset": 199549,
+          "byte_length": 91,
+          "execution_outcome": "unknown"
+        },
+        {
+          "command_order": 127,
+          "frame": 1106,
+          "slot": 3,
+          "opcode_hex": "0x07",
+          "class": "TNetworkActionGiveOrderStandard",
+          "decode_status": "layout",
+          "tier": "meaningful_request",
+          "tier_reason": "named actor references and explicit requested order kind",
+          "requested_action": "Move",
+          "actors": [
+            "T-72M2 MODERNA",
+            "STROP 2",
+            "ShM vz.85 PRAM-S",
+            "BPzV SNĚŽKA #reco1",
+            "OT-64C"
+          ],
+          "actor_refs": [
+            "R036",
+            "R037",
+            "R038",
+            "R039",
+            "R026"
+          ],
+          "targets": [],
+          "target_refs": [],
+          "position_argument": [
+            467105.375,
+            1136618.75,
+            36862.16796875
+          ],
+          "marker_text": null,
+          "file_offset": 205455,
+          "byte_length": 171,
+          "execution_outcome": "unknown"
+        },
+        {
+          "command_order": 130,
+          "frame": 1117,
+          "slot": 0,
+          "opcode_hex": "0x07",
+          "class": "TNetworkActionGiveOrderStandard",
+          "decode_status": "layout",
+          "tier": "meaningful_request",
+          "tier_reason": "named actor references and explicit requested order kind",
+          "requested_action": "UnloadFromTransport",
+          "actors": [
+            "AB-204B"
+          ],
+          "actor_refs": [
+            "R033"
+          ],
+          "targets": [],
+          "target_refs": [],
+          "position_argument": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "marker_text": null,
+          "file_offset": 207610,
+          "byte_length": 91,
+          "execution_outcome": "unknown"
+        },
+        {
+          "command_order": 139,
+          "frame": 1153,
+          "slot": 0,
+          "opcode_hex": "0x07",
+          "class": "TNetworkActionGiveOrderStandard",
+          "decode_status": "layout",
+          "tier": "meaningful_request",
+          "tier_reason": "named actor references and explicit requested order kind",
+          "requested_action": "UnloadFromTransport",
+          "actors": [
+            "DORNIER 205"
+          ],
+          "actor_refs": [
+            "R034"
+          ],
+          "targets": [],
+          "target_refs": [],
+          "position_argument": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "marker_text": null,
+          "file_offset": 214681,
+          "byte_length": 91,
+          "execution_outcome": "unknown"
+        },
+        {
+          "command_order": 153,
+          "frame": 1235,
+          "slot": 3,
+          "opcode_hex": "0x07",
+          "class": "TNetworkActionGiveOrderStandard",
+          "decode_status": "layout",
+          "tier": "meaningful_request",
+          "tier_reason": "named actor references and explicit requested order kind",
+          "requested_action": "UnloadFromTransport",
+          "actors": [
+            "Mi-17"
+          ],
+          "actor_refs": [
+            "R011"
+          ],
+          "targets": [],
+          "target_refs": [],
+          "position_argument": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "marker_text": null,
+          "file_offset": 230229,
+          "byte_length": 91,
+          "execution_outcome": "unknown"
+        },
+        {
+          "command_order": 157,
+          "frame": 1247,
+          "slot": 2,
+          "opcode_hex": "0x07",
+          "class": "TNetworkActionGiveOrderStandard",
+          "decode_status": "layout",
+          "tier": "meaningful_request",
+          "tier_reason": "named actor references and explicit requested order kind",
+          "requested_action": "SplitCompany",
+          "actors": [
+            "9K33M2 ROMB "
+          ],
+          "actor_refs": [
+            "R017"
+          ],
+          "targets": [],
+          "target_refs": [],
+          "position_argument": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "marker_text": null,
+          "file_offset": 232627,
+          "byte_length": 91,
+          "execution_outcome": "unknown"
+        },
+        {
+          "command_order": 286,
+          "frame": 1564,
+          "slot": 2,
+          "opcode_hex": "0x07",
+          "class": "TNetworkActionGiveOrderStandard",
+          "decode_status": "layout",
+          "tier": "meaningful_request",
+          "tier_reason": "named actor references and explicit requested order kind",
+          "requested_action": "Reverse",
+          "actors": [
+            "T-72S "
+          ],
+          "actor_refs": [
+            "R013"
+          ],
+          "targets": [],
+          "target_refs": [],
+          "position_argument": [
+            491409.15625,
+            807017.6875,
+            36862.16796875
+          ],
+          "marker_text": null,
+          "file_offset": 299670,
+          "byte_length": 91,
+          "execution_outcome": "unknown"
+        },
+        {
+          "command_order": 383,
+          "frame": 1902,
+          "slot": 3,
+          "opcode_hex": "0x07",
+          "class": "TNetworkActionGiveOrderStandard",
+          "decode_status": "layout",
+          "tier": "meaningful_request",
+          "tier_reason": "named actor references and explicit requested order kind",
+          "requested_action": "Shoot",
+          "actors": [
+            "MIG-29 9-12A"
+          ],
+          "actor_refs": [
+            "R061"
+          ],
+          "targets": [],
+          "target_refs": [],
+          "position_argument": [
+            580348.1875,
+            863060.4375,
+            33005.7890625
+          ],
+          "marker_text": null,
+          "file_offset": 367032,
+          "byte_length": 91,
+          "execution_outcome": "unknown"
+        },
+        {
+          "command_order": 412,
+          "frame": 1980,
+          "slot": 3,
+          "opcode_hex": "0x07",
+          "class": "TNetworkActionGiveOrderStandard",
+          "decode_status": "layout",
+          "tier": "meaningful_request",
+          "tier_reason": "named actor references and explicit requested order kind",
+          "requested_action": "Shoot",
+          "actors": [
+            "ShM vz.85 PRAM-S"
+          ],
+          "actor_refs": [
+            "R038"
+          ],
+          "targets": [],
+          "target_refs": [],
+          "position_argument": [
+            551959.75,
+            861771.1875,
+            36862.16796875
+          ],
+          "marker_text": null,
+          "file_offset": 383289,
+          "byte_length": 91,
+          "execution_outcome": "unknown"
+        },
+        {
+          "command_order": 447,
+          "frame": 2112,
+          "slot": 2,
+          "opcode_hex": "0x07",
+          "class": "TNetworkActionGiveOrderStandard",
+          "decode_status": "layout",
+          "tier": "meaningful_request",
+          "tier_reason": "named actor references and explicit requested order kind",
+          "requested_action": "Land",
+          "actors": [
+            "W-3U SALAMANDRA #reco2"
+          ],
+          "actor_refs": [
+            "R014"
+          ],
+          "targets": [],
+          "target_refs": [],
+          "position_argument": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "marker_text": null,
+          "file_offset": 409380,
+          "byte_length": 91,
+          "execution_outcome": "unknown"
+        },
+        {
+          "command_order": 766,
+          "frame": 3450,
+          "slot": 2,
+          "opcode_hex": "0x08",
+          "class": "TNetworkActionLaunchFumigene",
+          "decode_status": "layout",
+          "tier": "meaningful_request",
+          "tier_reason": "known marker create/remove request; outcome unresolved",
+          "requested_action": "create_map_marker",
+          "actors": [],
+          "actor_refs": [],
+          "targets": [],
+          "target_refs": [],
+          "position_argument": [
+            640980.8125,
+            803545.3125,
+            32767.083984375
+          ],
+          "marker_text": "got thier cv ",
+          "file_offset": 670560,
+          "byte_length": 52,
+          "execution_outcome": "unknown"
+        },
+        {
+          "command_order": 938,
+          "frame": 4164,
+          "slot": 2,
+          "opcode_hex": "0x08",
+          "class": "TNetworkActionLaunchFumigene",
+          "decode_status": "layout",
+          "tier": "meaningful_request",
+          "tier_reason": "known marker create/remove request; outcome unresolved",
+          "requested_action": "create_map_marker",
+          "actors": [],
+          "actor_refs": [],
+          "targets": [],
+          "target_refs": [],
+          "position_argument": [
+            519957.40625,
+            884809.4375,
+            36862.16796875
+          ],
+          "marker_text": "if you could spare a cv",
+          "file_offset": 810331,
+          "byte_length": 62,
+          "execution_outcome": "unknown"
+        },
+        {
+          "command_order": 1426,
+          "frame": 5826,
+          "slot": 2,
+          "opcode_hex": "0x08",
+          "class": "TNetworkActionLaunchFumigene",
+          "decode_status": "layout",
+          "tier": "meaningful_request",
+          "tier_reason": "known marker create/remove request; outcome unresolved",
+          "requested_action": "create_map_marker",
+          "actors": [],
+          "actor_refs": [],
+          "targets": [],
+          "target_refs": [],
+          "position_argument": [
+            537668.1875,
+            1100294.0,
+            32767.083984375
+          ],
+          "marker_text": "we need a cv here",
+          "file_offset": 1142844,
+          "byte_length": 56,
+          "execution_outcome": "unknown"
+        },
+        {
+          "command_order": 1501,
+          "frame": 6125,
+          "slot": 3,
+          "opcode_hex": "0x08",
+          "class": "TNetworkActionLaunchFumigene",
+          "decode_status": "layout",
+          "tier": "meaningful_request",
+          "tier_reason": "known marker create/remove request; outcome unresolved",
+          "requested_action": "create_map_marker",
+          "actors": [],
+          "actor_refs": [],
+          "targets": [],
+          "target_refs": [],
+          "position_argument": [
+            712190.0,
+            823383.75,
+            32767.083984375
+          ],
+          "marker_text": "leo dead?",
+          "file_offset": 1201460,
+          "byte_length": 48,
+          "execution_outcome": "unknown"
+        },
+        {
+          "command_order": 1518,
+          "frame": 6200,
+          "slot": 2,
+          "opcode_hex": "0x08",
+          "class": "TNetworkActionLaunchFumigene",
+          "decode_status": "layout",
+          "tier": "meaningful_request",
+          "tier_reason": "known marker create/remove request; outcome unresolved",
+          "requested_action": "create_map_marker",
+          "actors": [],
+          "actor_refs": [],
+          "targets": [],
+          "target_refs": [],
+          "position_argument": [
+            712918.6875,
+            828871.125,
+            32767.083984375
+          ],
+          "marker_text": "yup",
+          "file_offset": 1215834,
+          "byte_length": 42,
+          "execution_outcome": "unknown"
+        },
+        {
+          "command_order": 1544,
+          "frame": 6321,
+          "slot": 2,
+          "opcode_hex": "0x08",
+          "class": "TNetworkActionLaunchFumigene",
+          "decode_status": "layout",
+          "tier": "meaningful_request",
+          "tier_reason": "known marker create/remove request; outcome unresolved",
+          "requested_action": "create_map_marker",
+          "actors": [],
+          "actor_refs": [],
+          "targets": [],
+          "target_refs": [],
+          "position_argument": [
+            671584.1875,
+            890647.5,
+            32767.083984375
+          ],
+          "marker_text": "smoke",
+          "file_offset": 1238963,
+          "byte_length": 44,
+          "execution_outcome": "unknown"
+        },
+        {
+          "command_order": 1554,
+          "frame": 6360,
+          "slot": 2,
+          "opcode_hex": "0x08",
+          "class": "TNetworkActionLaunchFumigene",
+          "decode_status": "layout",
+          "tier": "meaningful_request",
+          "tier_reason": "known marker create/remove request; outcome unresolved",
+          "requested_action": "create_map_marker",
+          "actors": [],
+          "actor_refs": [],
+          "targets": [],
+          "target_refs": [],
+          "position_argument": [
+            685647.875,
+            901553.375,
+            32767.083984375
+          ],
+          "marker_text": "gonna push",
+          "file_offset": 1246662,
+          "byte_length": 49,
+          "execution_outcome": "unknown"
+        },
+        {
+          "command_order": 1556,
+          "frame": 6375,
+          "slot": 2,
+          "opcode_hex": "0x07",
+          "class": "TNetworkActionGiveOrderStandard",
+          "decode_status": "layout",
+          "tier": "partial",
+          "tier_reason": "named actor/target references; effective contextual verb unresolved",
+          "requested_action": "Contextual39",
+          "actors": [
+            "KOMANDOSI"
+          ],
+          "actor_refs": [
+            "R093"
+          ],
+          "targets": [],
+          "target_refs": [],
+          "position_argument": [
+            653441.9375,
+            889522.875,
+            32767.083984375
+          ],
+          "marker_text": null,
+          "file_offset": 1249330,
+          "byte_length": 91,
+          "execution_outcome": "unknown"
+        },
+        {
+          "command_order": 1570,
+          "frame": 6439,
+          "slot": 2,
+          "opcode_hex": "0x07",
+          "class": "TNetworkActionGiveOrderStandard",
+          "decode_status": "layout",
+          "tier": "partial",
+          "tier_reason": "named actor/target references; effective contextual verb unresolved",
+          "requested_action": "Contextual39",
+          "actors": [
+            "T-72M1 WILK"
+          ],
+          "actor_refs": [
+            "R115"
+          ],
+          "targets": [],
+          "target_refs": [],
+          "position_argument": [
+            651397.3125,
+            861722.0625,
+            32767.083984375
+          ],
+          "marker_text": null,
+          "file_offset": 1261632,
+          "byte_length": 91,
+          "execution_outcome": "unknown"
+        },
+        {
+          "command_order": 1573,
+          "frame": 6455,
+          "slot": 2,
+          "opcode_hex": "0x07",
+          "class": "TNetworkActionGiveOrderStandard",
+          "decode_status": "layout",
+          "tier": "meaningful_request",
+          "tier_reason": "named actor references and explicit requested order kind",
+          "requested_action": "UnloadFromTransport",
+          "actors": [
+            "BTR-50"
+          ],
+          "actor_refs": [
+            "R134"
+          ],
+          "targets": [],
+          "target_refs": [],
+          "position_argument": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "marker_text": null,
+          "file_offset": 1264719,
+          "byte_length": 91,
+          "execution_outcome": "unknown"
+        },
+        {
+          "command_order": 1615,
+          "frame": 6571,
+          "slot": 2,
+          "opcode_hex": "0x07",
+          "class": "TNetworkActionGiveOrderStandard",
+          "decode_status": "layout",
+          "tier": "meaningful_request",
+          "tier_reason": "named actor references and explicit requested order kind",
+          "requested_action": "Move",
+          "actors": [
+            "T-72M1 WILK"
+          ],
+          "actor_refs": [
+            "R115"
+          ],
+          "targets": [],
+          "target_refs": [],
+          "position_argument": [
+            657394.6875,
+            924268.3125,
+            32767.0859375
+          ],
+          "marker_text": null,
+          "file_offset": 1288513,
+          "byte_length": 91,
+          "execution_outcome": "unknown"
+        },
+        {
+          "command_order": 1699,
+          "frame": 6743,
+          "slot": 2,
+          "opcode_hex": "0x07",
+          "class": "TNetworkActionGiveOrderStandard",
+          "decode_status": "layout",
+          "tier": "partial",
+          "tier_reason": "named actor/target references; effective contextual verb unresolved",
+          "requested_action": "Contextual39",
+          "actors": [
+            "T-72M1 WILK",
+            "JÄÄKÄRI '90"
+          ],
+          "actor_refs": [
+            "R115",
+            "R135"
+          ],
+          "targets": [],
+          "target_refs": [],
+          "position_argument": [
+            700648.5625,
+            951992.75,
+            32767.0859375
+          ],
+          "marker_text": null,
+          "file_offset": 1326181,
+          "byte_length": 111,
+          "execution_outcome": "unknown"
+        },
+        {
+          "command_order": 1727,
+          "frame": 6792,
+          "slot": 2,
+          "opcode_hex": "0x07",
+          "class": "TNetworkActionGiveOrderStandard",
+          "decode_status": "layout",
+          "tier": "meaningful_request",
+          "tier_reason": "named actor references and explicit requested order kind",
+          "requested_action": "Move",
+          "actors": [
+            "T-72M1 WILK"
+          ],
+          "actor_refs": [
+            "R115"
+          ],
+          "targets": [],
+          "target_refs": [],
+          "position_argument": [
+            704299.125,
+            931911.6875,
+            32767.083984375
+          ],
+          "marker_text": null,
+          "file_offset": 1337437,
+          "byte_length": 91,
+          "execution_outcome": "unknown"
+        },
+        {
+          "command_order": 1733,
+          "frame": 6806,
+          "slot": 2,
+          "opcode_hex": "0x07",
+          "class": "TNetworkActionGiveOrderStandard",
+          "decode_status": "layout",
+          "tier": "partial",
+          "tier_reason": "named actor/target references; effective contextual verb unresolved",
+          "requested_action": "Contextual39",
+          "actors": [
+            "JÄÄKÄRI '90"
+          ],
+          "actor_refs": [
+            "R135"
+          ],
+          "targets": [],
+          "target_refs": [],
+          "position_argument": [
+            708015.125,
+            883473.4375,
+            32767.083984375
+          ],
+          "marker_text": null,
+          "file_offset": 1340411,
+          "byte_length": 91,
+          "execution_outcome": "unknown"
+        },
+        {
+          "command_order": 1744,
+          "frame": 6835,
+          "slot": 1,
+          "opcode_hex": "0x07",
+          "class": "TNetworkActionGiveOrderStandard",
+          "decode_status": "layout",
+          "tier": "meaningful_request",
+          "tier_reason": "named actor references and explicit requested order kind",
+          "requested_action": "MergeCompany",
+          "actors": [
+            "VPM 120",
+            "VPM 120"
+          ],
+          "actor_refs": [
+            "R104",
+            "R136"
+          ],
+          "targets": [],
+          "target_refs": [],
+          "position_argument": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "marker_text": null,
+          "file_offset": 1346470,
+          "byte_length": 111,
+          "execution_outcome": "unknown"
+        },
+        {
+          "command_order": 1820,
+          "frame": 6985,
+          "slot": 2,
+          "opcode_hex": "0x07",
+          "class": "TNetworkActionGiveOrderStandard",
+          "decode_status": "layout",
+          "tier": "meaningful_request",
+          "tier_reason": "named actor references and explicit requested order kind",
+          "requested_action": "Reverse",
+          "actors": [
+            "T-72M1 WILK"
+          ],
+          "actor_refs": [
+            "R115"
+          ],
+          "targets": [],
+          "target_refs": [],
+          "position_argument": [
+            685410.25,
+            917257.3125,
+            32767.083984375
+          ],
+          "marker_text": null,
+          "file_offset": 1380163,
+          "byte_length": 91,
+          "execution_outcome": "unknown"
+        },
+        {
+          "command_order": 2043,
+          "frame": 7727,
+          "slot": 1,
+          "opcode_hex": "0x07",
+          "class": "TNetworkActionGiveOrderStandard",
+          "decode_status": "layout",
+          "tier": "meaningful_request",
+          "tier_reason": "named actor references and explicit requested order kind",
+          "requested_action": "MergeCompany",
+          "actors": [
+            "VPM 120",
+            "VPM 120"
+          ],
+          "actor_refs": [
+            "R143",
+            "R156"
+          ],
+          "targets": [],
+          "target_refs": [],
+          "position_argument": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "marker_text": null,
+          "file_offset": 1529248,
+          "byte_length": 111,
+          "execution_outcome": "unknown"
+        },
+        {
+          "command_order": 2282,
+          "frame": 8648,
+          "slot": 3,
+          "opcode_hex": "0x07",
+          "class": "TNetworkActionGiveOrderStandard",
+          "decode_status": "layout",
+          "tier": "meaningful_request",
+          "tier_reason": "named actor references and explicit requested order kind",
+          "requested_action": "MergeCompany",
+          "actors": [
+            "ShM vz.85 PRAM-S",
+            "ShM vz.85 PRAM-S"
+          ],
+          "actor_refs": [
+            "R038",
+            "R127"
+          ],
+          "targets": [],
+          "target_refs": [],
+          "position_argument": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "marker_text": null,
+          "file_offset": 1710532,
+          "byte_length": 111,
+          "execution_outcome": "unknown"
+        },
+        {
+          "command_order": 2466,
+          "frame": 9694,
+          "slot": 0,
+          "opcode_hex": "0x07",
+          "class": "TNetworkActionGiveOrderStandard",
+          "decode_status": "layout",
+          "tier": "meaningful_request",
+          "tier_reason": "named actor references and explicit requested order kind",
+          "requested_action": "Shoot",
+          "actors": [
+            "MARS"
+          ],
+          "actor_refs": [
+            "R184"
+          ],
+          "targets": [],
+          "target_refs": [],
+          "position_argument": [
+            609668.0625,
+            839520.0,
+            32767.0859375
+          ],
+          "marker_text": null,
+          "file_offset": 1907260,
+          "byte_length": 91,
+          "execution_outcome": "unknown"
+        },
+        {
+          "command_order": 2514,
+          "frame": 9985,
+          "slot": 1,
+          "opcode_hex": "0x07",
+          "class": "TNetworkActionGiveOrderStandard",
+          "decode_status": "layout",
+          "tier": "meaningful_request",
+          "tier_reason": "named actor references and explicit requested order kind",
+          "requested_action": "Shoot",
+          "actors": [
+            "VPM 120"
+          ],
+          "actor_refs": [
+            "R161"
+          ],
+          "targets": [
+            "OT-64C"
+          ],
+          "target_refs": [
+            "R026"
+          ],
+          "position_argument": [
+            543912.0625,
+            1088588.125,
+            32767.0859375
+          ],
+          "marker_text": null,
+          "file_offset": 1961628,
+          "byte_length": 111,
+          "execution_outcome": "unknown"
+        },
+        {
+          "command_order": 2599,
+          "frame": 10415,
+          "slot": 1,
+          "opcode_hex": "0x07",
+          "class": "TNetworkActionGiveOrderStandard",
+          "decode_status": "layout",
+          "tier": "meaningful_request",
+          "tier_reason": "named actor references and explicit requested order kind",
+          "requested_action": "Shoot",
+          "actors": [
+            "ETENDARD IVM"
+          ],
+          "actor_refs": [
+            "R165"
+          ],
+          "targets": [],
+          "target_refs": [],
+          "position_argument": [
+            738543.375,
+            1370715.875,
+            32767.083984375
+          ],
+          "marker_text": null,
+          "file_offset": 2043711,
+          "byte_length": 91,
+          "execution_outcome": "unknown"
+        },
+        {
+          "command_order": 2670,
+          "frame": 10613,
+          "slot": 3,
+          "opcode_hex": "0x07",
+          "class": "TNetworkActionGiveOrderStandard",
+          "decode_status": "layout",
+          "tier": "meaningful_request",
+          "tier_reason": "named actor references and explicit requested order kind",
+          "requested_action": "Shoot",
+          "actors": [
+            "ONDAVA"
+          ],
+          "actor_refs": [
+            "R201"
+          ],
+          "targets": [],
+          "target_refs": [],
+          "position_argument": [
+            704628.75,
+            1207076.375,
+            32767.083984375
+          ],
+          "marker_text": null,
+          "file_offset": 2084594,
+          "byte_length": 91,
+          "execution_outcome": "unknown"
+        },
+        {
+          "command_order": 2857,
+          "frame": 11596,
+          "slot": 2,
+          "opcode_hex": "0x07",
+          "class": "TNetworkActionGiveOrderStandard",
+          "decode_status": "layout",
+          "tier": "meaningful_request",
+          "tier_reason": "named actor references and explicit requested order kind",
+          "requested_action": "Shoot",
+          "actors": [
+            "RAKH 91"
+          ],
+          "actor_refs": [
+            "R183"
+          ],
+          "targets": [],
+          "target_refs": [],
+          "position_argument": [
+            896936.3125,
+            1105626.625,
+            32767.083984375
+          ],
+          "marker_text": null,
+          "file_offset": 2270660,
+          "byte_length": 91,
+          "execution_outcome": "unknown"
+        },
+        {
+          "command_order": 2994,
+          "frame": 12803,
+          "slot": 0,
+          "opcode_hex": "0x07",
+          "class": "TNetworkActionGiveOrderStandard",
+          "decode_status": "layout",
+          "tier": "meaningful_request",
+          "tier_reason": "named actor references and explicit requested order kind",
+          "requested_action": "Shoot",
+          "actors": [
+            "M110A2"
+          ],
+          "actor_refs": [
+            "R212"
+          ],
+          "targets": [
+            "T-72M2 MODERNA"
+          ],
+          "target_refs": [
+            "R179"
+          ],
+          "position_argument": [
+            560527.375,
+            960975.8125,
+            36862.16796875
+          ],
+          "marker_text": null,
+          "file_offset": 2491795,
+          "byte_length": 111,
+          "execution_outcome": "unknown"
+        },
+        {
+          "command_order": 3136,
+          "frame": 13835,
+          "slot": 2,
+          "opcode_hex": "0x08",
+          "class": "TNetworkActionLaunchFumigene",
+          "decode_status": "layout",
+          "tier": "meaningful_request",
+          "tier_reason": "known marker create/remove request; outcome unresolved",
+          "requested_action": "create_map_marker",
+          "actors": [],
+          "actor_refs": [],
+          "targets": [],
+          "target_refs": [],
+          "position_argument": [
+            711839.4375,
+            886140.5,
+            32767.083984375
+          ],
+          "marker_text": "killed some shit in here",
+          "file_offset": 2682695,
+          "byte_length": 63,
+          "execution_outcome": "unknown"
+        },
+        {
+          "command_order": 3871,
+          "frame": 17087,
+          "slot": 2,
+          "opcode_hex": "0x08",
+          "class": "TNetworkActionLaunchFumigene",
+          "decode_status": "layout",
+          "tier": "meaningful_request",
+          "tier_reason": "known marker create/remove request; outcome unresolved",
+          "requested_action": "create_map_marker",
+          "actors": [],
+          "actor_refs": [],
+          "targets": [],
+          "target_refs": [],
+          "position_argument": [
+            850481.0625,
+            791881.25,
+            32767.083984375
+          ],
+          "marker_text": "tank",
+          "file_offset": 3312391,
+          "byte_length": 43,
+          "execution_outcome": "unknown"
+        },
+        {
+          "command_order": 4160,
+          "frame": 19021,
+          "slot": 2,
+          "opcode_hex": "0x07",
+          "class": "TNetworkActionGiveOrderStandard",
+          "decode_status": "layout",
+          "tier": "meaningful_request",
+          "tier_reason": "named actor references and explicit requested order kind",
+          "requested_action": "Shoot",
+          "actors": [
+            "RAKH 91"
+          ],
+          "actor_refs": [
+            "R183"
+          ],
+          "targets": [],
+          "target_refs": [],
+          "position_argument": [
+            716704.375,
+            870445.125,
+            32767.083984375
+          ],
+          "marker_text": null,
+          "file_offset": 3673477,
+          "byte_length": 91,
+          "execution_outcome": "unknown"
+        },
+        {
+          "command_order": 4161,
+          "frame": 19029,
+          "slot": 1,
+          "opcode_hex": "0x07",
+          "class": "TNetworkActionGiveOrderStandard",
+          "decode_status": "layout",
+          "tier": "meaningful_request",
+          "tier_reason": "named actor references and explicit requested order kind",
+          "requested_action": "Shoot",
+          "actors": [
+            "VPM 120"
+          ],
+          "actor_refs": [
+            "R161"
+          ],
+          "targets": [],
+          "target_refs": [],
+          "position_argument": [
+            637766.75,
+            891422.75,
+            32767.083984375
+          ],
+          "marker_text": null,
+          "file_offset": 3674914,
+          "byte_length": 91,
+          "execution_outcome": "unknown"
+        }
+      ],
+      "source": {
+        "type": "local-files",
+        "name": "Authenticated Sample1 replay and original59638 descriptor index",
+        "files": [
+          "koppeltar-Sample1.wargamerpl2",
+          "build59638-v1.json.gz"
+        ],
+        "executedAt": "2026-10-24T02:03:02.746881+00:00",
+        "evidenceFlow": [
+          {
+            "title": "Authenticate",
+            "detail": "Replay SHA256 c5f8eff1298cf38c1d9967d29f98a22dfc869c150405630f9f695bb80a521df8; index SHA256 e73c0826b59c4fc6ad5940bb437fae71a8bb9b2080e91e604e2de7a9f4e15a5a"
+          },
+          {
+            "title": "Decode and classify",
+            "detail": "Existing parser and optional enrichment; rubric in research/sample1_battle_report.py; all4162 commands retained."
+          }
+        ],
+        "caveats": [
+          "Frames, not seconds. Slots, not identified players/teams/owners.",
+          "Configured static types, not accepted physical-unit identities or verified deployment.",
+          "Shoot requests are not shots/hits/kills; marker text is player assertion.",
+          "Positions are transmitted arguments in uncalibrated coordinates, not trajectories."
+        ],
+        "metricDefinitions": [
+          {
+            "label": "Commands",
+            "definition": "Command records, not actors, physical units, successful actions or outcomes."
+          }
+        ]
+      }
+    },
+    "summary": {
+      "rows": [
+        {
+          "events": 4162,
+          "named_references": 285,
+          "configured_types": 102,
+          "explicit_standard_orders": 476,
+          "standard_orders": 3794,
+          "markers": 44,
+          "marker_messages": 12,
+          "outcomes_verified": 0
+        }
+      ],
+      "source": {
+        "type": "local-files",
+        "name": "Authenticated Sample1 replay and original59638 descriptor index",
+        "files": [
+          "koppeltar-Sample1.wargamerpl2",
+          "build59638-v1.json.gz"
+        ],
+        "executedAt": "2026-10-24T02:03:02.746881+00:00",
+        "evidenceFlow": [
+          {
+            "title": "Authenticate",
+            "detail": "Replay SHA256 c5f8eff1298cf38c1d9967d29f98a22dfc869c150405630f9f695bb80a521df8; index SHA256 e73c0826b59c4fc6ad5940bb437fae71a8bb9b2080e91e604e2de7a9f4e15a5a"
+          },
+          {
+            "title": "Decode and classify",
+            "detail": "Existing parser and optional enrichment; rubric in research/sample1_battle_report.py; all4162 commands retained."
+          }
+        ],
+        "caveats": [
+          "Frames, not seconds. Slots, not identified players/teams/owners.",
+          "Configured static types, not accepted physical-unit identities or verified deployment.",
+          "Shoot requests are not shots/hits/kills; marker text is player assertion.",
+          "Positions are transmitted arguments in uncalibrated coordinates, not trajectories."
+        ],
+        "metricDefinitions": [
+          {
+            "label": "Commands",
+            "definition": "Command records, not actors, physical units, successful actions or outcomes."
+          }
+        ]
+      }
+    },
+    "push_window": {
+      "rows": [
+        {
+          "slot": 2,
+          "first_frame": 6321,
+          "last_frame": 6999,
+          "orders": 54,
+          "contextual": 50,
+          "Move": 2,
+          "UnloadFromTransport": 1,
+          "Reverse": 1
+        }
+      ],
+      "source": {
+        "type": "local-files",
+        "name": "Authenticated Sample1 replay and original59638 descriptor index",
+        "files": [
+          "koppeltar-Sample1.wargamerpl2",
+          "build59638-v1.json.gz"
+        ],
+        "executedAt": "2026-10-24T02:03:02.746881+00:00",
+        "evidenceFlow": [
+          {
+            "title": "Authenticate",
+            "detail": "Replay SHA256 c5f8eff1298cf38c1d9967d29f98a22dfc869c150405630f9f695bb80a521df8; index SHA256 e73c0826b59c4fc6ad5940bb437fae71a8bb9b2080e91e604e2de7a9f4e15a5a"
+          },
+          {
+            "title": "Decode and classify",
+            "detail": "Existing parser and optional enrichment; rubric in research/sample1_battle_report.py; all4162 commands retained."
+          }
+        ],
+        "caveats": [
+          "Frames, not seconds. Slots, not identified players/teams/owners.",
+          "Configured static types, not accepted physical-unit identities or verified deployment.",
+          "Shoot requests are not shots/hits/kills; marker text is player assertion.",
+          "Positions are transmitted arguments in uncalibrated coordinates, not trajectories."
+        ],
+        "metricDefinitions": [
+          {
+            "label": "Commands",
+            "definition": "Command records, not actors, physical units, successful actions or outcomes."
+          }
+        ]
+      }
+    },
+    "opaque_breakdown": {
+      "rows": [
+        {
+          "decode_status": "layout",
+          "commands": 49
+        },
+        {
+          "decode_status": "opaque",
+          "commands": 233
+        },
+        {
+          "decode_status": "unknown",
+          "commands": 42
+        }
+      ],
+      "source": {
+        "type": "local-files",
+        "name": "Authenticated Sample1 replay and original59638 descriptor index",
+        "files": [
+          "koppeltar-Sample1.wargamerpl2",
+          "build59638-v1.json.gz"
+        ],
+        "executedAt": "2026-10-24T02:03:02.746881+00:00",
+        "evidenceFlow": [
+          {
+            "title": "Authenticate",
+            "detail": "Replay SHA256 c5f8eff1298cf38c1d9967d29f98a22dfc869c150405630f9f695bb80a521df8; index SHA256 e73c0826b59c4fc6ad5940bb437fae71a8bb9b2080e91e604e2de7a9f4e15a5a"
+          },
+          {
+            "title": "Decode and classify",
+            "detail": "Existing parser and optional enrichment; rubric in research/sample1_battle_report.py; all4162 commands retained."
+          }
+        ],
+        "caveats": [
+          "Frames, not seconds. Slots, not identified players/teams/owners.",
+          "Configured static types, not accepted physical-unit identities or verified deployment.",
+          "Shoot requests are not shots/hits/kills; marker text is player assertion.",
+          "Positions are transmitted arguments in uncalibrated coordinates, not trajectories."
+        ],
+        "metricDefinitions": [
+          {
+            "label": "Commands",
+            "definition": "Command records, not actors, physical units, successful actions or outcomes."
+          }
+        ]
+      }
+    },
+    "order_counts": {
+      "rows": [
+        {
+          "requested_order": "Move",
+          "commands": 153
+        },
+        {
+          "requested_order": "UnloadFromTransport",
+          "commands": 83
+        },
+        {
+          "requested_order": "SplitCompany",
+          "commands": 4
+        },
+        {
+          "requested_order": "Stop",
+          "commands": 56
+        },
+        {
+          "requested_order": "Reverse",
+          "commands": 34
+        },
+        {
+          "requested_order": "Shoot",
+          "commands": 136
+        },
+        {
+          "requested_order": "Land",
+          "commands": 7
+        },
+        {
+          "requested_order": "MergeCompany",
+          "commands": 3
+        }
+      ],
+      "source": {
+        "type": "local-files",
+        "name": "Authenticated Sample1 replay and original59638 descriptor index",
+        "files": [
+          "koppeltar-Sample1.wargamerpl2",
+          "build59638-v1.json.gz"
+        ],
+        "executedAt": "2026-10-24T02:03:02.746881+00:00",
+        "evidenceFlow": [
+          {
+            "title": "Authenticate",
+            "detail": "Replay SHA256 c5f8eff1298cf38c1d9967d29f98a22dfc869c150405630f9f695bb80a521df8; index SHA256 e73c0826b59c4fc6ad5940bb437fae71a8bb9b2080e91e604e2de7a9f4e15a5a"
+          },
+          {
+            "title": "Decode and classify",
+            "detail": "Existing parser and optional enrichment; rubric in research/sample1_battle_report.py; all4162 commands retained."
+          }
+        ],
+        "caveats": [
+          "Frames, not seconds. Slots, not identified players/teams/owners.",
+          "Configured static types, not accepted physical-unit identities or verified deployment.",
+          "Shoot requests are not shots/hits/kills; marker text is player assertion.",
+          "Positions are transmitted arguments in uncalibrated coordinates, not trajectories."
+        ],
+        "metricDefinitions": [
+          {
+            "label": "Commands",
+            "definition": "Command records, not actors, physical units, successful actions or outcomes."
+          }
+        ]
+      }
+    },
+    "shoot_types": {
+      "rows": [
+        {
+          "localized_type": "VPM 120",
+          "actor_occurrences": 44
+        },
+        {
+          "localized_type": "ShM vz.85 PRAM-S",
+          "actor_occurrences": 36
+        },
+        {
+          "localized_type": "RAKH 91",
+          "actor_occurrences": 10
+        },
+        {
+          "localized_type": "MARS",
+          "actor_occurrences": 10
+        },
+        {
+          "localized_type": "MIG-29 9-12A",
+          "actor_occurrences": 9
+        },
+        {
+          "localized_type": "ETENDARD IVM",
+          "actor_occurrences": 8
+        },
+        {
+          "localized_type": "ONDAVA",
+          "actor_occurrences": 5
+        },
+        {
+          "localized_type": "AVIA 28",
+          "actor_occurrences": 4
+        },
+        {
+          "localized_type": "TORNADO IDS ",
+          "actor_occurrences": 4
+        },
+        {
+          "localized_type": "RM-70",
+          "actor_occurrences": 3
+        },
+        {
+          "localized_type": "NF-5A",
+          "actor_occurrences": 2
+        },
+        {
+          "localized_type": "M110A2",
+          "actor_occurrences": 1
+        }
+      ],
+      "source": {
+        "type": "local-files",
+        "name": "Authenticated Sample1 replay and original59638 descriptor index",
+        "files": [
+          "koppeltar-Sample1.wargamerpl2",
+          "build59638-v1.json.gz"
+        ],
+        "executedAt": "2026-10-24T02:03:02.746881+00:00",
+        "evidenceFlow": [
+          {
+            "title": "Authenticate",
+            "detail": "Replay SHA256 c5f8eff1298cf38c1d9967d29f98a22dfc869c150405630f9f695bb80a521df8; index SHA256 e73c0826b59c4fc6ad5940bb437fae71a8bb9b2080e91e604e2de7a9f4e15a5a"
+          },
+          {
+            "title": "Decode and classify",
+            "detail": "Existing parser and optional enrichment; rubric in research/sample1_battle_report.py; all4162 commands retained."
+          }
+        ],
+        "caveats": [
+          "Frames, not seconds. Slots, not identified players/teams/owners.",
+          "Configured static types, not accepted physical-unit identities or verified deployment.",
+          "Shoot requests are not shots/hits/kills; marker text is player assertion.",
+          "Positions are transmitted arguments in uncalibrated coordinates, not trajectories."
+        ],
+        "metricDefinitions": [
+          {
+            "label": "Commands",
+            "definition": "Command records, not actors, physical units, successful actions or outcomes."
+          }
+        ]
+      }
+    }
+  },
+  "id": "report:71adf6e2-b3cc-4254-9af6-a93293af7e1b"
+}

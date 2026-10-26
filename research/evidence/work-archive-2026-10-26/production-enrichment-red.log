@@ -1,0 +1,30 @@
+test_cancellation_has_request_id_without_purchase_correlation (test_production.ProductionTests.test_cancellation_has_request_id_without_purchase_correlation) ... ok
+test_different_build_is_inferred (test_production.ProductionTests.test_different_build_is_inferred) ... ok
+test_distinct_guid_words_and_all_control_fields_survive (test_production.ProductionTests.test_distinct_guid_words_and_all_control_fields_survive) ... ok
+test_every_truncation_and_extra_byte_rejected (test_production.ProductionTests.test_every_truncation_and_extra_byte_rejected) ... ok
+test_hostile_counts_and_nested_lengths_rejected (test_production.ProductionTests.test_hostile_counts_and_nested_lengths_rejected) ... ok
+test_nonfinite_points_remain_safe_json (test_production.ProductionTests.test_nonfinite_points_remain_safe_json) ... ok
+test_static_type_enrichment_preserves_events_and_missing_guids (test_production.ProductionTests.test_static_type_enrichment_preserves_events_and_missing_guids) ... FAIL
+test_timeline_recovers_production_without_mutating_parser (test_production.ProductionTests.test_timeline_recovers_production_without_mutating_parser) ... ok
+test_variant2_keeps_separate_scalar_semantics (test_production.ProductionTests.test_variant2_keeps_separate_scalar_semantics) ... ok
+test_zero_four_five_entries_and_mismatched_group_count (test_production.ProductionTests.test_zero_four_five_entries_and_mismatched_group_count) ... ok
+
+======================================================================
+FAIL: test_static_type_enrichment_preserves_events_and_missing_guids (test_production.ProductionTests.test_static_type_enrichment_preserves_events_and_missing_guids)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/sein/Code/wgrd-replay/tests/test_production.py", line 128, in test_static_type_enrichment_preserves_events_and_missing_guids
+    self.assertEqual(events, before)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: [{'in[424 chars] None, 'type_id': '010101010101010101010101010[3634 chars]e'}}] != [{'in[424 chars] None}, {'bundle_index': 1, 'descriptor_guid_h[3540 chars]e'}}]
+
+First differing element 0:
+{'int[423 chars] None, 'type_id': '010101010101010101010101010[1576 chars]te'}}
+{'int[423 chars] None}, {'bundle_index': 1, 'descriptor_guid_h[1529 chars]te'}}
+
+Diff is 9992 characters long. Set self.maxDiff to None to see it.
+
+----------------------------------------------------------------------
+Ran 10 tests in 0.017s
+
+FAILED (failures=1)
