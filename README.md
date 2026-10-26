@@ -35,16 +35,26 @@ The 2026-10-26 research notes under `research/` name their artifacts (build, SHA
     python3 -B research/op18_reference_keys.py 'samples/raw/koppeltar-Sample*'
     python3 -B research/coverage.py > research/coverage.json
 
+## Documentation map
+
+- `AGENTS.md`: operating guide for AI coding and reverse-engineering agents (reading order, evidence standards, verified commands, preservation rules).
+- `docs/ARCHITECTURE.md`: data flow, status vocabularies, canonical document per subsystem.
+- `FORMAT.md`: byte-level format spec. Each field is tagged VERIFIED, INFERRED, or UNKNOWN with evidence. Start here for the format.
+- `research/INDEX.md`: provenance index. Every current claim mapped to its original note, evidence record, reproduction script and tests, with a reproducibility status code.
+- `NEXT-STEPS.md`: current priorities and detailed open items.
+- `REA-NOTES-59638.md`: executable analysis notes for build 59638 (addresses, evidence IDs). `REPLAY-RESEARCH.md`: investigation log.
+- `research/`: per-topic research notes, historical plans, reproduction scripts, generated coverage JSON, `research/evidence/` (REA records, disassembly excerpts), `research/chatgpt-session-2026-10-23/` (archived session), `research/maintenance/` (preservation manifests and verifiers, link checker), `research/session-records/`.
+- `samples/`: manifest and binary inventory. Replay files are not in Git (see `.gitignore`).
+
 ## Layout
 
 - `wgrd_replay.py`: container, frame, and command decoder. Opcode table `OPCODE_CLASSES`.
 - `wgrd_entities.py`, `wgrd_orders.py`, `wgrd_production.py`, `wgrd_timeline.py`, `wgrd_unit_data.py`, `wgrd_unit_index.py`: entity, order, production, timeline, and unit-name layers.
-- `FORMAT.md`: byte-level format spec. Each field is tagged VERIFIED, INFERRED, or UNKNOWN with evidence. Start here.
-- `REA-NOTES-59638.md`: reverse-engineering notes on game build 59638 (addresses, evidence IDs).
-- `REPLAY-RESEARCH.md`: investigation log and method.
-- `NEXT-STEPS.md`: open work, prioritized. `research/ROADMAP-2026-10-26.md`: assessment and ranked plan.
-- `research/`: coverage JSON, command layouts, per-opcode findings (`research/CHANGEPRODUCTION-0C.md`, `research/FIXED-OPCODES-02-13-18.md`, `research/OP18-REFERENCE-KEYS.md`, `research/OP18-SUPPLY-TARGETS.md`), timeline semantics, NDF bridge, reproduction scripts, bounded disassembly evidence.
-- `samples/`: manifest and binary inventory. Replay files are not in Git (see `.gitignore`).
+- `tests/`: unittest suite; corpus and executable tests skip when external artifacts are absent.
+
+## Next milestone
+
+Ground-truth validation: record a scripted match on the Parallels Windows guest (game build 59638 binary and NDF verified present) and compare decoded commands against the action log. Prerequisites, blockers and protocol: `research/GROUND-TRUTH-PREREQUISITES.md`. Until then no semantic claim in this repository has been checked against observed gameplay.
 
 ## Not included
 
