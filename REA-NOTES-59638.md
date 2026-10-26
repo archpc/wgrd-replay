@@ -277,4 +277,4 @@ FUN_00b35cd0 (u32 array), FUN_00b35fc0 (u32 array, each <= 0x0e), FUN_00b290c0
 x2 (16-byte points, kind <= 6), FUN_00b35cd0, FUN_00b29080 (u32 + raw16).
 rizin `af; pdf` only, no Ghidra import. 47/47 authentic blocks fit exactly.
 Layout CONFIRMED; field meaning TENTATIVE. Detail: research/CHANGEPRODUCTION-0C.md.
-Open list: remove 0c from "unsupported 02/0c/13/18 layouts" once implemented.
+Implemented 2026-10-26 (wgrd_replay.py, tests/test_op0c_decoder.py); 02/13/18 followed the same day (research/FIXED-OPCODES-02-13-18.md).

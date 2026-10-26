@@ -24,7 +24,7 @@ Default output is JSON with the header, metadata, and per-pact command decode. `
 
     python3 -m unittest discover -s tests -q
 
-120 tests pass (1 skipped without the cached public unit snapshot). Corpus and executable-backed tests skip when the replay samples or WarGame3.exe are not present locally; `WGRD_SAMPLES_DIR` and `WGRD_EXE_59638` override the default paths.
+129 tests pass (1 skipped without the cached public unit snapshot). Corpus and executable-backed tests skip when the replay samples or WarGame3.exe are not present locally; `WGRD_SAMPLES_DIR` and `WGRD_EXE_59638` override the default paths.
 
 ## Reproducing research findings
 

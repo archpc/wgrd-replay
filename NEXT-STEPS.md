@@ -1,8 +1,27 @@
 # NEXT-STEPS.md (prioritized)
 
+## Current priorities (2026-10-26)
+
+1. **Ground-truth replay.** Record a scripted match on the Parallels guest and
+   validate 07/08/0a/0c/0d/18 semantics, frame duration and coordinates against
+   the action log. Prerequisites verified, blockers and protocol:
+   research/GROUND-TRUTH-PREREQUISITES.md. Needs user authorization to launch.
+2. **Frame duration.** Depends on 1; static passes failed (item 7 below).
+3. **Player slot -> identity; coordinate axes.** Depends on 1 (items 7, 8).
+4. **0x0C consumer trace** for obj+0x34 enum and obj+0xe8 float hypotheses
+   (research/CHANGEPRODUCTION-0C.md; deferred, executable analysis).
+5. **Preserve work/ evidence** per research/maintenance/WORK-ARTIFACTS.md
+   (archival risk: original .asm excerpts and raw REA responses are ignored files).
+
+Status counts below are historical checkpoints; research/coverage.json and
+research/timeline-coverage.json are authoritative. Provenance: research/INDEX.md.
+
+## Status and detailed items
+
 Milestone: **594/594 multi-command blocks split**, with exact count and EOF.
 571 complete layouts; 23 explicitly opaque-framed blocks. All 10,942 non-empty
-blocks (multi and single) are complete or framed; zero unresolved. 120 tests pass.
+blocks (multi and single) are complete or framed; zero unresolved. 129 tests pass
+(1 skip without the public unit snapshot).
 See research/COMMAND-LAYOUTS.md, research/coverage.json and research/evidence/.
 
 Timeline milestone: `--timeline` retains all 11,565 authentic commands. 08/09

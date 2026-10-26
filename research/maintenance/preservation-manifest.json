@@ -1,5 +1,11 @@
 {
- "allowed_changes": [],
+ "allowed_changes": [
+  "FORMAT.md",
+  "REA-NOTES-59638.md",
+  "NEXT-STEPS.md",
+  "README.md"
+ ],
+ "allowed_changes_reason": "Active documents reconciled during the 2026-10-26 maintenance milestone (layout table rows, priorities, counts, status lines). Historical research notes under research/ are byte-identical to the baseline.",
  "baseline_commit": "681d8ee7ff61856503c8e915be44f328cdd14f08",
  "entries": [
   {

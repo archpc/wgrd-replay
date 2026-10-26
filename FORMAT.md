@@ -103,13 +103,17 @@ New field names identify object storage offsets, without assigning game meanings
 
 | Opcode | Total command bytes | Verified read layout after opcode |
 |---|---|---|
+| 02 | 22 | u32, raw16, u8 (research/FIXED-OPCODES-02-13-18.md) |
 | 04 / 09 | 25 | u32, raw16, u32 |
 | 07 | 71+20*(N1+N2)+T | twice (u32 N, raw20*N), raw12, raw8, raw36, u32 <=3, u16 T, T bytes |
 | 08 | 39+T | section 5 |
 | 0a | 29 | u32, raw16, u32 <=14, u32 |
+| 0c | 61+4*(n1+n2+n3)+16*(m1+m2) | u32, raw16, (u32 n1, u32*n1), (u32 n2, u32*n2 each <=0x0e), twice (u32 m, (raw12, u32 <=6)*m), (u32 n3, u32*n3), u32, raw16 (research/CHANGEPRODUCTION-0C.md) |
 | 0d | 18+L | u32 variant 1..3, raw4, raw1, raw4, u32 L, opaque L-byte serializer payload |
 | 0e | 25 | u32, u32, raw16 |
+| 13 | 13 | u32, u32, u32 (research/FIXED-OPCODES-02-13-18.md) |
 | 17 | 10+8*N | u32, u32 N, raw8*N, raw1 |
+| 18 | 10 | u32, u32, u8 (research/FIXED-OPCODES-02-13-18.md) |
 
 Each pact preserves block_hex and adds command_decode:
 - complete: count commands, full supported field layouts, exact EOF.
