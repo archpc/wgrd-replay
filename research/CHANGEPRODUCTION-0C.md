@@ -47,7 +47,10 @@ array path is exercised in data (on the non-matching build only).
 ## Observed values, matching build (41 blocks, every count = 1)
 
 - A = 0xC000001E + slot (same player-id convention as opcode 0x08).
-- B = 16 zero bytes. C = 0. D = 16 zero bytes.
+- B = `00*12 32000000` on all 47 blocks (all three samples), identical to the
+  opcode 0x08 raw16 at obj+0x08. C = 0. D = 16 zero bytes. (An earlier draft
+  of this note stated B was all zeros; that came from a truncated print and
+  was caught by tests/test_op0c_layout.py.)
 - arr18[0] in 1..10 (small index).
 - arr34[0] in {3, 8, 10, 13} (bounded enum, <= 14).
 - pts50[0] = (x, y, z, kind 2); x,y in 1.3e5..1.2e6, z in 32310..37243.
