@@ -268,3 +268,13 @@ Current REA ev_c71bc22a reconfirms typed CompanyDescriptor property; ev_1de49c5f
 and ev_5c5c9e64 capture expanded NDF bytes/header/illustrative link endpoints.
 Full durable result research/NDF59638-BRIDGE.md, extraction/coverage JSON and
 research-only reproduction scripts. Decoder untouched; no simulation behavior.
+
+## Opcode 0x0C creator (2026-10-26)
+
+Jump table 0xb241f4[0x0c-2] -> case 0xb240f3 -> creator FUN_00b2eeb0 (file
+0x72e2b0), object 0x118, vtbl 0x19a191c. Reads u32, raw16, then helper arrays
+FUN_00b35cd0 (u32 array), FUN_00b35fc0 (u32 array, each <= 0x0e), FUN_00b290c0
+x2 (16-byte points, kind <= 6), FUN_00b35cd0, FUN_00b29080 (u32 + raw16).
+rizin `af; pdf` only, no Ghidra import. 47/47 authentic blocks fit exactly.
+Layout CONFIRMED; field meaning TENTATIVE. Detail: research/CHANGEPRODUCTION-0C.md.
+Open list: remove 0c from "unsupported 02/0c/13/18 layouts" once implemented.

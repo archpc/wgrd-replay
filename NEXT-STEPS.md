@@ -51,6 +51,9 @@ research/TIMELINE-SEMANTICS.md, timeline-coverage.json, timeline-cli-validation.
 3. **Remaining 112 single-command blocks:** 0c=47, 18=44, 13=16, 02=5.
    Recover exact creators/helpers before implementing; no more multi blocks
    are blocked by these opcodes in the authenticated sample set.
+   0c layout recovered 2026-10-26 (creator FUN_00b2eeb0, 47/47 exact fit, not
+   yet implemented): research/CHANGEPRODUCTION-0C.md, research/op0c_layout.py.
+   Assessment and ranked plan: research/ROADMAP-2026-10-26.md.
 4. **Parser alignment decision.** SHA-224 is verified. Version <=1 and fields A/B
    differ from current strict policy; retain policy until separately decided.
 5. **Digest handling.** Locate this[5] origin and fatal/nonfatal mismatch handling.
