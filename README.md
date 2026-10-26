@@ -28,7 +28,7 @@ Default output is JSON with the header, metadata, and per-pact command decode. `
 
 ## Reproducing research findings
 
-Each research note under `research/` names its artifacts (build, SHA-256, addresses) and a standalone read-only script that re-derives the result and exits non-zero on mismatch:
+The 2026-10-26 research notes under `research/` name their artifacts (build, SHA-256, addresses) and ship a standalone read-only script that re-derives the result and exits non-zero on mismatch:
 
     python3 -B research/op0c_layout.py WarGame3.exe 'samples/raw/koppeltar-Sample*'
     python3 -B research/op_fixed_layout.py WarGame3.exe 'samples/raw/koppeltar-Sample*'
@@ -64,4 +64,4 @@ Research and development in this repository were carried out by AI models direct
 - Earlier sessions (container, digest, framing, dispatcher, opcodes 04/07/08/09/0A/0D/0E/17, NDF bridge, timeline) are recorded in `REPLAY-RESEARCH.md`, `REA-NOTES-59638.md` and `research/chatgpt-session-2026-10-23/`.
 - Tooling: rizin, Ghidra, REA MCP, Python 3 standard library.
 
-Every published finding is backed by a reproduction script or test that exercises the claim against the artifacts named in its research note.
+The 2026-10-26 findings (`CHANGEPRODUCTION-0C.md`, `FIXED-OPCODES-02-13-18.md`, `OP18-REFERENCE-KEYS.md`) are each backed by a reproduction script and regression tests that exercise the claim against the artifacts named in the note. Earlier research is documented with evidence IDs and notes in `research/evidence/` and `REA-NOTES-59638.md`; not all of it has a standalone script.
