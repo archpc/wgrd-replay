@@ -110,3 +110,5 @@ Principal canonical REA evidence under research/evidence/:
 Exploratory mid-instruction ranges/unrelated reflection hits retained as
 provenance, not semantic proof. No second Ghidra import after prior120s startup
 failure. Single bounded static review: no actionable findings. No test/review loop.
+
+0x18 DeactivateSupply targets are attributed per replay by unique registry key plus issuing slot; see research/OP18-SUPPLY-TARGETS.md.

@@ -4,6 +4,7 @@ A catalog entry identifies repeated reference bytes within one replay. It does
 not identify a named unit, prove registry acceptance, or merge shared GUIDs.
 """
 from collections import defaultdict
+import copy
 import struct
 
 from wgrd_replay import ReplayFormatError
@@ -93,7 +94,7 @@ def build_reference_catalog(events, replay_sha256, matched):
                         'occurrences': {'actor': 0, 'target': 0}, 'observed_player_slots': [],
                         'identity_status': 'wire_reference_only', 'unit_identity': None,
                         'layout_status': 'matching_build_59638' if matched else 'inferred_build_59638',
-                        'lookup_key_ambiguous': False,
+                        'lookup_key_ambiguous': False, 'supply_request_occurrences': 0,
                     }
                 entry = entries[reference_id]
                 entry['last_seen'] = mark
@@ -117,3 +118,64 @@ def build_reference_catalog(events, replay_sha256, matched):
                         'Shared GUIDs do not merge registry keys; GUID component meanings and descriptor names unresolved.',
                         'Observed player slots record command provenance, not ownership or controller identity.'],
     }
+
+
+OP18_EVIDENCE = ['research/OP18-REFERENCE-KEYS.md', 'research/OP18-SUPPLY-TARGETS.md',
+                 'creator FUN_00b2f2e0 (WarGame3.exe build 59638)']
+
+
+def attribute_supply_requests(events, reference_catalog, matched, has_unit_data):
+    """Post-pass: attribute 0x18 DeactivateSupply events to 0x07 wire references.
+
+    Rule (research/OP18-SUPPLY-TARGETS.md): a registry key resolves only when exactly
+    one catalog entry carries it and the issuing slot is in its observed slots.
+    Any other case assigns no reference_id, GUID or unit type.
+    """
+    by_key = defaultdict(list)
+    for entry in reference_catalog['entries']:
+        by_key[entry['lookup_key_u32']].append(entry)
+    for event in events:
+        if event['opcode'] != 0x18 or event['parameters'] is None:
+            continue
+        params = event['parameters']
+        key = params['obj_04_u32']
+        candidates = by_key.get(key, [])
+        slot = event['player_slot']
+        resolution, entry = 'unreferenced_key', None
+        if len(candidates) > 1 or any(c['lookup_key_ambiguous'] for c in candidates):
+            resolution = 'ambiguous_key'
+        elif len(candidates) == 1:
+            entry = candidates[0]
+            resolution = 'unique_key' if slot in entry['observed_player_slots'] else 'slot_mismatch'
+        target = {'resolution': resolution, 'reference_id': None, 'validation_guid_hex': None,
+                  'issuing_slot_in_observed_slots': None, 'temporal_relation': None,
+                  'candidate_reference_ids': [c['reference_id'] for c in candidates],
+                  'unit_type': None}
+        if entry is not None:
+            target['issuing_slot_in_observed_slots'] = slot in entry['observed_player_slots']
+            frame = event['frame']
+            first, last = entry['first_seen']['frame'], entry['last_seen']['frame']
+            if resolution == 'unique_key':
+                target['temporal_relation'] = ('before_first' if frame < first else
+                                               'after_last' if frame > last else 'inside')
+                target['reference_id'] = entry['reference_id']
+                target['validation_guid_hex'] = entry['validation_guid_hex']
+                if has_unit_data and 'configured_unit_types' in entry:
+                    target['unit_type'] = copy.deepcopy(entry['configured_unit_types'])
+                entry['supply_request_occurrences'] += 1
+        limitations = [
+            'Resolution uses per-replay registry-key uniqueness among 0x07 wire references; no cross-replay identity.',
+            'No consumer of the 0x18 object was traced; obj_08/obj_0c meanings and the action direction are unresolved.',
+            'Unit type comes from the static NDF join on the validation GUID with its own caveats (see configured_unit_types.status).',
+        ]
+        if not matched:
+            limitations.append('Sample build is not 59638; layout inferred.')
+        event['interpretation'] = {
+            'action': 'deactivate_supply_request', 'class': 'TNetworkActionDeactivateSupply',
+            'status': 'partial' if matched else 'inferred', 'execution_outcome': 'unknown',
+            'evidence_build': '59638', 'evidence': list(OP18_EVIDENCE),
+            'parameters': {'registry_key_u32': key, 'obj_08_u32': params['obj_08_u32'],
+                           'obj_0c_u8': params['obj_0c_u8'], 'target_reference': target},
+            'limitations': limitations,
+        }
+    return reference_catalog

@@ -70,6 +70,21 @@ is substantial investigation; stop at minimum milestone.
 Evidence: `ev_304797ce…`, `ev_a4e70aaf…`, `ev_c9aa4fd0…`, `ev_5768ef0f…`,
 `ev_79ad196d…`.
 
+## 0x18 — deactivate_supply_request (target attribution, build 59638)
+
+- Class `TNetworkActionDeactivateSupply`. Raw fields: `obj_04_u32` registry key,
+  `obj_08_u32`, `obj_0c_u8`. Layout from FUN_00b2f2e0.
+- `parameters.target_reference` attributes the key to a 0x07 wire reference
+  only by the rule in research/OP18-SUPPLY-TARGETS.md: exactly one catalog entry
+  with that key (`unique_key`) and the issuing slot among its observed slots.
+  Otherwise `unreferenced_key`, `ambiguous_key` (several entries; never assigned),
+  or `slot_mismatch`. Only `unique_key` carries `reference_id`, GUID and
+  `unit_type` (configured static type, present only when unit data is supplied).
+- `temporal_relation` (before_first / inside / after_last) is reported, not a gate.
+- `status: partial` on build 59638, `inferred` otherwise; `execution_outcome: unknown`.
+- Limitations: per-replay key uniqueness only; no consumer traced; obj_08/obj_0c
+  meanings and action direction unresolved.
+
 ## Player identity and time: unresolved
 
 Metadata inspection on SHA-256-authenticated samples: player_N keys have no direct

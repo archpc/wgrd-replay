@@ -164,7 +164,16 @@ class BundledIndex(unittest.TestCase):
             self.assertEqual(hashlib.sha256(raw).hexdigest(), sample['sha256'])
             parsed = parse_replay(raw); base = build_timeline(parsed)
             enriched = build_timeline(parsed, unit_data=data)
-            self.assertEqual(enriched['events'], base['events'])
+            # Only 0x18 target_reference.unit_type may differ: it is the one event-level join.
+            def without_op18_unit_type(events):
+                out = []
+                for e in events:
+                    if e['opcode'] == 0x18 and e['interpretation']['parameters'] is not None:
+                        e = json.loads(json.dumps(e))
+                        e['interpretation']['parameters']['target_reference']['unit_type'] = None
+                    out.append(e)
+                return out
+            self.assertEqual(without_op18_unit_type(enriched['events']), base['events'])
             cat = enriched['entity_references']
             self.assertEqual(cat['descriptor_data']['mapping_counts'], {'unique': count, 'ambiguous': 0, 'missing': 0})
             expected = 'matching_build_static_configuration' if sample['game_version'] == '59638' else 'inferred_build_59638'

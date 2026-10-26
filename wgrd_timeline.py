@@ -146,6 +146,8 @@ def build_timeline(parsed, unit_data=None):
         production_types = enrich_production_types(events, unit_data, str(parsed["header"]["game_version"]))
         from wgrd_unit_data import enrich_references
         enrich_references(reference_catalog, unit_data, str(parsed["header"]["game_version"]))
+    from wgrd_entities import attribute_supply_requests
+    attribute_supply_requests(events, reference_catalog, matched, unit_data is not None)
     return _json_safe({
         "schema": "wgrd_timeline/1", "sha256": parsed["sha256"], "size": parsed["size"],
         "header": parsed["header"], "metadata": parsed["metadata"],
