@@ -110,3 +110,16 @@ marker-manager/graphics evidence paths; this note records the complete chain.
 Single bounded review: one adopted correction, reject unresolved tails with more
 declared commands than available opcode bytes. Default parser behavior preserved.
 Focused regression added; no recursive review.
+
+## 0x0C — change_production_request (structural only)
+
+Action `change_production_request` (class TNetworkActionChangeProduction). Creator
+FUN_00b2eeb0 and the 0x0C layout are documented in [CHANGEPRODUCTION-0C.md](CHANGEPRODUCTION-0C.md).
+
+- Status `partial` on build 59638 (layout verified, semantics not); `inferred` on other builds (Sample2).
+- Parameters are raw wire fields only: `player_id_u32` (with `slot_consistent` against
+  0xC000001E + recorded pact slot), `obj_08_hex`, `obj_18_u32_items`, `obj_34_u32_items`,
+  `obj_50_points` / `obj_9c_points` (nonfinite markers as decoded), `obj_e8_u32_items`,
+  `obj_104_u32`, `obj_108_hex`. No position, heading or production-type names.
+- `execution_outcome: unknown`. No consumer was traced, so the effect on production state is not known.
+- Limitations: field meanings unconfirmed; point kinds and enum-like values unassigned; Sample2 layout inferred.

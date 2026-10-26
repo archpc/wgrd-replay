@@ -27,7 +27,10 @@ def _json_safe(value):
     return value
 
 
-def _interpretation(opcode, fields, matched):
+def _interpretation(opcode, fields, matched, slot=None):
+    if opcode == 0x0c and fields is not None:
+        from wgrd_production import decode_change_production
+        return decode_change_production(fields, matched, slot)
     if opcode in (0x0a, 0x0d):
         from wgrd_production import decode_production_action
         try:
@@ -103,7 +106,7 @@ def build_timeline(parsed, unit_data=None):
                 "source": {"chunk_offset": record["offset"], "block_offset": offset,
                            "file_offset": block_start + offset if offset is not None else None,
                            "length": length, "boundary_known": boundary},
-                "interpretation": _interpretation(opcode, fields, matched),
+                "interpretation": _interpretation(opcode, fields, matched, record["slot"]),
             }
             if span is not None:
                 event["source"]["unresolved_span"] = span

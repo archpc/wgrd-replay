@@ -141,6 +141,48 @@ def decode_production_action(opcode, fields, raw_hex, matched):
     return None
 
 
+CHANGE_PRODUCTION_EVIDENCE = [
+    'creator FUN_00b2eeb0 (WarGame3.exe build 59638, read sequence and sizes)',
+    'research/CHANGEPRODUCTION-0C.md',
+]
+
+
+def decode_change_production(fields, matched, slot):
+    """Raw-field interpretation of opcode 0x0C. Field meanings are not established.
+
+    Status mirrors the timeline convention for layout-verified, semantics-open
+    actions: 'partial' on the matching build, 'inferred' on other builds.
+    """
+    player_id = fields['obj_04_u32']
+    result = {'status': 'partial' if matched else 'inferred',
+              'action': 'change_production_request',
+              'parameters': {
+                  'player_id_u32': player_id,
+                  'slot_consistent': player_id == 0xC000001E + slot,
+                  'obj_08_hex': fields['obj_08_hex'],
+                  'obj_18_u32_items': fields['obj_18_array']['items_u32'],
+                  'obj_34_u32_items': fields['obj_34_array']['items_u32'],
+                  'obj_50_points': fields['obj_50_points']['items'],
+                  'obj_9c_points': fields['obj_9c_points']['items'],
+                  'obj_e8_u32_items': fields['obj_e8_array']['items_u32'],
+                  'obj_104_u32': fields['obj_104_u32'],
+                  'obj_108_hex': fields['obj_108_hex'],
+              },
+              'evidence_build': '59638', 'evidence': list(CHANGE_PRODUCTION_EVIDENCE),
+              'execution_outcome': 'unknown',
+              'payload_layout_status': 'complete',
+              'limitations': [
+                  'Field meanings are unconfirmed; all parameters are raw wire fields.',
+                  'No consumer of this request was traced; effect on production state is unknown.',
+                  'Point kinds, obj_18/obj_34 enums and obj_e8 values have no established meaning.',
+                  'Sentinel or nonfinite points are emitted as decoded; no location is asserted.',
+              ]}
+    if not matched:
+        result['limitation'] = 'Replay build differs from executable; semantics transferred by layout only.'
+        result['limitations'].append('Sample build is not 59638; field layout inferred, not verified.')
+    return result
+
+
 def enrich_production_types(events, unit_data, replay_version):
     """Resolve exact declared GUIDs with existing static index provenance."""
     entries = {}
