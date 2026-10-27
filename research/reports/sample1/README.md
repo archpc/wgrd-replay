@@ -8,6 +8,23 @@ ReportContent.jsx/report-copy.json: authored report surface, using the installed
 Data report runtime. Authoring app under ignored work/sample1-battle-report-app.
 No decoder or original game-asset changes.
 
+## Runtime dependency and preserved presentation (2026-10-26)
+
+The authoring app is OpenAI's "data-app" report/dashboard runtime, installed by
+the Codex/ChatGPT `build-report` skill (package name `data-app`,
+`.openai/hosting.json`, `protected-runtime.json`, React 19 / Vite / Recharts /
+Lexical / Radix). Credit: OpenAI, via the ChatGPT session archived in
+`research/chatgpt-session-2026-10-23/`. Its redistribution terms have not been
+confirmed, so the runtime stays local (git-ignored), hash-manifested in
+`research/maintenance/work-artifacts-manifest.json` (251 files excluding dist/),
+and is NOT committed. Only the WGRD-authored content is tracked, under
+`app-content/` (`src/content/`, `src/data.json`; exact copies, hash-verified).
+
+Portable presentation without the runtime (already tracked):
+`research/chatgpt-session-2026-10-23/outputs/sample1-battle-report.html`
+(self-contained build, 2.9 MB), `sample1-battle-report.md` (same text as
+BATTLE-REPORT.md) and `sample1-report-preview.png`.
+
 ## Recalculate
 
 From repository root, with authenticated Sample1 cached:

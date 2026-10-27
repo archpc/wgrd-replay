@@ -45,10 +45,15 @@ counts tracked text files mentioning the path or a parent directory of it
   `research/evidence/work-archive-2026-10-26/`; authored report content
   (`src/content/`, `src/data.json`, 14 files) to
   `research/reports/sample1/app-content/`.
-- Not copied: the rest of `work/sample1-battle-report-app/` (a copied
-  third-party data-app plugin runtime with `protected-runtime.json`;
-  redistribution unclear), decoder output snapshots, and proprietary-derived
-  NDF/localization extractions.
+- Not copied, by decision: the rest of `work/sample1-battle-report-app/`, which
+  is OpenAI's `data-app` report runtime installed by the Codex/ChatGPT
+  `build-report` skill (`.openai/hosting.json`, `protected-runtime.json`).
+  External dependency with unverified redistribution rights: keep local and
+  hash-manifested; do not commit unless its license is confirmed. A portable
+  self-contained build of the report is already tracked at
+  `research/chatgpt-session-2026-10-23/outputs/sample1-battle-report.html`
+  (plus .md and .png). Also not copied: decoder output snapshots and
+  proprietary-derived NDF/localization extractions.
 - Secret/PII scan of the copied text: only false positives (the binary string
   `"Token"` inside disassembly; sanitization code in the app).
 
