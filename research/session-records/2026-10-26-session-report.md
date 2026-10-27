@@ -145,9 +145,35 @@ this file. 51 files changed, ~10k insertions since 8f2f64d.
 5. Preserve work/ evidence per WORK-ARTIFACTS.md; 0x0D interiors; 0x0A
    purchase correlation; this[5] digest origin.
 
-## 9. Cost
+## 9. Cost and usage
 
-No API cost telemetry was available inside the session. The user reported
-cumulative spend of $11.87 of a $22 cap before Milestone 3; later phases added
-five Haiku runs (19 + 25 API calls in the last two) and the lead's own calls.
-No token counts are claimed.
+Correction: an earlier version of this section said no telemetry was available.
+That was wrong. Hermes state (~/.hermes/state.db, tables sessions and
+session_model_usage) holds per-model token and call counts for this work.
+actual_cost_usd is 0.0 on every row, so cost is an estimate only.
+
+Measured token usage (from state.db; main session local-eb6ddffce182…,
+subagent sessions 20261026_184523_97dd0f, 20261026_184523_3885e3,
+20261026_190013_367b92, 20261026_191749_c9f8ef):
+
+| Route | Calls | Input | Output | Cache read | Cache write | Reasoning | Est. cost |
+|---|---|---|---|---|---|---|---|
+| Fable 5.1 (lead) | 217 | 512 | 166,769 | 43,837,979 | 1,169,425 | 27,110 | 33.92 |
+| gpt-6.1-sol (before switch) | 2 | 21,623 | 46 | 21,536 | 0 | 0 | 0.046 |
+| Haiku 5.5 approval (lead) | 49 | 47,793 | 2,114 | 0 | 0 | 1,770 | 0.006 |
+| Haiku 5.5 background_review | 21 | 54 | 29,723 | 1,242,968 | 458,625 | 17,933 | 0.085 |
+| Haiku 5.5 subagents (4 sessions) | 72 | 168 | 69,821 | 3,902,152 | 245,391 | 19,763 | 0.105 |
+| Haiku 5.5 approval (subagents) | 21 | 20,047 | 148 | 0 | 0 | 0 | 0.002 |
+| Total | 382 | 90,197 | 268,621 | 49,004,635 | 1,873,441 | 66,576 | ~34.16 |
+
+Notes: the lead's "input" column is small because most input was served from
+cache (cache read). Subagent sessions count 93 calls in total (72 + 21).
+
+Cost status: $34.16 is an ESTIMATE from pricing tables, not verified
+expenditure. The user-reported spend of $11.87 of a $22 cap before Milestone 3
+is lower than this estimate. The actual Nous Portal charge is not yet
+reconciled. Do not treat either figure as final until it is.
+
+Not measured: cost per completed, validated milestone, split by
+investigation, implementation, review, and maintenance. Needs a per-phase
+tagging scheme before it can be computed.
