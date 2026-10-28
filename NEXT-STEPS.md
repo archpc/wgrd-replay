@@ -1,6 +1,12 @@
 # NEXT-STEPS.md (prioritized)
 
-## Current priorities (2026-10-26)
+## Current checkpoint (2026-10-28)
+
+Acquisition and game launch are no longer blocked. A new offline revision-131544 recording was decoded and played back; two additional historical archive samples passed the same runner. The full experiment, helper source/history, bounded ground-truth findings, and unresolved questions are in [the controlled experiment report](research/current-build/2026-10-28-controlled-experiment.md). Hash-pinned expectations: samples/cross-build-manifest.json. General frame-to-seconds conversion, movement outcomes, coordinate mapping, and marker/production-change/cancellation validation remain unresolved. No version-specific decoder patch was required by these samples.
+
+## Prior priorities (2026-10-26; historical)
+
+The acquisition/authorization blockers below are superseded by the checkpoint above; retain the original record.
 
 1. **Ground-truth replay.** Record a scripted match on the Parallels guest and
    validate 07/08/0a/0c/0d/18 semantics, frame duration and coordinates against

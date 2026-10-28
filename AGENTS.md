@@ -52,7 +52,7 @@ Definitions used across the docs:
 - **framed-opaque** — boundary known from a length prefix; interior not decoded (0x0D serializer body).
 - **semantically interpreted (partial)** — an action meaning is assigned with a `partial` or `verified` status and listed limitations.
 - **inferred** — the same layout/meaning applied to a replay whose build is not 59638.
-- **ground-truth verified** — none yet. No output has been checked against in-game state.
+- **ground-truth verified** — sample-specific UI/recording evidence now exists for the controlled 131544 experiment; no general execution-outcome guarantee. See `research/current-build/2026-10-28-controlled-experiment.md`.
 
 Authoritative counts are in `research/coverage.json` and `research/timeline-coverage.json`. Do not copy numbers into docs;
 read the files or regenerate them.
@@ -176,7 +176,7 @@ python3 wgrd_replay.py SAMPLE --timeline [--unit-data research/unit-data/build59
 
 ## 13. Known limitations and next steps
 
-- Ground-truth validation (comparing decoded events against observed in-game results) has not been done.
+- Ground-truth validation now includes the bounded 131544 controlled recording and completed playback documented in `research/current-build/2026-10-28-controlled-experiment.md`; general gameplay execution and most field semantics remain unverified.
 - Field semantics for most opcodes are unconfirmed; `execution_outcome` is always `unknown`.
 - All verified layouts are specific to build 59638. Other builds are inferred.
 - The interior of 0x0D serializer bodies is opaque (boundary only).
