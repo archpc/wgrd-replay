@@ -91,8 +91,8 @@ remains unresolved. Variant2 scalar roles, 0c ChangeProduction interiors and 0b
 semantics remain open.
 
 Default parser and first battle report unchanged. See research/PRODUCTION-COMMANDS.md,
-production-coverage.json and production59638-native.json. User's next milestone: once
-matching playback works, targeted world observation for positions, combat and
+production-coverage.json and production59638-native.json. Owner's next milestone, once
+matching playback works: targeted world observation for positions, combat, and
 destruction. Parallels Windows guest proposed; playback not yet verified.
 
 ### Item 3. Single-command blocks: all 112 now have layouts; zero unresolved

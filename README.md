@@ -2,7 +2,7 @@
 
 Offline, stdlib-only decoder for Wargame: Red Dragon replay files (`.wargamerpl2`).
 
-It parses the `ESAV` container, verifies the SHA-224 digest, walks the `star` / `pact` / `endt` frame stream, and splits command blocks into opcode-level commands. Unknown or unsupported data is kept as raw hex. Nothing is guessed or silently skipped.
+The decoder reads Wargame: Red Dragon replays strictly. It checks the container, verifies the SHA-224 digest by default, walks the `star` / `pact` / `endt` frame stream, and splits command blocks. Whatever it cannot place stays as raw hex. Nothing is guessed or silently skipped.
 
 Malformed input generally raises `ReplayFormatError`. A known defect in `parse_header()` can instead propagate `AttributeError` for non-object JSON metadata. See [Known limitations](#known-limitations).
 
@@ -10,7 +10,7 @@ Malformed input generally raises `ReplayFormatError`. A known defect in `parse_h
 
 A controlled offline replay from internal revision **131544** (Steam build **15652829**) was recorded, decoded, and played back to completion. Two newly acquired historical recordings (Versions 510061340 and 510064564) also passed structural and timeline checks. This is sample-specific compatibility, not a guarantee for every current-build replay.
 
-The full investigation, Windows GDI capture workaround, helper development history, chronology, fuel-toggle observations, hashes, limitations, and reproduction commands are in [the controlled experiment report](research/current-build/2026-10-28-controlled-experiment.md). Browse the [Oshkosh Incident visual archive](research/current-build/README.md), the controlled-experiment archive, for curated screenshots and the complete versioned screenshot release. Replay bytes and private session data remain outside Git. General non-59638 semantics remain inferred and execution outcomes remain unknown.
+The investigation, including the Windows GDI capture workaround, chronology, hashes, limits, and reproduction commands, is in [the controlled experiment report](research/current-build/2026-10-28-controlled-experiment.md). Browse the [Oshkosh Incident visual archive](research/current-build/README.md), the controlled-experiment archive, for curated screenshots and the complete versioned screenshot release. Replay bytes and private session data remain outside Git. General non-59638 semantics remain inferred and execution outcomes remain unknown.
 
 Read-only corpus inventory and regression checks:
 
@@ -90,7 +90,7 @@ Read [FORMAT.md](FORMAT.md) for the container, chunk, frame, and `pact` layouts,
 
 ## Credits
 
-Research and development in this repository were carried out by AI models directed and reviewed by the repository owner, running on [Hermes Agent](https://hermes-agent.nousresearch.com) via the Nous Portal.
+AI models produced the research and code in this repository, running on [Hermes Agent](https://hermes-agent.nousresearch.com) via the Nous Portal. The repository owner directed and reviewed the work.
 
 - Reverse engineering of build 59638 in the 2026-10-26 sessions (opcode 0x0C creator and helper readers, fixed-size creators for 0x02/0x13/0x18, the 0x18 registry-key cross-reference), assessment and roadmap, review and integration of delegated work: Claude Fable 5.1 (Anthropic), technical lead.
 - Decoder implementation, regression tests, coverage regeneration and implementation docs for opcodes 0x0C, 0x02, 0x13, 0x18 and the 0x0C timeline interpretation: Claude Haiku 5.5 (Anthropic), working in isolated git worktrees under the lead's review.

@@ -13,7 +13,7 @@ Three separate questions, three separate vocabularies. They are not interchangea
 | How sure is a byte-level or executable claim? | FORMAT.md: `VERIFIED`, `INFERRED`, `UNKNOWN`. REA-NOTES-59638.md: `CONFIRMED`, `STRONGLY SUPPORTED`, `TENTATIVE`, `UNRESOLVED`. | Evidence confidence for a specific claim. The two scales are separate and are not mapped one-to-one. | FORMAT.md legend; AGENTS.md section 7 |
 | What does an event mean? | `verified`, `partial`, `inferred`, `unknown` | Semantic interpretation per event. `verified` and `partial` apply only when `game_version` is 59638. | Interpretation status, below |
 
-A block can be `complete` while its field meanings are `UNKNOWN`. That is the normal case for most opcodes, not a contradiction. AGENTS.md section 4 describes the same three questions in prose.
+`complete` means the bytes add up. It says nothing about what they mean, and for most opcodes the meanings are still `UNKNOWN`. AGENTS.md section 4 describes the same three questions in prose.
 
 ## 1. Container and command split (`wgrd_replay.py`)
 
