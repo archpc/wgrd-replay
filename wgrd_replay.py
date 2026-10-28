@@ -41,8 +41,8 @@ CHUNK_HEADER_SIZE = 16
 # unknown_chunks. Kept as documentation of the tags the walk recognises.
 KNOWN_TAGS = (b"star", b"pact", b"endt")
 # Observed in every sample: command player handle == 0xC000001E + pact slot.
-# Verified for opcode 0x08 (226/226) per FORMAT.md section 5. Used only to report
-# handle_matches_slot; it never rejects a block.
+# Verified for opcode 0x08 per FORMAT.md section 5 (per-field counts there).
+# Used only to report handle_matches_slot; it never rejects a block.
 HANDLE_BASE = 0xC000001E
 # Opcode -> action class, build 59638. Source: dispatcher FUN_00b24050 (movzx opcode;
 # sub 2; cmp 0x20; jmp [eax*4+0xb241f4]); each case calls a creator whose body installs
@@ -116,6 +116,10 @@ def parse_header(b):
         metadata = json.loads(b[HEADER_SIZE:end].decode("utf-8"))
     except (UnicodeDecodeError, json.JSONDecodeError) as e:
         raise ReplayFormatError("metadata JSON invalid: %s" % e)
+    # KNOWN DEFECT (reproduced 2026-10-28, not fixed in this pass): a metadata JSON root
+    # that is not an object, or a "game" value that is not an object, makes the .get
+    # calls below raise AttributeError instead of ReplayFormatError. That breaks the
+    # module contract at the top of this file. Reproduced with a root of [].
     return {
         "magic": MAGIC.decode(),
         "container_version": version,
@@ -124,9 +128,6 @@ def parse_header(b):
         "json_offset": HEADER_SIZE,
         "json_length": json_len,
         "payload_offset": end,
-        # KNOWN DEFECT (not fixed in this pass): if the JSON root is not an object, or
-        # "game" is not an object, these .get calls raise AttributeError instead of
-        # ReplayFormatError, which breaks the module contract at the top of this file.
         "game_version": metadata.get("game", {}).get("Version"),
     }, metadata
 
@@ -167,8 +168,18 @@ def decode_op08(block, slot):
     """
     if len(block) < 39 or block[0] != 0x08:
         return None
-    # Byte map after the opcode (offset 0 in block): 1 handle u32 | 5 unknown16 |
-    # 21 float32 x3 position | 33 type u32 | 37 text length u16 | 39 text bytes.
+    # Opcode 0x08 block. Offsets count from block start; byte 0 is the opcode.
+    # Layout verified from the executable (FORMAT.md section 5). Meanings are not.
+    #
+    #   off  size  type        field         meaning
+    #     1     4  u32 LE     handle        INFERRED player handle
+    #     5    16  raw        unknown16     UNKNOWN
+    #    21    12  3 x f32    position      INFERRED map position
+    #    33     4  u32 LE     type          UNKNOWN (0..3 observed)
+    #    37     2  u16 LE     text length   layout only: T
+    #    39     T  bytes      text          INFERRED label
+    #
+    # The block must be exactly 39 + T bytes. Text is decoded as UTF-8 when valid.
     handle, = struct.unpack_from("<I", block, 1)
     x, y, z = struct.unpack_from("<fff", block, 21)
     mtype, tlen = struct.unpack_from("<IH", block, 33)

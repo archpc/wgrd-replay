@@ -46,9 +46,11 @@ def reference_components(reference_hex):
 
 def contextual_fallback_rules():
     """Fresh metadata only. No evaluation without live state or reachability."""
-    # !! TRAP: these four branches are a fallback for kind 39 only. This is not an
-    # !! effective-order classifier. Do not label a 39 request Move from target
-    # !! presence, transmitted coordinates or reference words.
+    # !! TRAP: do not label a kind-39 request Move from target presence, transmitted
+    # !! coordinates, or reference words. These four branches are a fallback for
+    # !! kind 39 only, not an effective-order classifier. A transmitted coordinate is
+    # !! an argument, not a destination. The runtime may clamp it or replace it, and
+    # !! is under no obligation to mention it.
     return {
         'id': CONTEXT_RULE_ID, 'evidence_build': '59638',
         'procedure': '0x00c9a140',
@@ -90,8 +92,9 @@ def build_reference_catalog(events, replay_sha256, matched):
     entries remain duplicated occurrences. Reused lookup keys with different GUIDs
     remain separate references, flagged as ambiguous instead of silently merged.
     """
-    # !! TRAP: lookup_key_u32 is a partial key. One key with two GUIDs is two
-    # !! references flagged ambiguous. One GUID under two keys is NOT merged.
+    # !! TRAP: do not merge by key. lookup_key_u32 is a partial key: one key with two
+    # !! GUIDs becomes two references flagged ambiguous, and one GUID under two keys
+    # !! is not merged.
     entries, key_refs, guid_refs = {}, defaultdict(set), defaultdict(set)
     for event in events:
         if event['opcode'] != 7:

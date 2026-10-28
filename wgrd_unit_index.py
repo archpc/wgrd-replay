@@ -211,7 +211,7 @@ def enrich_index(catalog, data, replay_version):
                             name_candidates=names, provenance=copy.deepcopy(path))
                 candidates.append(unit)
                 for key in path['path']+path['selector_filters']: include(key)
-        # !! TRAP: unique means one configured static candidate. It is not an
+        # !! TRAP: "unique" means one configured static candidate. It is not an
         # !! accepted runtime unit, a company member, or proof of ownership.
         status = 'missing' if not candidates else 'unique' if len(candidates) == 1 else 'ambiguous'
         counts[status] += 1

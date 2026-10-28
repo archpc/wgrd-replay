@@ -127,9 +127,10 @@ def enrich_references(catalog, unit_data, replay_version):
     if 'index' in unit_data:
         from wgrd_unit_index import enrich_index
         return enrich_index(catalog, unit_data, replay_version)
-    # !! TRAP: 58710 matches are GUID-only, and that dataset differs from every
-    # !! sample build. A cross-version match does not verify names, capabilities
-    # !! or module values for the replay build.
+    # !! TRAP: A match against the 58710 snapshot is GUID-only. It verifies neither
+    # !! names, capabilities, nor module values for the replay build, and the snapshot
+    # !! differs from every sample build. GUID equality is a statement about two
+    # !! strings, not about a unit.
     source = unit_data['source']; matched = 0
     for entry in catalog['entries']:
         desc = unit_data['descriptors'].get(entry['validation_guid_hex'])
