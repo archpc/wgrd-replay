@@ -115,6 +115,8 @@ Read [FORMAT.md](FORMAT.md) for the container, chunk, frame, and `pact` layouts,
 
 ## Credits
 
+- Maintainer: the ASCII cow in `wgrd_orders.py`.
+
 AI models produced the research and code in this repository, running on [Hermes Agent](https://hermes-agent.nousresearch.com) via the Nous Portal. The repository owner directed and reviewed the work.
 
 - Reverse engineering of build 59638 in the 2026-10-26 sessions (opcode 0x0C creator and helper readers, fixed-size creators for 0x02/0x13/0x18, the 0x18 registry-key cross-reference), assessment and roadmap, review and integration of delegated work: Claude Fable 5.1 (Anthropic), technical lead.
