@@ -2,13 +2,15 @@
 
 Offline, stdlib-only decoder for Wargame: Red Dragon replay files (`.wargamerpl2`).
 
-It parses the `ESAV` container, verifies the SHA-224 digest, walks the `star` / `pact` / `endt` frame stream, and splits command blocks into opcode-level commands. Unknown or unsupported data is kept as raw hex. Nothing is guessed or silently skipped. Malformed input raises `ReplayFormatError`.
+It parses the `ESAV` container, verifies the SHA-224 digest, walks the `star` / `pact` / `endt` frame stream, and splits command blocks into opcode-level commands. Unknown or unsupported data is kept as raw hex. Nothing is guessed or silently skipped.
+
+Malformed input generally raises `ReplayFormatError`. A known defect in `parse_header()` can instead propagate `AttributeError` for non-object JSON metadata. See [Known limitations](#known-limitations).
 
 ## Current-build milestone (2026-10-28)
 
 A controlled offline replay from internal revision **131544** (Steam build **15652829**) was recorded, decoded, and played back to completion. Two newly acquired historical recordings (Versions 510061340 and 510064564) also passed structural and timeline checks. This is sample-specific compatibility, not a guarantee for every current-build replay.
 
-The full investigation, Windows GDI capture workaround, helper development history, chronology, fuel-toggle observations, hashes, limitations, and reproduction commands are in [the controlled experiment report](research/current-build/2026-10-28-controlled-experiment.md). Browse [The Oshkosh Incident visual archive](research/current-build/README.md) for curated screenshots and the complete versioned screenshot release. Replay bytes and private session data remain outside Git. General non-59638 semantics remain inferred and execution outcomes remain unknown.
+The full investigation, Windows GDI capture workaround, helper development history, chronology, fuel-toggle observations, hashes, limitations, and reproduction commands are in [the controlled experiment report](research/current-build/2026-10-28-controlled-experiment.md). Browse the [Oshkosh Incident visual archive](research/current-build/README.md), the controlled-experiment archive, for curated screenshots and the complete versioned screenshot release. Replay bytes and private session data remain outside Git. General non-59638 semantics remain inferred and execution outcomes remain unknown.
 
 Read-only corpus inventory and regression checks:
 
@@ -40,7 +42,7 @@ Default output is JSON with the header, metadata, and per-pact command decode. `
 
     python3 -m unittest discover -s tests -q
 
-The 2026-10-28 local run executed 139 tests with no skips with its external artifacts available; this is a historical result, not the current test count. Cross-build tests use `WGRD_ARTIFACTS_DIR` and skip explicitly when external files are absent; altered files fail. Existing sample/executable tests retain their original prerequisites (`WGRD_SAMPLES_DIR`, `WGRD_EXE_59638`, and optional `WGRD_UNIT_DATA`). Report the actual run and any skips. See the experiment report for historical verification and warnings.
+The 2026-10-28 local run executed 139 tests with no skips with its external artifacts available; this is a historical result, not the current test count. A later run at commit 2bde168 (2026-10-28) executed 148 tests, OK, with no skips. Cross-build tests use `WGRD_ARTIFACTS_DIR` and skip explicitly when external files are absent; altered files fail. Existing sample/executable tests retain their original prerequisites (`WGRD_SAMPLES_DIR`, `WGRD_EXE_59638`, and optional `WGRD_UNIT_DATA`). Report the actual run and any skips. See the experiment report for historical verification and warnings.
 
 ## Reproducing research findings
 
@@ -72,6 +74,10 @@ The 2026-10-26 research notes under `research/` name their artifacts (build, SHA
 ## Next milestone
 
 The first controlled current-build recording and playback are complete. The next timing and movement work is described in [the Phase 2 handoff](research/current-build/PHASE-2-HANDOFF.md); it does not authorize VM operation. The controlled experiment report holds current evidence and limits; `research/GROUND-TRUTH-PREREQUISITES.md` remains a historical prerequisite record.
+
+## Known limitations
+
+- `parse_header()` raises `AttributeError` instead of `ReplayFormatError` when the metadata JSON root, or its `game` value, is not an object. Reproduced on 2026-10-28 with a metadata root of `[]`. Not fixed. The fix belongs in a separate, tested change; the comment above the return in `parse_header` records the same defect.
 
 ## Not included
 

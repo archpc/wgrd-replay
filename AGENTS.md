@@ -7,7 +7,7 @@ Instructions for AI agents working in this repository. Facts only; the linked fi
 wgrd-replay is a stdlib-only Python decoder for Wargame: Red Dragon `.wargamerpl2` replay files.
 
 - **Parsing (done for build 59638):** the ESAV container, SHA-224 digest, star/pact/endt chunks, and the
-  command-block split are read strictly. Any violation raises `ReplayFormatError`. Exact byte consumption is enforced.
+  command-block split are read strictly. Malformed input generally raises `ReplayFormatError`; a known defect in `parse_header` can raise `AttributeError` instead (section 13). Exact byte consumption is enforced.
 - **Interpreting (partial):** a subset of opcodes is given action meanings, with status labels and evidence references.
   Gameplay meaning is not established for most fields, and execution outcomes are never asserted.
 
@@ -105,7 +105,7 @@ Exact byte consumption proves the structure of a block. It does not prove what a
 Verified from the code:
 
 - Python 3 standard library only. No third-party imports.
-- Malformed or unexpected input raises `ReplayFormatError`. Do not skip, guess, or silently truncate.
+- Malformed or unexpected input raises `ReplayFormatError`, except the known `parse_header` gap in section 13. Do not skip, guess, or silently truncate.
 - Raw bytes are preserved in output (`raw_hex`, `remaining_hex`, `*_hex` fields).
 - Field names follow `obj_XX_u32 | obj_XX_hex | obj_XX_u8 | obj_XX_array | obj_XX_points`, where XX is the creator
   object offset. Semantic names are added only with cited evidence.
@@ -122,13 +122,13 @@ Run from the repo root. The commands below were run in this worktree; re-run aft
 PYTHONDONTWRITEBYTECODE=1 python3 -B -m unittest discover -s tests -q
 ```
 
-Report the actual run and skips, not a fixed expected total. The pinned public-unit snapshot test skips when its data is absent; other external corpus or executable tests can also skip when their artifacts are unavailable. The 2026-10-28 run had 139 tests and no skips with its artifacts available; see the current-build report for that historical result.
+Report the actual run and skips, not a fixed expected total. The pinned public-unit snapshot test skips when its data is absent; other external corpus or executable tests can also skip when their artifacts are unavailable. The 2026-10-28 run had 139 tests and no skips with its artifacts available; see the current-build report for that historical result. A later run at commit 2bde168 (2026-10-28) executed 148 tests, OK, with no skips. Both figures are dated records; neither is the standing count.
 
 ```
 python3 -B research/maintenance/check_links.py
 ```
 
-Exits 1 for references it cannot resolve; path-like prose and intentionally external references can produce warnings. It does not modify files. The 2026-10-28 baseline had 32 warnings; compare and classify findings rather than assuming each is a broken link.
+Exits 1 for references it cannot resolve; path-like prose and intentionally external references can produce warnings. It does not modify files. The 2026-10-28 baseline had 32 warnings. At commit 2bde168 the same checker reported 31 missing references; the difference from the 32 in the experiment report has not been reconciled. Compare and classify findings rather than assuming each is a broken link.
 
 Corpus tests skip when authentic samples are absent. Environment variables:
 
@@ -184,4 +184,5 @@ python3 wgrd_replay.py SAMPLE --timeline [--unit-data research/unit-data/build59
 - The interior of 0x0D serializer bodies is opaque (boundary only).
 - The 0x0C consumer analysis is deferred; field meanings there are TENTATIVE or unresolved.
 - Entity attribution for 0x18 depends on per-replay key uniqueness and is not cross-replay identity.
+- `parse_header` raises `AttributeError`, not `ReplayFormatError`, when the metadata JSON root or its `game` value is not an object. Reproduced 2026-10-28 with a root of `[]`. The fix belongs in a separate, tested change.
 - Priorities and open questions: `NEXT-STEPS.md`. Do not add a second roadmap in this file.

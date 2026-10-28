@@ -223,7 +223,7 @@ firstu32 remains runtime registry key. Translation can bypass validation, so wir
 match does not prove accepted live entity descriptor.
 
 Public58710 snapshot:726/726 exact GUID matches,722 Company_* +4 individual
-units. No data-build match to59638 or Sample2. --timeline --unit-data ROOT adds
+units. No data-build match to 59638 or Sample2. --timeline --unit-data ROOT adds
 opt-in cross-version descriptor/card/module annotations; actual unit_identity
 and effective order39 remain unknown. Company/member bridge table missing.
 See research/PUBLIC-UNIT-MAPPING.md, public-unit-coverage.json and canonical
@@ -251,16 +251,16 @@ REA ev_5a0ebdad / ev_c4c3078f / ev_01688e53. No decoder change or test rerun.
 
 ## Matching original NDF values recovered (2026-10-23)
 
-Original59638 NDF_Win.dat verified:24,199,168 bytes, manifest SHA1
+Original 59638 NDF_Win.dat verified:24,199,168 bytes, manifest SHA1
 bfd6c3e8affaad83a08ccff3271f6e4a5447e590; independent SHA25697d7442eecff5d0f836d5caee4d01cdf93bd7fe262ff12fef75f59fbc84638c0.
 EDAT dictionary and everything.ndfbin entry MD5s pass. Read-only extraction,
 expanded lengths/footer spans/120516-object count checked;367499 non-null
 object refs match exact class IDs. No separator scanning/resynchronization.
 
 Actual values:2121 CompanyUnit selector Default -> CompanyDescriptor paths,
-all distinct inverse company GUIDs with one configured unit candidate. All685
+all distinct inverse company GUIDs with one configured unit candidate. All 685
 matching-build replay references resolve (681 company paths +4 direct unit GUIDs).
-Sample2's41 remain inferred. All selectors include an unevaluated shared filter:
+Sample2's 41 remain inferred. All selectors include an unevaluated shared filter:
 ParamEquals_Integer ParamId11,ParamValue1. No claim that module is active.
 Source debug names available; localized display-name dictionary absent.
 

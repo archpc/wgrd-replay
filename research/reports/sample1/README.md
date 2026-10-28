@@ -2,7 +2,7 @@
 
 BATTLE-REPORT.md: actual frame-based report, localized types and explicit orders.
 measurements.json: full-population rubric, per-slot/window counts and selection bias.
-events.csv: all4162 command records, without dropping opaque or contextual events.
+events.csv: all 4162 command records, without dropping opaque or contextual events.
 anchors.json:45 selected report source events; reference-labels.json resolves labels.
 ReportContent.jsx/report-copy.json: authored report surface, using the installed
 Data report runtime. Authoring app under ignored work/sample1-battle-report-app.
@@ -56,8 +56,8 @@ Use installed Data plugin scripts and bundled Node per its authoring guide:
    APP/.data-app-offline/exports/. No package install, cloud publication or
    protected-runtime edits required.
 
-Report prose/fields are source-backed through9 reviewed queries. Chronological
-sections inspect their selected anchor ranges; coverage uses all4162 events.
+Report prose/fields are source-backed through 9 reviewed queries. Chronological
+sections inspect their selected anchor ranges; coverage uses all 4162 events.
 Three bars measure request readability, not gameplay outcomes. Source tables retain
 full values. Evidence search changes only the selected ledger, not coverage totals.
 
@@ -65,14 +65,14 @@ full values. Evidence search changes only the selected ledger, not coverage tota
 
 - Original replay SHA256 c5f8eff1298cf38c1d9967d29f98a22dfc869c150405630f9f695bb80a521df8.
 - Descriptor index SHA256 e73c0826b59c4fc6ad5940bb437fae71a8bb9b2080e91e604e2de7a9f4e15a5a.
-- All4162 CSV rows reconcile to520 meaningful request,3318 partial,324 opaque
-  to narrative. The324 subdivide233 opaque interiors,42 unknown layouts,49
-  known-layout/uninterpreted records. Selected45 anchors:39/4/2 respectively.
-- Push window S2 frames6321–6999:54 standard orders,50 contextual and4 explicit.
+- All 4162 CSV rows reconcile to 520 meaningful request, 3318 partial,324 opaque
+  to narrative. The 324 subdivide 233 opaque interiors,42 unknown layouts,49
+  known-layout/uninterpreted records. Selected 45 anchors:39/4/2 respectively.
+- Push window S2 frames 6321–6999: 54 standard orders, 50 contextual and 4 explicit.
 - App build and portable export passed installed protected-runtime/content checks.
 - Browser inspected narrative, chart marks/hover, all summary tables and selected
-  evidence ledger. T-72M1 search returned6 selected rows; clearing restored45.
-  Render checked in the available681px-wide viewport; separate desktop/mobile
+  evidence ledger. T-72M1 search returned 6 selected rows; clearing restored 45.
+  Render checked in the available 681px-wide viewport; separate desktop/mobile
   viewport checks not performed. No claim of a complete responsive-layout audit.
 - Decoder full suite not rerun: analysis/report-only changes. No simulated
   positions, ownership, damage, effective orders or outcomes introduced.

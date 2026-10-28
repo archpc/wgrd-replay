@@ -173,7 +173,7 @@ Matching-build explicit request classification is verified; contextual/unnamed
 kinds partial; mismatched builds inferred. Status describes request classification.
 
 `actor_references` from obj+04, `target_references` from obj+60: each entry preserves
-all20 bytes and exposes its leading registry lookup key. Do not identify entities
+all 20 bytes and exposes its leading registry lookup key. Do not identify entities
 or deduplicate references by this first word alone. Entity type/name/group expansion
 requires runtime state. `target_position_argument_f32` is transmitted finite float3
 from obj+bc, with raw bytes retained; actual position can be clamped or taken from
@@ -216,13 +216,13 @@ Reference catalog gains static_descriptor, descriptor_match_status and top-level
 descriptor_data provenance. Descriptor fields: NDF class/instance ID/debug name,
 module reference and selector Default references; direct TUniteAuSolDescriptor
 card values where available. Card flags describe the static source snapshot.
-All current samples differ from58710: exact_guid_cross_version, no verified
+All current samples differ from 58710: exact_guid_cross_version, no verified
 matching-build names/capabilities. Sample2 reference-purpose mapping inferred.
 No company/member GUID rewriting; unit_identity stays null; order39 unresolved.
 Events unchanged. Without --unit-data, both default and plain timeline outputs
 unchanged. See research/PUBLIC-UNIT-MAPPING.md for counts and missing bridge.
 
-### 8.4 Original59638 configured-type index and localized names
+### 8.4 Original 59638 configured-type index and localized names
 
 `--timeline --unit-data research/unit-data/build59638-v1.json.gz` loads the
 bundled `wgrd_unit_index/1` index. Plain JSON index files also accepted. Offline;
@@ -248,4 +248,4 @@ projection, not complete object/module dumps. Conditions never evaluated.
 membership, ownership, active modules or capabilities. Sample2 remains
 `inferred_build_59638`. `unit_identity` stays null; event parameters, classification,
 effective kinds and contextual39 outcomes unchanged. Default/plain timeline output
-byte-identical to02b4081 on all samples. See research/TIMELINE-59638.md.
+byte-identical to 02b4081 on all samples. See research/TIMELINE-59638.md.

@@ -3,6 +3,18 @@
 Canonical overview of the decoder pipeline. Byte-level format: `FORMAT.md`.
 Current findings and priorities: `NEXT-STEPS.md` and `research/INDEX.md`.
 
+## Status vocabularies
+
+Three separate questions, three separate vocabularies. They are not interchangeable and should not be mapped onto one another.
+
+| Question | Vocabulary | Meaning | Defined in |
+|---|---|---|---|
+| Did the decoder consume the bytes exactly? | `complete`, `framed`, `unresolved`, `malformed`; per command `layout` or `opaque` | Structure only. Proves boundaries and consumption, not meaning. | Block status table, section 1 |
+| How sure is a byte-level or executable claim? | FORMAT.md: `VERIFIED`, `INFERRED`, `UNKNOWN`. REA-NOTES-59638.md: `CONFIRMED`, `STRONGLY SUPPORTED`, `TENTATIVE`, `UNRESOLVED`. | Evidence confidence for a specific claim. The two scales are separate and are not mapped one-to-one. | FORMAT.md legend; AGENTS.md section 7 |
+| What does an event mean? | `verified`, `partial`, `inferred`, `unknown` | Semantic interpretation per event. `verified` and `partial` apply only when `game_version` is 59638. | Interpretation status, below |
+
+A block can be `complete` while its field meanings are `UNKNOWN`. That is the normal case for most opcodes, not a contradiction. AGENTS.md section 4 describes the same three questions in prose.
+
 ## 1. Container and command split (`wgrd_replay.py`)
 
 ```
@@ -15,7 +27,8 @@ bytes
  -> parse_replay(b)            JSON-ready dict: header, metadata, stats, commands, unknown_chunks
 ```
 
-- `parse_header` and `iter_chunks` raise `ReplayFormatError` on any violation.
+- `iter_chunks` raises `ReplayFormatError` on any violation.
+- `parse_header` raises `ReplayFormatError` on any violation it checks, with one known gap: a metadata JSON whose root, or whose `game` value, is not an object raises `AttributeError` instead (reproduced 2026-10-28; not fixed).
 - `_decode_command` returns `None` for opcodes without a layout; the block is then `unresolved`.
 - Layouts are keyed by opcode: 0x07, 0x04/0x09/0x0A, 0x08 (`decode_op08`), 0x17, 0x0D, 0x0C, 0x0E, 0x02, 0x13, 0x18.
   Field names follow `obj_XX_u32|hex|u8|array|points` (XX = creator object offset in hex).
