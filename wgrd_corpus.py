@@ -53,6 +53,8 @@ def _inspect(path, headers_only):
         except ValueError as error:
             raise ReplayFormatError("non-finite metadata value cannot be inventoried") from error
         game = metadata.get("game", {})
+        # layout_evidence labels the version match, not semantic validation.
+        # Other builds retain "inferred_from_59638" even when their bytes fit.
         row.update(game_version=header["game_version"],
                    container_version=header["container_version"],
                    map=game.get("Map"), game_mode_raw=game.get("GameMode"),
@@ -85,9 +87,9 @@ def _inspect(path, headers_only):
             opcodes.update("0x%02x" % c["opcode"] for c in decoded["commands"])
             if decoded["status"] not in ("complete", "framed"):
                 tail = bytes.fromhex(decoded["remaining_hex"])
-                # file_offset = chunk header (16 bytes) + pact fixed fields (<IIIH = 14 bytes)
-                # + command_offset. The 30 is a layout constant mirrored from parse_replay's
-                # pact parsing; if that layout changes, this offset silently goes stale.
+                # Absolute offset = chunk start + 16-byte header + 14-byte pact
+                # prefix + consumed bytes. Keep 30 in sync with parse_replay's
+                # <IIIH prefix (FORMAT.md section 4).
                 failures.append({"frame": record["frame"], "slot": record["slot"],
                                  "chunk_offset": record["offset"],
                                  "command_offset": decoded["consumed_bytes"],
@@ -108,9 +110,8 @@ def _inspect(path, headers_only):
                    decode_failures=failures,
                    compatibility=("unsupported" if failures or parsed["unknown_chunks"]
                                   else "structurally_compatible"))
-        # layout_evidence is a label derived from the version string, not evidence: it says which
-        # build the layouts were verified on. Non-59638 files are always "inferred_from_59638".
-        # Timeline also runs on unsupported structures; its failures are stage "timeline".
+        # Try the timeline even for unsupported structures; attribute its failures
+        # to this stage rather than to the container walk.
         stage = "timeline"
         timeline = build_timeline(parsed)
         row["timeline"] = {"events": len(timeline["events"]),

@@ -1,5 +1,7 @@
 # Contributing
 
+[Overview](README.md) · [Documentation map](docs/README.md) · [Research index](research/INDEX.md)
+
 WGRD is a Python standard-library-only decoder. Work from the repository root;
 there is no package installation, dependency manager, documentation build, or
 mandatory formatter. Use Python 3. Existing historical verification used 3.9.6;
@@ -12,13 +14,12 @@ Current research priorities remain in [NEXT-STEPS.md](NEXT-STEPS.md).
 
 ## Choose the change boundary
 
-- Documentation-only edits can go to `main` for this assignment. Executable edits,
-  including tests, tools and their associated documentation, belong on a separate
-  review branch. Keep each commit focused and inspect the staged diff.
+- Use a focused branch for reviewable changes. Inspect existing work before editing,
+  stage paths explicitly, and inspect the staged diff. Do not include unrelated
+  changes or force-push over concurrent work.
 - Preserve existing output keys, raw byte fields, ordering, build qualifications,
   and exact-consumption checks. A structural match does not establish semantics.
-- Leave the ASCII cow in `wgrd_orders.py` untouched. For this assignment the
-  entire file is outside the edit scope.
+- Leave the ASCII cow in `wgrd_orders.py` exactly unchanged.
 - Keep old research notes and evidence intact. Add dated corrections and links;
   do not rewrite historical findings or hand-edit generated coverage JSON.
 
@@ -27,6 +28,19 @@ Assert the public error or output contract, then check authentic, hash-pinned
 samples. Synthetic inputs test implementation behavior; they do not establish
 new binary-format facts. A behavior-preserving refactor also needs before/after
 output comparisons. Avoid large abstraction or formatting changes mixed with a fix.
+
+## Contribute a research finding
+
+Search [the provenance index](research/INDEX.md) before tracing the executable.
+Use [the evidence conventions](docs/ARCHITECTURE.md#evidence-conventions) and
+[AGENTS.md](AGENTS.md) to state a falsifiable hypothesis, pin artifacts, preserve
+observations, and distinguish interpretation from proof. Add a reproduction
+script that fails on mismatch and regression tests where code depends on the
+claim. Update the current reference and index; preserve the dated investigation.
+
+Do not launch the game or operate a VM merely because a historical plan proposes
+it. Executable research is static unless runtime work is explicitly authorized.
+Keep replay bytes, game binaries, large dumps and private metadata outside Git.
 
 ## Tests and external artifacts
 
@@ -87,7 +101,9 @@ to make the report look clean.
 Put runnable tasks in [the usage guide](docs/USAGE.md), implementation context in
 [architecture](docs/ARCHITECTURE.md), and wire layouts in [FORMAT.md](FORMAT.md).
 Link canonical explanations instead of copying changing counts or research
-claims. Clearly mark placeholders and distinguish output fields from conclusions.
+claims. Keep evidence definitions in the architecture reference, not in a new
+legend on every page. Clearly mark placeholders and distinguish output fields
+from conclusions.
 Use short sentences and concrete examples. Keep private replay output outside Git.
 
 The [documentation research and refactoring assessment](docs/DEVELOPMENT-REVIEW.md)

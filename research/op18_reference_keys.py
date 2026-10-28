@@ -17,6 +17,7 @@ Exit 1 if any 0x18 key is absent from the 0x07 key set. Read-only.
 import collections
 import glob
 import os
+from pathlib import Path
 import struct
 import sys
 
@@ -25,7 +26,7 @@ import wgrd_replay as w  # noqa: E402
 
 
 def analyse(path):
-    rep = w.parse_replay(open(path, "rb").read())
+    rep = w.parse_replay(Path(path).read_bytes())
     rows18, keys07, slots07, first07 = [], set(), collections.defaultdict(set), {}
     for pact in rep["commands"]:
         bh = pact.get("block_hex")

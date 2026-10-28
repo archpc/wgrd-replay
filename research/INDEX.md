@@ -1,5 +1,17 @@
 # Research index: provenance map for wgrd-replay
 
+[Project overview](../README.md) · [Documentation map](../docs/README.md) · [Format reference](../FORMAT.md) · [Evidence conventions](../docs/ARCHITECTURE.md#evidence-conventions)
+
+**Reading the record (2026-10-28):** the subject tables retain milestone findings
+and their original evidence. For current implemented behavior, use the
+[architecture](../docs/ARCHITECTURE.md) and [format reference](../FORMAT.md).
+In particular, `0x0D` interiors are opaque **in the parser**, while the timeline's
+production layer decodes supported interiors (section 7 below). The older
+“open interiors” item at the end is superseded for those layouts, not for every
+possible serializer. `opaque` is a structural label, not an interpretation status.
+No historical finding is promoted to general gameplay verification by the
+controlled experiment.
+
 ## Current-build experiment (2026-10-28)
 
 [Comprehensive controlled-experiment report](current-build/2026-10-28-controlled-experiment.md): Steam build 15652829, internal revision 131544, actual launched executable identity; black Parallels capture versus working guest GDI; portable C# input/capture helper and its history; offline Death Row recording and completed playback; sample-specific fuel-toggle corroboration; replay/battle time-base distinction; two additional historical recordings from one archive; regression runner and validation.
@@ -15,6 +27,11 @@ tests behind every current technical claim. Organized by subject and
 dependency, not alphabetically. Historical notes are archival: they are not
 rewritten when superseded; corrections live in the canonical documents listed
 here and link back.
+
+The original three recordings share one independent source, as recorded in
+[the sample manifest](../samples/manifest.json). Later acquisition and controlled
+recording are documented above; they do not retroactively broaden the original
+census or establish universal compatibility.
 
 Conventions used below:
 

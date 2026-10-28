@@ -27,6 +27,14 @@ and paths that exist only in an uncommitted or external tree are reported as mis
 
 Baseline on 2026-10-28 at e01ac84: 31 "missing" lines (AGENTS.md cites 32).
 A clean run is not proof of no broken links; classify each finding.
+
+2026-10-28 checkout audit: 30 reports, all from backtick spans, not Markdown
+links. Eight are repeated basenames of an external session dump in RECOVERED;
+17 describe historical or local-only paths in WORK-ARTIFACTS; four describe
+excluded runtime paths in the Sample1 README; one names the unavailable runtime
+import in app-content/content/shared/README.md. The last is a real dependency
+of that preserved source, not a self-contained module. The portable report build
+is tracked separately. Counts depend on tracked files and local filesystem state.
 """
 import re
 import subprocess

@@ -59,3 +59,108 @@ must not claim an unmerged executable fix is already available on `main`.
 
 Actual commands, results, known warnings and preservation limits are recorded in
 [the dated session report](../research/session-records/2026-10-28-documentation-dx.md).
+
+## Repository-wide redesign — 2026-10-28
+
+This is a later review of local starting commit `ad5dda0`, including the existing
+README cow credit and source-comment edits. It supplements the earlier assessment;
+it does not replace its dated verification record. Remote `main` had advanced to
+`6b1ea34` during the session; its Python files and README matched the local starting
+material exactly. Publication can therefore preserve those concurrent commits.
+
+### Principal weaknesses and implemented structure
+
+The audit inventoried all 51 existing Markdown files, including topic notes,
+plans, session records, report assets and the controlled experiment. Current
+references were checked against the Python parser, timeline, orders, entities,
+production, unit-data and corpus modules and their tests. Historical material was
+examined for scope, navigation and contradictions, rather than rewritten as if it
+had been authored today.
+
+The principal problems were competing current/historical narratives in the
+README, weak links between current reference and evidence, dense mixed-purpose
+layout tables, and confidence language that collapsed structure, semantics and
+build transfer. The existing usage and contributor guides were worth keeping.
+
+The resulting hierarchy is deliberately small: README for orientation; a short
+[documentation map](README.md); [usage](USAGE.md) for tasks;
+[architecture](ARCHITECTURE.md) for implementation and the single evidence-reading
+guide; [FORMAT.md](../FORMAT.md) for wire/reference contracts; the existing
+[research index](../research/INDEX.md) for findings, scripts and source evidence.
+No research files were moved. No second research guide or roadmap was added.
+
+| File | Substantive change |
+|---|---|
+| [README](../README.md) | Capabilities → evidence boundaries → run → inspect → investigate → contribute → limitations; research links at the top; credits retained verbatim |
+| [Format](../FORMAT.md) | Consistent byte notation, layout tables, annotated hex example, parser/observation boundaries, event field table and current production-layer explanation |
+| [Architecture](ARCHITECTURE.md) | Pipeline diagram, authoritative evidence conventions, build/status distinction and clickable canonical references |
+| [Usage](USAGE.md) | Authenticated event projection, precise provenance language and stable error descriptions |
+| [Contributing](../CONTRIBUTING.md) | Replace prior-assignment branch instructions with reusable guidance; connect research workflow to evidence conventions |
+| [Documentation map](README.md) | One short question-to-reference index, with research treated as a primary destination |
+| [Research index](../research/INDEX.md) | Dated current-behavior clarification above intact milestone tables; preserve original-corpus source limits |
+| This review | Audit decisions, before/after examples, verification and deferred issues |
+
+### Before → after: technical corrections
+
+| Earlier wording or structure | Current reference and reason |
+|---|---|
+| Metadata described as a “flat-string-valued object” | Nested `game` and player objects; sample field values are commonly strings; parser shape defect remains explicit |
+| Frame heading “VERIFIED” followed by L=12 `endt` | Observed L=12 is separate from implemented minimum L=4; the parser does not require a zero tail or equality with metadata `NbMaxPlayer` |
+| Unknown frame content “preserved” without an output boundary | Original file retains those bytes; parser/timeline results omit undecoded `star`/`endt` tails |
+| `0x08` described as an inferred map flare | Consumer-backed matching-build marker **request**, linked to later research; actual creation remains unobserved |
+| `0x0D` interiors described simply as opaque | Parser framing remains opaque; timeline production decoding has a separate complete/malformed payload result |
+| Other-build statuses described as always inferred | Supported interpretations transfer as inferred; unsupported meanings remain unknown |
+| Canonical usage destination was README | Usage/API tasks belong to the existing usage guide; README provides orientation |
+| One confidence label applied to an entire structure | Identify layout, sample observation and interpretation separately; definitions live in architecture |
+
+Older findings and evidence remain available in their original files. Changing
+coverage totals were replaced with links to generated source data; source limits,
+raw-field cautions, static-type constraints and credits were retained or linked
+from their relevant reference. This is an editorial redesign, not a new binary
+investigation or a claim to have fixed parser defects.
+
+### Validation of this redesign
+
+- Python 3.15.0: the prescribed unittest command ran **148 tests, OK, no skips**.
+  Existing unclosed-file `ResourceWarning` messages remain in research/test code.
+- Six authenticated original/cross-build replays: default, summary, timeline,
+  timeline-summary and enriched-timeline CLI exports succeeded. API enrichment
+  serialized with `allow_nan=False`; the README request loop and the usage
+  projection matched actual output. Both help commands, the unit-data usage
+  error, full inventory and header-only inventory behaved as documented.
+- Synthetic boundary probes reproduced the metadata-shape defect, minimum
+  four-byte `endt` acceptance, lack of metadata slot-count enforcement, and
+  unknown semantics on a mismatched build. These verify current behavior, not
+  new format facts.
+- The existing link checker changed from 31 to 30 findings, exit 1: removal of
+  the slash-separated status phrase eliminated one false positive. Remaining
+  findings concern recovered transcript paths, historical/external work/report
+  paths and one unavailable report-runtime JSX target. They were retained and
+  classified rather than hidden by modifying history or the checker.
+- An additional scan includes the new index and validates local Markdown targets
+  and heading fragments. No new broken links or fragments were found; the sole
+  regex finding in REA notes is disassembly syntax containing a bracketed vtable
+  offset followed by a call argument, not a Markdown link.
+- Independent read-only review checked the five acceptance criteria. Its one
+  finding, the missing event-only `unresolved_boundary` status, was corrected in
+  the authoritative table before publication.
+- Markdown parsed into temporary table-enabled HTML for structural inspection.
+  Local browser preview was unavailable: serving a local port was denied and
+  browser policy disallowed file URLs. This is not claimed as screenshot QA.
+- Preservation checks: **182 entries OK**, zero problems; **450 local artifact
+  entries**, none missing or changed. Neither manifest was edited. File hashes
+  confirm every tracked non-Markdown file, including `wgrd_orders.py`, remained
+  byte-identical to the start. Existing README credits remained verbatim.
+
+### Remaining weaknesses that need separate work
+
+The external report runtime link is unavailable in a standalone checkout; a
+future report-maintenance change should provide a valid distribution destination
+without rewriting archived provenance. The heuristic link checker still does not
+validate all Markdown forms or heading fragments. Historical notes necessarily
+contain superseded claims; the current-reference routes now explain how to read
+them, but a future evidence audit could annotate more individual contradictions.
+Minimum supported Python versions have not been established by a version matrix.
+Frame timing, coordinates and general execution semantics still require research;
+polished documentation does not resolve them. The known metadata defect and JSON
+policy differences remain separate implementation work.

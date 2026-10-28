@@ -136,6 +136,18 @@ class Timeline(unittest.TestCase):
             self.assertNotIn("events", out)
             self.assertEqual(out["stats"]["events"], 1)
 
+    def test_parser_cli_emits_strict_json_for_nonfinite_floats(self):
+        import tempfile
+        with tempfile.NamedTemporaryFile() as f:
+            f.write(replay([[(1, op08(position=(math.inf, math.nan, 3.)))]]))
+            f.flush()
+            stdout = io.StringIO()
+            with contextlib.redirect_stdout(stdout):
+                self.assertEqual(w.main([f.name]), 0)
+            out = json.loads(stdout.getvalue(), parse_constant=lambda s: self.fail(s))
+            self.assertEqual(out['commands'][0]['decoded']['position_f32'][:2],
+                             [{'nonfinite': '+Infinity'}, {'nonfinite': 'NaN'}])
+
     def test_cli_malformed_timeline_reports_error(self):
         import subprocess
         import tempfile

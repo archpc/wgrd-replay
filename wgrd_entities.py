@@ -150,6 +150,8 @@ def attribute_supply_requests(events, reference_catalog, matched, has_unit_data)
     one catalog entry carries it and the issuing slot is in its observed slots.
     Any other case assigns no reference_id, GUID or unit type.
     """
+    # The catalog spans the whole replay: later references may resolve earlier
+    # requests. Report that timing below; do not turn it into a lifetime claim.
     by_key = defaultdict(list)
     for entry in reference_catalog['entries']:
         by_key[entry['lookup_key_u32']].append(entry)
@@ -161,12 +163,11 @@ def attribute_supply_requests(events, reference_catalog, matched, has_unit_data)
         candidates = by_key.get(key, [])
         slot = event['player_slot']
         resolution, entry = 'unreferenced_key', None
-        # Slot test: the issuing pact slot must be among the 0x07 provenance slots
-        # (command origin, not ownership). temporal_relation is reported, not gated.
         if len(candidates) > 1 or any(c['lookup_key_ambiguous'] for c in candidates):
             resolution = 'ambiguous_key'
         elif len(candidates) == 1:
             entry = candidates[0]
+            # Require observed command provenance, not inferred ownership.
             resolution = 'unique_key' if slot in entry['observed_player_slots'] else 'slot_mismatch'
         target = {'resolution': resolution, 'reference_id': None, 'validation_guid_hex': None,
                   'issuing_slot_in_observed_slots': None, 'temporal_relation': None,

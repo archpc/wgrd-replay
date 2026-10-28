@@ -1,8 +1,8 @@
 """Minimal, strict decoder for Wargame: Red Dragon replay files (.wargamerpl2).
 
 Scope: only structures verified against authentic samples (see FORMAT.md).
-Stdlib only, offline, deterministic. Any structural violation raises
-ReplayFormatError; nothing is guessed or silently skipped. Unknown records
+Stdlib only, offline, deterministic. Container violations raise ReplayFormatError;
+malformed command layouts are retained as diagnostics. Unknown records
 and undecoded command blocks are preserved as raw hex.
 
 Byte order and offsets (as the code below implements them):
@@ -69,7 +69,18 @@ OPCODE_CLASSES = {
 
 
 class ReplayFormatError(ValueError):
-    """Raised for any violation of the verified layout."""
+    """Raised for recognized container and timeline format violations."""
+
+
+def json_safe(value):
+    """Represent non-finite floats explicitly for strict JSON serialization."""
+    if isinstance(value, float) and not math.isfinite(value):
+        return {"nonfinite": "NaN" if math.isnan(value) else ("+Infinity" if value > 0 else "-Infinity")}
+    if isinstance(value, list):
+        return [json_safe(v) for v in value]
+    if isinstance(value, dict):
+        return {k: json_safe(v) for k, v in value.items()}
+    return value
 
 
 def _u32be(b, o):
@@ -116,10 +127,11 @@ def parse_header(b):
         metadata = json.loads(b[HEADER_SIZE:end].decode("utf-8"))
     except (UnicodeDecodeError, json.JSONDecodeError) as e:
         raise ReplayFormatError("metadata JSON invalid: %s" % e)
-    # KNOWN DEFECT (reproduced 2026-10-28, not fixed in this pass): a metadata JSON root
-    # that is not an object, or a "game" value that is not an object, makes the .get
-    # calls below raise AttributeError instead of ReplayFormatError. That breaks the
-    # module contract at the top of this file. Reproduced with a root of [].
+    if not isinstance(metadata, dict):
+        raise ReplayFormatError("metadata JSON root must be an object")
+    game = metadata.get("game", {})
+    if not isinstance(game, dict):
+        raise ReplayFormatError("metadata game must be an object")
     return {
         "magic": MAGIC.decode(),
         "container_version": version,
@@ -128,7 +140,7 @@ def parse_header(b):
         "json_offset": HEADER_SIZE,
         "json_length": json_len,
         "payload_offset": end,
-        "game_version": metadata.get("game", {}).get("Version"),
+        "game_version": game.get("Version"),
     }, metadata
 
 
@@ -171,13 +183,13 @@ def decode_op08(block, slot):
     # Opcode 0x08 block. Offsets count from block start; byte 0 is the opcode.
     # Layout verified from the executable (FORMAT.md section 5). Meanings are not.
     #
-    #   off  size  type        field         meaning
-    #     1     4  u32 LE     handle        INFERRED player handle
-    #     5    16  raw        unknown16     UNKNOWN
-    #    21    12  3 x f32    position      INFERRED map position
-    #    33     4  u32 LE     type          UNKNOWN (0..3 observed)
-    #    37     2  u16 LE     text length   layout only: T
-    #    39     T  bytes      text          INFERRED label
+    #   off  size  wire type   field        interpretation
+    #     1     4  u32 LE      handle       INFERRED player handle
+    #     5    16  raw         unknown16    UNKNOWN
+    #    21    12  3 x f32 LE  position     INFERRED map position
+    #    33     4  u32 LE      type         UNKNOWN (0..3 observed)
+    #    37     2  u16 LE      text length  layout only: T
+    #    39     T  bytes       text         INFERRED label
     #
     # The block must be exactly 39 + T bytes. Text is decoded as UTF-8 when valid.
     handle, = struct.unpack_from("<I", block, 1)
@@ -211,8 +223,8 @@ class _CommandCursor:
         self.block, self.offset = block, 0
 
     def take(self, size):
-        # Bounds check before slicing, so a hostile count fails with ReplayFormatError
-        # instead of reading past the block. size < 0 is defensive only.
+        # Slices silently truncate; reject the overrun before advancing the cursor.
+        # Negative sizes are rejected defensively, not read from the wire.
         if size < 0 or size > len(self.block) - self.offset:
             raise ReplayFormatError("command read of %d bytes overruns block at 0x%x"
                                     % (size, self.offset))
@@ -225,8 +237,7 @@ class _CommandCursor:
 
 
 def _read_array(cursor, width):
-    # count is an untrusted u32. take() bounds count * width before any slicing,
-    # so a huge count fails cleanly rather than reading past the block.
+    # Bound the entire untrusted count in take(); do not allocate per element first.
     count = cursor.uint(4)
     return {"count_u32": count, "items_hex": cursor.take(count * width).hex()}
 
@@ -348,9 +359,13 @@ def _decode_command(cursor, slot):
         fields["serializer_payload_hex"] = cursor.take(fields["serializer_length_u32"]).hex()
         field_status = "opaque"
     elif opcode == 0x0C:
-        # FUN_00b2eeb0 (build 59638). Helpers: FUN_00b35cd0 (u32 count + u32 array),
-        # FUN_00b35fc0 (same, each element <= 0x0e), FUN_00b290c0 (count + 16-byte
-        # {3 x float32, u32 kind <= 6}), FUN_00b29080 (u32 + raw16). Field meanings unconfirmed.
+        # FUN_00b2eeb0, build 59638; research/CHANGEPRODUCTION-0C.md.
+        # Helper         wire layout (LE)
+        # FUN_00b35cd0   u32 count + count x u32
+        # FUN_00b35fc0   same, with each element <= 0x0e
+        # FUN_00b290c0   u32 count + count x {3 x f32, u32 kind <= 6}
+        # FUN_00b29080   u32 + raw16
+        # These are read layouts; field meanings remain unconfirmed.
         fields = {"obj_04_u32": cursor.uint(4), "obj_08_hex": cursor.take(16).hex(),
                   "obj_18_array": _read_u32_array(cursor)}
         obj_34 = _read_u32_array(cursor)
@@ -395,8 +410,7 @@ def decode_command_block(block, count, slot):
     """
     cursor, commands = _CommandCursor(block), []
     status, reason = "complete", None
-    # Cheap pre-bound: every command is at least one byte, so a larger declared count
-    # cannot be satisfied. This avoids looping over failed reads for a hostile count.
+    # Each command needs an opcode byte. Reject impossible counts before the loop.
     if count < 0 or count > len(block):
         status, reason = "malformed", "command count exceeds available opcode bytes"
     else:
@@ -405,6 +419,8 @@ def decode_command_block(block, count, slot):
             try:
                 command = _decode_command(cursor, slot)
             except ReplayFormatError as error:
+                # Retain the whole failed command in remaining_hex, including reads
+                # that succeeded before the error. A partial read is not a split.
                 cursor.offset = start
                 status, reason = "malformed", str(error)
                 break
@@ -560,8 +576,8 @@ def main(argv=None):
         return 2
     if a.summary:
         r.pop("events" if a.timeline else "commands")
-    json.dump(r, sys.stdout, sort_keys=True, ensure_ascii=False, indent=1,
-              allow_nan=not a.timeline)
+    json.dump(json_safe(r), sys.stdout, sort_keys=True, ensure_ascii=False, indent=1,
+              allow_nan=False)
     sys.stdout.write("\n")
     return 0
 

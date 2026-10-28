@@ -79,7 +79,7 @@ class CorpusFit(unittest.TestCase):
     }
 
     def setUp(self):
-        manifest = json.load(open(ROOT / "samples" / "manifest.json"))["samples"]
+        manifest = json.loads((ROOT / "samples" / "manifest.json").read_text())["samples"]
         self.paths = {s["file"]: SAMPLES / s["file"] for s in manifest}
         if not all(p.exists() for p in self.paths.values()):
             self.skipTest("authentic samples not cached; set WGRD_SAMPLES_DIR")

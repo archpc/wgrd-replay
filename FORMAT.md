@@ -1,251 +1,365 @@
-# FORMAT.md — Wargame: Red Dragon replay (.wargamerpl2)
+# Replay format reference
 
-Status legend: VERIFIED = holds on every byte of all 3 samples (see samples/manifest.json);
-INFERRED = consistent with evidence, meaning not proven; UNKNOWN = not determined.
+[Overview](README.md) · [Architecture & evidence conventions](docs/ARCHITECTURE.md) · [Research provenance](research/INDEX.md)
 
-Samples: koppeltar-Sample1/2/3 (game Version 59638, 510117427, 59638). Only one
-container version (1) observed. No version-specific layout differences observed.
+Wire layouts implemented by `wgrd_replay.py`, with the timeline export described
+separately below. Executable-backed layouts concern **WarGame3.exe build 59638**,
+SHA-256 `1c7533eb5387a3e82db66595c782f23c20f5871250d6b6a24d630b9d074bda46`.
+Other replay builds use those layouts by inference.
 
-## 1. File header (big-endian) — VERIFIED
+The original observations use the hash-pinned KoppelTAR Sample1/2/3 recordings
+(builds 59638 / 510117427 / 59638) in [the sample manifest](samples/manifest.json).
+Later cross-build observations are recorded in [the controlled experiment](research/current-build/2026-10-28-controlled-experiment.md)
+and [its manifest](samples/cross-build-manifest.json). Structural fit does not
+verify another executable's behavior.
 
-| Offset | Size | Field | Evidence (Sample2) |
-|---|---|---|---|
-| 0x00 | 4 | magic `ESAV` | `45534156` |
-| 0x04 | 4 | u32 BE container version = 1 (name INFERRED). Executable 59638 accepts <= 1 (FUN_010b9300) | `00000001` |
-| 0x08 | 4 | u32 BE total file size (read via ntohl, FUN_010b9790; no equality check found in the executable) | `0007f5c9` = 521673 = actual size (all 3 match) |
-| 0x0C | 28 | SHA-224 of file[0x28:EOF]. VERIFIED on all 3 samples; the executable initializes SHA-224 (FUN_016fd070) and compares 28 bytes | `dbaeabcd…cc5d7106` |
-| 0x28 | 16 | chunk 0 header: tag `rply`, field A = 0, length N, field B = 0 (same layout as section 2; executable treats it as an ordinary chunk) | `72706c79 00000000 00000933 00000000` |
-| 0x38 | N | chunk 0 payload: UTF-8 JSON metadata `{"game":{…},"player_<id>":{…},…}` | `7b2267616d65223a` |
+**Read in order:** [header](#1-file-header-big-endian) → [chunks](#2-chunk-stream) →
+[frames](#3-frames) → [pact](#4-pact-payload-little-endian) →
+[commands](#6-implemented-command-splitting-decoder-04).
+For a worked field layout, see [opcode 0x08](#5-opcode-0x08-map-marker-request).
+For exported events, see [timeline](#8-optional-timeline-export).
 
-Payload starts at 0x38+N (Sample1 0x9a4, Sample2 0x96b, Sample3 0x2826).
-JSON is a flat-string-valued object (Version, Map, Seed, InitMoney, TimeLimit,
-ScoreLimit, VictoryCond, per-player PlayerName, PlayerDeckContent, PlayerAlliance…).
+## Notation
 
-## 2. Chunk stream — VERIFIED
+| Notation | Meaning |
+|---|---|
+| `0x28` | Hexadecimal byte offset or value; sizes are decimal bytes unless stated |
+| Absolute offset | From file byte zero |
+| `+0x04` | Relative to the structure named above the table |
+| `u16`, `u32`, `f32` | Unsigned 16-bit, unsigned 32-bit, IEEE-754 binary32 |
+| BE / LE | Big-endian / little-endian; raw byte strings have no implied integer order |
+| `raw16`, `T bytes` | Exactly 16 bytes, or exactly the declared `T` bytes; no implied padding |
+| Counted array | `u32 LE` element count, followed by that many elements of the stated width |
+| `obj+0x18` / `obj_18_u32` | Creator object destination / exported key; **not** a wire offset |
 
-Repeated to EOF, no padding, no trailing bytes (walk ends exactly at file size in all 3):
+Confidence labels follow [the authoritative evidence conventions](docs/ARCHITECTURE.md#evidence-conventions).
+Tables distinguish **layout**, **observation**, and **interpretation** rather than
+assign one confidence label to an entire structure. Parser requirements below
+describe this decoder's acceptance policy, which can be stricter than the game.
 
-| Rel | Size | Field |
+## 1. File header (big-endian)
+
+Absolute offsets. All words here are BE; command payloads switch to LE.
+
+| Offset | Bytes | Wire field | Observation / parser behavior |
+|---|---:|---|---|
+| `0x00` | 4 | Magic `ESAV` | Require `45534156` |
+| `0x04` | 4 | `u32` container version | Observed 1; parser requires 1; the 59638 executable accepts values ≤ 1 |
+| `0x08` | 4 | `u32` declared file size | Parser requires equality with actual size; no equivalent equality check found in the executable |
+| `0x0C` | 28 | SHA-224 digest | Covers bytes `[0x28, EOF)`; checked by `parse_replay` after the structural walk, unless disabled |
+| `0x28` | 16 | First chunk header, tag `rply` | Same chunk layout as section 2; both reserved words must be zero in the parser |
+| `0x38` | `N` | UTF-8 JSON metadata | `N` is the `rply` payload length; next chunk starts at `0x38 + N` |
+
+Metadata is a **nested object**: `game` holds fields such as `Version`, `Map`,
+`Seed`, `InitMoney`, `TimeLimit`, `ScoreLimit` and `VictoryCond`; `player_<id>`
+objects hold fields such as `PlayerName`, `PlayerDeckContent` and
+`PlayerAlliance`. Sample values are commonly strings. Configured `TimeLimit` is
+not observed match duration. The first post-metadata chunk starts at `0x9A4`,
+`0x96B` and `0x2826` in Sample1, Sample2 and Sample3 respectively.
+
+> **Metadata validation:** the JSON root and any present `game` value must be
+> objects; otherwise `parse_header` raises `ReplayFormatError`. Missing `game`
+> or `Version` remains accepted, with `game_version` set to null. The parser
+> still accepts Python's non-standard NaN/Infinity tokens; that is not a format
+> guarantee.
+
+**2026-10-28 correction:** explicit object checks replace the former
+`AttributeError` leak. Regression coverage: `tests/test_header_metadata.py`.
+
+`parse_header` validates only the header and metadata. It does not verify the
+digest or walk the remaining chunks. See [usage and error boundaries](docs/USAGE.md).
+
+Evidence: [REA findings and parser comparison](REA-NOTES-59638.md), including
+`FUN_010b9300`, `FUN_010b9790` and SHA-224 initialization at `FUN_016fd070`;
+[container provenance](research/INDEX.md#1-esav-container-and-integrity-validation).
+
+## 2. Chunk stream
+
+Offsets relative to each chunk header. Chunks are contiguous, with no padding.
+
+| Relative offset | Bytes | Wire field | Parser behavior |
+|---|---:|---|---|
+| `+0x00` | 4 | Tag bytes | Dispatch `star`, `pact`, `endt`; retain other tags and payloads in `unknown_chunks` |
+| `+0x04` | 4 | `u32 BE` field A | Require zero; meaning unresolved |
+| `+0x08` | 4 | `u32 BE` payload length `L` | Require payload to fit within remaining file bytes |
+| `+0x0C` | 4 | `u32 BE` field B | Require zero |
+| `+0x10` | `L` | Payload | LE fields where decoded; next header is at current offset + 16 + `L` |
+
+The executable reader `FUN_010b9500` passes field A to its visitor and discards
+field B; requiring zero is decoder policy. The executable also handles `cmpg`,
+which has not been observed in the original samples and is retained as unknown
+by this parser. The chunk walk must finish exactly at EOF.
+
+### Hex example: a chunk boundary
+
+Sample2, absolute offset `0x96B`:
+
+```text
+73 74 61 72  00 00 00 00  00 00 00 08  00 00 00 00
+```
+
+| Byte group | Read as | Value |
 |---|---|---|
-| +0 | 4 | tag: `star`, `pact`, `endt` (and `rply` as chunk 0). Executable also handles `cmpg` (not seen) |
-| +4 | 4 | u32 BE field A, always 0 in samples; executable passes it to the visitor (meaning UNKNOWN) |
-| +8 | 4 | u32 BE payload length L; executable rejects L > remaining bytes |
-| +12 | 4 | u32 BE field B, always 0 in samples; executable reads and discards it |
-| +16 | L | payload, handed raw to the visitor (little-endian internals) |
+| `73 74 61 72` | Raw tag | `star` |
+| `00 00 00 00` | BE field A | 0 |
+| `00 00 00 08` | BE payload length | 8 |
+| `00 00 00 00` | BE field B | 0 |
 
-Executable path (build 59638, details in REA-NOTES-59638.md): FUN_010b9500 reads the 4
-header words via ntohl, bounds-checks L, hashes header+payload into SHA-224, and calls
-visitor vtbl[+8](tag, A, ptr, L).
+The next header is at `0x96B + 0x10 + 8 = 0x983`. Evidence:
+[REA framing analysis](REA-NOTES-59638.md), records `ev_fbeb6905…` and
+`ev_0d8a7293…`; regression: `tests/test_wgrd_replay.py`.
 
-Evidence: Sample2 0x96b `73746172 00000000 00000008 00000000` + 8 bytes, next
-`pact` at 0x983 = 0x96b+16+8. Confirmed independently via REA/Ghidra 12.1.4
-read_bytes/search_bytes (evidence ids ev_fbeb6905…, ev_0d8a7293…).
+## 3. Frames
 
-## 3. Frames — VERIFIED
+One frame is `star`, followed by the ordered slot `pact` chunks, then `endt`.
+Unknown chunks are retained without being treated as commands.
 
-`star` … `pact`×S … `endt` forms one frame. S = slots per frame, constant per file
-(Sample1 4, Sample2 2, Sample3 20), equals game.NbMaxPlayer in all 3 samples.
-
-- `star` payload: u32 LE frame index (0,1,2,… no gaps) + remainder. Remainder is
-  4 zero bytes (L=8) in Samples 1–2; Sample3 also has L=34 (2188×) and L=60 (2×): UNKNOWN content, preserved.
-- `endt` payload (L=12): u32 LE frame index + 8 zero bytes.
-- Counts: frames = star = endt; pact = frames × S (76132 = 19033×4; 9026 = 4513×2; 223300 = 11165×20).
-
-Frame-to-time mapping: UNKNOWN (no tick length found in file).
-
-## 4. `pact` payload (little-endian) — VERIFIED framing
-
-| Rel | Size | Field |
+| Tag | Parser requirement | Original sample observation |
 |---|---|---|
-| +0 | 4 | u32 frame index (= enclosing star) |
-| +4 | 4 | u32 slot (0..S-1, in order) |
-| +8 | 4 | u32 count (0 ⇔ empty; observed 0–6) |
-| +12 | 2 | u16 block length B |
-| +14 | B | command block (14+B = L for all 10,942 non-empty pacts) |
+| `star` | At least 8 payload bytes; first `u32 LE` equals the next frame index; no already-open frame | L=8 in Samples1–2; Sample3 also has L=34/60; extra content unresolved |
+| `pact` | Inside an open frame; matching frame index; slots begin at 0 and appear consecutively | Slots per frame match `game.NbMaxPlayer` in the original samples; parser does not enforce that metadata equality |
+| `endt` | At least 4 payload bytes; first `u32 LE` equals the open frame index | L=12 with eight trailing zero bytes; parser does not require this exact length or zero tail |
 
-Empty pact: L=14, count 0, B 0 (297,516 of 308,458 pacts).
-Block = `count` concatenated commands, each starting with an opcode byte. Commands are
-not universally length-prefixed; splitting uses creator-proven reads. Count linkage is
-verified in research/count-loop.md; layouts and evidence in research/COMMAND-LAYOUTS.md.
-Observed opcodes (count==1): 02 04 07 08 09 0a 0c 0d 0e 13 17 18. Fixed lengths seen:
-09/0e/04 = 25, 0a = 29, 13 = 13, 18 = 10, 02 = 22, 0c = 105 (+281 once). 07 = 91+20k. 08 = 39+text.
+Frame indices start at zero with no gaps. The number of slots must stay constant
+across frames, and EOF cannot leave a frame open. `star` and `endt` trailing bytes
+are not exposed in the parser result; the original file remains their source.
 
-Common pattern in many opcodes: `op | u32 handle | 12 zero bytes | u32 0x32 | …`.
-Handle = 0xC000001E + slot (VERIFIED for opcode 08; also seen in 04/09/0a/0c/0e). Other handles
-(e.g. 0xc00000ba in op 07, 0xc00001a3 in op 17) are UNKNOWN object ids.
+**Frame duration is unresolved.** Recorded frame order is not wall-clock time,
+and the controlled experiment distinguishes replay and battle clocks. See
+[timing evidence](research/current-build/2026-10-28-controlled-experiment.md#7-time-bases-and-playback).
 
-## 5. Opcode 0x08: TNetworkActionLaunchFumigene. Layout VERIFIED from the executable; field meanings INFERRED
+## 4. `pact` payload (little-endian)
 
-Executable (build 59638): dispatcher FUN_00b24050 reads the opcode byte and indexes the jump
-table at 0xb241f4 (opcodes 0x02..0x22). Case 0x08 calls creator FUN_00b2fbc0, which installs
-the TNetworkActionLaunchFumigene vtable and reads fields with raw (little-endian) copies.
-Full opcode table: REA-NOTES-59638.md and OPCODE_CLASSES in wgrd_replay.py.
+Offsets relative to the payload, after its 16-byte chunk header.
 
-| Rel | Size | Executable read | Data observation |
-|---|---|---|---|
-| 0 | 1 | opcode 0x08 | |
-| 1 | 4 | obj+0x04 | u32 = 0xC000001E + slot (226/226); INFERRED player handle |
-| 5 | 16 | obj+0x08, raw | `00`×12 `32000000` (226/226); meaning UNKNOWN |
-| 21 | 12 | obj+0x18, raw | 3 × f32 in map-coordinate range; INFERRED position |
-| 33 | 4 | obj+0x24 | u32 0..3 (0:69, 1:50, 2:27, 3:80); text non-empty iff 3 |
-| 37 | 2 | FUN_008fb4a0: u16 T | |
-| 39 | T | FUN_008fb4a0: T bytes, narrow string | ASCII in all samples (UTF-8 decode attempted, errors flagged) |
+| Relative offset | Bytes | Wire field | Parser requirement |
+|---|---:|---|---|
+| `+0x00` | 4 | `u32` frame index | Match the enclosing `star` |
+| `+0x04` | 4 | `u32` slot | Equal the number of slots already encountered in this frame |
+| `+0x08` | 4 | `u32` command count | Zero exactly when the block length is zero |
+| `+0x0C` | 2 | `u16` block length `B` | `14 + B` equals the payload length |
+| `+0x0E` | `B` | Command block | Decode the declared command count; retain original `block_hex` |
 
-Length = 39+T exactly (226/226). Example: Sample1 frame 131 slot 2, block at 0x69a7:
-text "leave your cv at base". Class name plus position plus label suggest a map flare
-(INFERRED). Type meanings 0/1/2: UNKNOWN.
+Commands are concatenated. Each starts with an opcode byte, but there is **no
+universal per-command length prefix**. Creator-backed reads establish boundaries;
+the decoder never scans forward for a plausible opcode.
+
+For a chunk header at file offset `C` and a command at block offset `K`:
+
+```text
+command file offset = C + 16 + 14 + K
+```
+
+An empty pact has a 14-byte payload, count 0 and length 0. Empty records contribute
+to statistics but are omitted from parser `commands` unless `--include-empty` is
+set. See [count-loop evidence](research/count-loop.md) and
+[command-layout recovery](research/COMMAND-LAYOUTS.md).
+
+## 5. Opcode 0x08: map marker request
+
+Class `TNetworkActionLaunchFumigene`; creator `FUN_00b2fbc0`, selected by dispatcher
+`FUN_00b24050`, jump table `0xB241F4` in build 59638. RTTI names identify classes;
+consumer traces establish the marker interpretation. This is not smoke-weapon
+execution evidence.
+
+Offsets relative to the **command's opcode byte**, not the creator object.
+
+| Wire offset | Bytes | Read → object destination | Exported field | Meaning / limit |
+|---|---:|---|---|---|
+| `+0x00` | 1 | Opcode | `opcode` | `0x08` |
+| `+0x01` | 4 | `u32 LE` → `obj+0x04` | `player_handle` | Observed `0xC000001E + slot`; equality reported, not enforced |
+| `+0x05` | 16 | Raw → `obj+0x08` | `unknown16_hex` | Observed 12 zero bytes then `32000000`; retained without guessed semantics |
+| `+0x15` | 12 | `3 × f32 LE` → `obj+0x18` | `position_f32` | Transmitted marker position argument; axes and units unresolved |
+| `+0x21` | 4 | `u32 LE` → `obj+0x24` | `type_u32` | Values 0–3 observed; type 3 with nonempty text displays a label; 0/1/2 meanings unresolved |
+| `+0x25` | 2 | String helper reads `u16 LE T` | `text_length` | Byte count, not character count |
+| `+0x27` | `T` | Narrow string bytes | `text`, or `text_hex` with error flag | UTF-8 presentation attempted; original command bytes retained |
+
+Total size is `39 + T` bytes, with no terminator or padding. `decode_op08` returns
+`None` if the supplied bytes do not fit exactly. The block decoder converts a
+failed supported layout into a `malformed` diagnostic.
+
+Worked sample: Sample1 frame 131, slot 2, command at `0x69A7`. First five bytes
+`08 20 00 00 c0` encode opcode `0x08` and LE handle `0xC0000020`; string length
+bytes `15 00` encode 21 bytes, `leave your cv at base`.
+See `tests/test_wgrd_replay.py` and [marker consumer evidence](research/TIMELINE-SEMANTICS.md#08--create-graphical-map-marker).
+
+**2026-10-28 correction:** the former “map flare (INFERRED)” description predates
+consumer analysis. The current matching-build timeline classifies a marker
+creation request as `verified`; actual creation and position are not observed.
 
 ## 6. Implemented command splitting (decoder 0.4)
 
-New layouts: 04, 07, 09, 0a, 0e, 17; existing 08 now shares the block cursor.
-0d has a proven length-delimited serializer envelope; interior fields stay opaque.
-New field names identify object storage offsets, without assigning game meanings.
+All sizes include the opcode. Fields after it are LE unless raw. Object-offset
+names describe storage, not gameplay roles. The class-name table `OPCODE_CLASSES`
+is larger than the set of implemented layouts.
 
-| Opcode | Total command bytes | Verified read layout after opcode |
+| Opcode | Total bytes | Reads after opcode |
 |---|---|---|
-| 02 | 22 | u32, raw16, u8 (research/FIXED-OPCODES-02-13-18.md) |
-| 04 / 09 | 25 | u32, raw16, u32 |
-| 07 | 71+20*(N1+N2)+T | twice (u32 N, raw20*N), raw12, raw8, raw36, u32 <=3, u16 T, T bytes |
-| 08 | 39+T | section 5 |
-| 0a | 29 | u32, raw16, u32 <=14, u32 |
-| 0c | 61+4*(n1+n2+n3)+16*(m1+m2) | u32, raw16, (u32 n1, u32*n1), (u32 n2, u32*n2 each <=0x0e), twice (u32 m, (raw12, u32 <=6)*m), (u32 n3, u32*n3), u32, raw16 (research/CHANGEPRODUCTION-0C.md) |
-| 0d | 18+L | u32 variant 1..3, raw4, raw1, raw4, u32 L, opaque L-byte serializer payload |
-| 0e | 25 | u32, u32, raw16 |
-| 13 | 13 | u32, u32, u32 (research/FIXED-OPCODES-02-13-18.md) |
-| 17 | 10+8*N | u32, u32 N, raw8*N, raw1 |
-| 18 | 10 | u32, u32, u8 (research/FIXED-OPCODES-02-13-18.md) |
+| `0x02` | 22 | `u32`, `raw16`, `u8` |
+| `0x04`, `0x09` | 25 | `u32`, `raw16`, `u32` |
+| `0x07` | `71 + 20×(N1+N2) + T` | Two counted raw20 arrays; `raw12`, `raw8`, `raw36`, `u32 ≤ 3`; `u16 T`, `T` bytes |
+| `0x08` | `39 + T` | Section 5 |
+| `0x0A` | 29 | `u32`, `raw16`, `u32 ≤ 14`, `u32` |
+| `0x0C` | `61 + 4×(n1+n2+n3) + 16×(m1+m2)` | See the ordered sequence below |
+| `0x0D` | `18 + L` | `u32` variant 1–3; `raw4`, `raw1`, `raw4`; `u32 L`, opaque `L` bytes |
+| `0x0E` | 25 | `u32`, `u32`, `raw16` |
+| `0x13` | 13 | Three `u32` values |
+| `0x17` | `10 + 8×N` | `u32`, `u32 N`, `N × raw8`, `raw1` |
+| `0x18` | 10 | `u32`, `u32`, `u8` |
 
-Each pact preserves block_hex and adds command_decode:
-- complete: count commands, full supported field layouts, exact EOF.
-- framed: count command boundaries and exact EOF, with opaque serializer content.
-  Interior validity and creator acceptance are unverified. Not counted as decoded.
-- unresolved: unsupported opcode; retain verified prefix and unconsumed bytes.
-- malformed: proven read, count, enum or exact-EOF violation; retain raw block.
+For `0x0C`, read in order: `u32`, `raw16`; counted `u32` arrays `n1`, `n2`
+(elements of `n2` ≤ `0x0E`); two counted point arrays `m1`, `m2` (each point is
+`raw12` + `u32 ≤ 6`); counted `u32` array `n3`; `u32`, `raw16`.
+Its field meanings remain open; [the creator note](research/CHANGEPRODUCTION-0C.md)
+records the enum and float hypotheses separately from the proven reads.
 
-Each command records offset, length, raw_hex, fields, field_decode_status.
-On unsupported/truncated commands, consumed_bytes ends at the last complete command;
-remaining_hex includes the entire unresolved command. No opcode scanning/resync.
-Only complete/framed blocks increment fully_split counts; only complete blocks
-increment fully_decoded counts. Exact EOF is strict decoder policy, not executable parity.
+Creator addresses, evidence records, authentic sample identities and reproduction:
+[layout recovery](research/COMMAND-LAYOUTS.md), [fixed opcodes](research/FIXED-OPCODES-02-13-18.md),
+[0x07 orders](research/OP07-ORDERS.md) and [0x0C](research/CHANGEPRODUCTION-0C.md).
+Current per-sample counts: [generated structural coverage](research/coverage.json).
 
-SHA-256-authenticated census: 594/594 multi blocks split; 571 complete +23 framed.
-All new binary evidence is build 59638; Sample2's structural match does not establish
-its executable behavior. See research/coverage.json for per-sample counts.
+### Block result and failure boundaries
+
+Each pact's `command_decode` contains `commands`, `consumed_bytes`,
+`remaining_hex`, `layout_build`, `status` and an optional `reason`.
+
+| `status` | Meaning | Counts as fully split / fully decoded |
+|---|---|---|
+| `complete` | All declared commands have supported field layouts; exact EOF | Yes / yes |
+| `framed` | All boundaries known; at least one `0x0D` body opaque in the parser | Yes / no |
+| `unresolved` | Unsupported opcode stops decoding; verified prefix retained | No / no |
+| `malformed` | Read/count/enum constraint or exact-EOF violation | No / no |
+
+A command stores `offset` (block-relative), `length`, `raw_hex`, `fields` and
+`field_decode_status` (`layout` or `opaque`). On a failed read, consumption rolls
+back to the start of that command; its entire span stays in `remaining_hex`.
+Exact EOF is decoder policy, not a promise of executable parity.
+
+`parse_replay` retains block diagnostics instead of raising for every malformed
+block. Container/frame errors do raise. **Exit 0 is not complete command coverage.**
 
 ## 7. Inputs vs. outcomes
 
-Stream structure (one input packet per slot per frame, mostly empty) matches lockstep
-input recording. No kill/hit/score/position-snapshot records identified. Outcomes very
-likely require simulation reconstruction (INFERRED, not proven).
+The stream resembles lockstep input recording: one packet per slot per frame,
+mostly empty. No kill/hit/score/position-snapshot records have been identified in
+the original sample corpus. That is a bounded observation, not proof that the
+format cannot contain them. RTTI entries such as `TNetworkActionKill` do not
+establish a decoded outcome feature.
+
+The [controlled experiment](research/current-build/2026-10-28-controlled-experiment.md)
+adds sample-specific UI and playback evidence. It does not supply a universal
+simulation model or establish all field meanings.
 
 ## 8. Optional timeline export
 
-`python3 wgrd_replay.py REPLAY --timeline` produces `wgrd_timeline/1` JSON.
-Default JSON unchanged; `--timeline --summary` omits events but keeps counts,
-metadata, uncertainty and unresolved raw spans. SHA-224 enforced by default.
+```sh
+python3 -B wgrd_replay.py /path/to/match.wargamerpl2 --timeline
+```
 
-Events: zero-based global `command_order`, raw `frame`, `frame_command_order`,
-`player_slot`, `slot_command_order`, opcode, RTTI class, original decoded
-`parameters`, `raw_hex`, `decode_status`, layout-build status and `source` offsets.
-Source offsets in bytes, zero-based: chunk header; command relative to block;
-absolute file position; length. Each event's raw bytes cover exactly that range.
-`interpretation` separately holds action, semantic parameters, evidence and limits.
-`verified` / `partial` require matching 59638; other builds use `inferred`.
-Marker create/remove and opcode07 requested kinds are supported interpretations.
-Effective orders/outcomes unresolved. See research/TIMELINE-SEMANTICS.md.
+`build_timeline` produces schema `wgrd_timeline/1`. `--timeline --summary` omits
+`events` but keeps statistics, metadata, catalogs and unresolved spans.
+[Usage](docs/USAGE.md) covers the API, flags and JSON contracts.
 
-Raw frames have no verified duration. Player slots have no verified metadata-name
-mapping; identity is null. Full metadata and unknown chunks retained.
-Unknown single commands retain entire raw bytes; multi-command unresolved tails
-use one placeholder per declared command and one shared raw span, with individual
-boundaries unknown. Known malformed blocks fail export instead of generating
-misleading events. Opaque 0d interiors remain opaque. Raw bytes also preserve
-nonfinite floats; timeline JSON uses explicit nonfinite objects and null semantic
-positions. No NaN/Infinity JSON tokens.
+| Event field | Contract |
+|---|---|
+| `command_order` | Zero-based global export order |
+| `frame`, `frame_command_order` | Raw replay frame and order across slots within that frame |
+| `player_slot`, `slot_command_order` | Recorded slot and command index within its pact; `player_identity` remains null |
+| `opcode`, `class`, `class_status` | Opcode and build-59638 RTTI class where known |
+| `parameters`, `raw_hex`, `decode_status` | Original parser fields, bytes and structural status |
+| `layout_status` | `matching_build` or `inferred_build_59638` |
+| `source` | Chunk offset, block-relative offset, absolute file offset, byte length and `boundary_known` |
+| `interpretation` | Separate action, semantic parameters, evidence, status and limitations |
+
+Known malformed parser blocks fail timeline export. Unknown single-command tails
+have known boundaries; multi-command tails produce placeholders linked to one
+shared `unresolved_spans` entry, without invented per-command offsets.
+
+Parser-level `opaque` does not forbid a later interpretation. For `0x0D`,
+`wgrd_production.py` separately decodes supported nested production layouts and
+reports `interpretation.payload_layout_status`. An invalid interior becomes a
+`malformed` payload interpretation with unknown action; the parser's framed
+boundary remains valid. Evidence: [production commands](research/PRODUCTION-COMMANDS.md).
+
+Timeline output recursively normalizes non-finite numbers to objects such as
+`{"nonfinite": "+Infinity"}`; semantic positions become null where unusable.
+Parser CLI output uses the same markers. Original command
+bytes survive either representation. Unknown chunks are retained; undecoded
+`star`/`endt` tails are not included in the exported structure.
 
 ### 8.1 Opcode07 requested order subtypes
 
-`interpretation.parameters.order_kind_u32`: object+e0, u32 at order-structure+10.
-`order_kind`: executable enum name for explicit requests; null for contextual39
-or unnamed values. `order_selection`: explicit_request / runtime_dependent / unknown.
-`effective_order_kind` remains null: execution may choose different kinds per actor.
-Matching-build explicit request classification is verified; contextual/unnamed
-kinds partial; mismatched builds inferred. Status describes request classification.
+`interpretation.parameters.order_kind_u32` comes from creator object `+0xE0`,
+order-structure `+0x10`. `order_kind` names an explicit request where established;
+contextual kind 39 and unnamed values remain null. `order_selection` is
+`explicit_request`, `runtime_dependent` or `unknown`. `effective_order_kind`
+remains null: runtime state may select a different order per actor.
 
-`actor_references` from obj+04, `target_references` from obj+60: each entry preserves
-all 20 bytes and exposes its leading registry lookup key. Do not identify entities
-or deduplicate references by this first word alone. Entity type/name/group expansion
-requires runtime state. `target_position_argument_f32` is transmitted finite float3
-from obj+bc, with raw bytes retained; actual position can be clamped or taken from
-target state. All+Infinity -> absent sentinel; other nonfinite -> null. Exporter
-omits Stop's positional interpretation. No effective destination is asserted.
-`secondary_vector_hex`, dispatch token/mode, order_structure_hex and original raw
-parameters remain available without guessed option semantics.
+The `actor_references` array comes from `obj+0x04`, `target_references` from `obj+0x60`. Each raw20 entry
+contains a registry key plus validation GUID. The finite positional argument from
+`obj+0xBC` is not an observed destination; all-positive-infinity is an absent
+sentinel, and other non-finite values have no usable position. Stop omits the
+positional interpretation. `secondary_vector_hex`, dispatch token/mode and
+`order_structure_hex` retain their neutral names and raw values.
 
-Execution addresses, enum table, request-vs-effective limits and census:
-research/OP07-ORDERS.md, research/op07-coverage.json.
+Classification, conditional fallback branches, addresses and limitations:
+[0x07 orders](research/OP07-ORDERS.md), [entity context](research/ENTITY-CONTEXT.md).
 
 ### 8.2 Replay-scoped reference catalog and conditional context rules
 
-Each actor/target reference also exposes trailing16 bytes as validation_guid_hex,
-four LE u32 words, and four-word colon text (not RFC UUID ordering).
-reference_id = full replay SHA256 + ':' + full20-byte reference_hex.
-entity_references catalogs these IDs: first/last frame and global command order,
-actor/target occurrence counts, observed command player slots. Duplicate array
-entries count separately. Same key/different GUID remains separate and flagged;
-shared GUIDs do not merge registry keys. No unit type/name, ownership, live
-registry acceptance or cross-replay identity asserted. unit_identity:null.
-Catalog covers decoded opcode07 arrays only; retained by --timeline --summary.
+`entity_references` keys catalog entries by full replay SHA-256 plus full20-byte
+`reference_hex`, separated by `:`. The catalog covers decoded opcode-0x07 arrays.
+Each entry records first/last frame and command order,
+actor/target occurrences (including duplicates) and observed commanding slots.
+A shared lookup key is flagged as ambiguous; shared GUIDs do not merge keys.
+The GUID exposes raw trailing16 bytes, four LE words and colon text, not RFC UUID
+ordering. `unit_identity` stays null.
 
-contextual_order_rules describes build59638 c9a140 fallback branches. It is
-conditional metadata, not a complete classifier or observed outcome. Kind39
-events add contextual_resolution with fallback_reached:null and effective kind
-null. Runtime module/member flags and earlier path results unavailable here.
-Sample2 event evidence remains inferred. See research/ENTITY-CONTEXT.md and
-research/entity-coverage.json for executable conditions, evidence and limits.
+`contextual_order_rules` describes conditional build-59638 branches, not a complete
+classifier. Kind39 `contextual_resolution` leaves `fallback_reached` and effective
+kind null. Static type association does not supply missing runtime flags.
+
+The `0x18` post-pass attributes supply requests only with a unique catalog key
+and compatible observed slot; it cannot establish ownership or cross-replay
+identity. See [reference-key evidence](research/OP18-REFERENCE-KEYS.md) and
+[supply-target evidence](research/OP18-SUPPLY-TARGETS.md).
 
 ### 8.3 Optional public descriptor snapshot
 
-`--timeline --unit-data ROOT` reads four hash-pinned ResidentMario/wargame-data
-58710 files beneath ROOT; offline, no automatic downloads. URLs and hashes:
-research/public-unit-sources.json. Exact16-byte validation GUID match only.
-NDF XML GUIDs use mixed-endian .NET notation, converted with UUID.bytes_le.
-Runtime lookup keys, NDF instance IDs and deck indices are separate namespaces.
+`--timeline --unit-data ROOT` loads four pinned public build-58710 files offline.
+No download occurs. [Source hashes](research/public-unit-sources.json) identify
+them. Matching is by exact validation GUID bytes; .NET XML GUID strings use
+`UUID.bytes_le`, while runtime keys, NDF instance IDs and deck indices remain
+separate namespaces.
 
-Reference catalog gains static_descriptor, descriptor_match_status and top-level
-descriptor_data provenance. Descriptor fields: NDF class/instance ID/debug name,
-module reference and selector Default references; direct TUniteAuSolDescriptor
-card values where available. Card flags describe the static source snapshot.
-All current samples differ from 58710: exact_guid_cross_version, no verified
-matching-build names/capabilities. Sample2 reference-purpose mapping inferred.
-No company/member GUID rewriting; unit_identity stays null; order39 unresolved.
-Events unchanged. Without --unit-data, both default and plain timeline outputs
-unchanged. See research/PUBLIC-UNIT-MAPPING.md for counts and missing bridge.
+The catalog gains `static_descriptor`, `descriptor_match_status`, and top-level
+`descriptor_data` provenance. These are cross-version static associations for the
+original samples, not verified matching-build capabilities or names. Descriptor records retain NDF class/instance ID/debug name, module and selector
+Default references, and direct `TUniteAuSolDescriptor` card values where available.
+Card flags describe the snapshot. No company GUID rewriting or runtime membership
+is inferred. Events remain unchanged.
+See [public descriptor mapping](research/PUBLIC-UNIT-MAPPING.md).
 
 ### 8.4 Original 59638 configured-type index and localized names
 
-`--timeline --unit-data research/unit-data/build59638-v1.json.gz` loads the
-bundled `wgrd_unit_index/1` index. Plain JSON index files also accepted. Offline;
-the existing58710 directory mode and outputs remain compatible.
+`--timeline --unit-data research/unit-data/build59638-v1.json.gz` loads the bundled
+`wgrd_unit_index/1` index; plain JSON index files are also supported.
 
-Each reference gains `configured_unit_types`: `status` unique/ambiguous/missing,
-`evidence_status`, original source descriptor object IDs, and candidate arrays.
-Candidates expose configured type GUID/class, debug name, raw alias, localized
-name/status/candidates and mapping provenance. `localized_name` is populated only
-for exactly one dictionary record; never falls back to alias/debug text. Original
-dictionary markup retained. Duplicate translations and inverse mappings retained
-as candidate arrays. Missing source descriptors/paths/names remain explicit.
+References gain `configured_unit_types` with unique/ambiguous/missing status,
+evidence qualification and candidate paths. Candidates retain GUID/class, debug
+name, alias, localized-name candidates and provenance. A localized name requires
+exactly one dictionary record; there is no alias/debug-name fallback, and original
+markup remains. Duplicate translations and inverse mappings remain candidate
+arrays. Missing and ambiguous mappings stay explicit. Inverse paths retain the
+unit → CompanyUnit selector Default → module → CompanyDescriptor object IDs;
+direct AuSol GUID matches stay separate.
 
-Exact wire validation GUID joins to original descriptor GUIDs. Inverse paths retain
-unit -> CompanyUnit selector Default -> module -> CompanyDescriptor object IDs;
-direct AuSol GUID matches remain separate. Shared `descriptor_data.nodes` records
-contain original classes, absolute expanded-NDF offsets and mapping/name properties,
-including raw filter conditions. `descriptor_data` also carries index/archive/
-member/expanded/parsed-object/dictionary hashes and locale. Node properties are a
-projection, not complete object/module dumps. Conditions never evaluated.
+Shared `descriptor_data.nodes` retains source object IDs, expanded-NDF offsets,
+projected properties and unevaluated selector conditions. Index/archive/member/
+expanded/object/dictionary hashes and locale identify the source. It is a static
+projection, not a live world model. Non-59638 mappings remain inferred.
 
-59638 match means configured static type association, not live registry acceptance,
-membership, ownership, active modules or capabilities. Sample2 remains
-`inferred_build_59638`. `unit_identity` stays null; event parameters, classification,
-effective kinds and contextual39 outcomes unchanged. Default/plain timeline output
-byte-identical to 02b4081 on all samples. See research/TIMELINE-59638.md.
+With unit data, production requests also gain static type associations. Neither
+reference nor production enrichment proves membership, ownership, active modules,
+accepted placement or execution. See [matching-build enrichment](research/TIMELINE-59638.md),
+[NDF bridge](research/NDF59638-BRIDGE.md) and [production commands](research/PRODUCTION-COMMANDS.md).

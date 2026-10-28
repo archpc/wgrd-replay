@@ -35,6 +35,8 @@ def parse_dictionary(blob):
     start = 8+16*count
     if start > len(blob): raise ReplayFormatError('truncated localization record table')
     result = {}
+    # TRAD record, offsets in bytes from the record start (all integers LE):
+    #   +0  raw8 token | +8  u32 absolute offset | +12  u32 UTF-16 units
     for i in range(count):
         p = 8+i*16
         token = blob[p:p+8].hex()
@@ -139,8 +141,7 @@ def export_index(objects, source, names=None, localization=None):
             props = {k: v for k, v in props.items() if k in
                      ('DescriptorId', 'ClassNameForDebug', 'AliasName', 'NameInMenuToken')}
             props['Modules'] = [copy.deepcopy(s) for s in obj['properties'].get('Modules', []) if s['key'] == 'CompanyUnit']
-        # +40 is applied by this exporter to the source object offset. Its origin
-        # is not documented in the files reviewed for this comment pass.
+        # The exporter adds 40 to source object offsets; its origin is unresolved.
         nodes[key] = {'class': obj['class'], 'class_id': obj['class_id'],
                       'file_offset': obj['offset']+40, 'properties': props}
         for ref in _refs(props): include(str(ref['ref_index']))
@@ -171,6 +172,8 @@ def load_index(path):
         if index['schema'] != SCHEMA or index['game_build'] != '59638':
             raise ValueError('unsupported schema or game build')
         if not isinstance(index['source']['ndf'], dict): raise ValueError('missing NDF provenance')
+        # Recompute the joins: stored lookup tables must agree with the source graph.
+        # Internal agreement does not authenticate the graph's provenance.
         units, descriptors = _derive(index['nodes'])
         if units != index['unit_types'] or descriptors != index['descriptors']:
             raise ValueError('index paths disagree with source graph')
@@ -194,6 +197,7 @@ def enrich_index(catalog, data, replay_version):
     index = data['index']; used_nodes = {}; counts = {'unique': 0, 'ambiguous': 0, 'missing': 0}
     def include(key):
         if key in used_nodes: return
+        # Mark before descending: shared references and cycles must terminate here.
         used_nodes[key] = copy.deepcopy(index['nodes'][key])
         for ref in _refs(used_nodes[key]['properties']): include(str(ref['ref_index']))
     evidence = 'matching_build_static_configuration' if replay_version == '59638' else 'inferred_build_59638'

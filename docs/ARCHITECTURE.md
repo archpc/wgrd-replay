@@ -1,34 +1,99 @@
 # Architecture
 
-Canonical overview of the decoder pipeline. Byte-level format: `FORMAT.md`.
-Current findings and priorities: `NEXT-STEPS.md` and `research/INDEX.md`.
+[Overview](../README.md) · [Documentation map](README.md) · [Binary format](../FORMAT.md) · [Research index](../research/INDEX.md)
 
-## Status vocabularies
+The decoder has two deliberate boundaries: exact byte parsing, then qualified
+interpretation. Static unit data can enrich the latter; it cannot reconstruct a
+running game. `wgrd_corpus.py` checks collections using both layers.
 
-Three separate questions, three separate vocabularies. They are not interchangeable and should not be mapped onto one another.
+```mermaid
+flowchart TD
+    A["Replay bytes"] --> B["Header, chunks and frames"]
+    B --> C["Counted command blocks"]
+    B --> U["Unknown chunks retained"]
+    C --> P["Parser result: fields, raw bytes, diagnostics"]
+    P --> T["Timeline: ordered requests and evidence"]
+    D["Optional static unit index"] --> T
+    T --> E["Events, reference catalog and unresolved spans"]
+```
 
-| Question | Vocabulary | Meaning | Defined in |
-|---|---|---|---|
-| Did the decoder consume the bytes exactly? | `complete`, `framed`, `unresolved`, `malformed`; per command `layout` or `opaque` | Structure only. Proves boundaries and consumption, not meaning. | Block status table, section 1 |
-| How sure is a byte-level or executable claim? | FORMAT.md: `VERIFIED`, `INFERRED`, `UNKNOWN`. REA-NOTES-59638.md: `CONFIRMED`, `STRONGLY SUPPORTED`, `TENTATIVE`, `UNRESOLVED`. | Evidence confidence for a specific claim. The two scales are separate and are not mapped one-to-one. | FORMAT.md legend; AGENTS.md section 7 |
-| What does an event mean? | `verified`, `partial`, `inferred`, `unknown` | Semantic interpretation per event. `verified` and `partial` apply only when `game_version` is 59638. | Interpretation status, below |
+A timeline describes serialized requests. The simulation is conspicuously absent.
 
-`complete` means the bytes add up. It says nothing about what they mean, and for most opcodes the meanings are still `UNKNOWN`. AGENTS.md section 4 describes the same three questions in prose.
+## Evidence conventions
+
+This is the documentation's authoritative reading guide for classifications.
+[AGENTS.md](../AGENTS.md) specifies the operational evidence requirements;
+historical notes retain the vocabulary they originally used.
+
+### Structure, confidence and meaning are separate
+
+| Question | Values | Scope |
+|---|---|---|
+| Did a block consume its declared commands and bytes? | `complete`, `framed`, `unresolved`, `malformed` | Parser block result; defined in section 1 |
+| Did this command expose fields or just a boundary? | `layout`, `opaque`; event-only `unknown`, `unresolved_boundary` | Per-command `field_decode_status`, exported as event `decode_status`; unknown single tails have a boundary, multi-command placeholders share an unresolved span |
+| Does the replay match the layout's source build? | `matching_build`, `inferred_build_59638` | Timeline `layout_status`, independent of semantic confidence |
+| What meaning is supported? | `verified`, `partial`, `inferred`, `unknown` | Event `interpretation.status`; defined in section 2 |
+| How well is a research claim supported? | Uppercase documentation labels below | A specific claim and its evidence, not an output field |
+
+`complete` means the bytes add up. It says nothing about whether the interpretation
+is right. `opaque` is a structural label, never an interpretation confidence.
+
+### Documentation confidence labels
+
+| Vocabulary | Label | Read it as |
+|---|---|---|
+| Format/reference | **VERIFIED** | Layout or observation directly reproduced within the stated executable/sample scope; no universal build claim |
+| Format/reference | **INFERRED** | Interpretation or transfer beyond what was directly demonstrated |
+| Format/reference | **UNKNOWN** | Not determined |
+| Executable research | **CONFIRMED** | Reproduced from bytes or code with the required evidence |
+| Executable research | **STRONGLY SUPPORTED** | Multiple consistent observations; one step not directly reproduced |
+| Executable research | **TENTATIVE** | Plausible, with limited evidence |
+| Executable research | **UNRESOLVED** | Not determined |
+
+The two historical scales are not interchangeable. A creator can confirm a field's
+width while its meaning remains unknown. “Ground-truth verified” describes a
+bounded UI/recording observation, not an automatic upgrade to exported `verified`.
+The [provenance index](../research/INDEX.md) separately defines S/T/E/N/G/X codes:
+those say which kinds of supporting material exist, not how certain a claim is.
+
+### Read and write a claim
+
+Keep **observation** (bytes, control flow, sample values) separate from
+**interpretation** (names, roles, gameplay meaning). Identify the executable build
+and SHA-256; for code claims, cite VA and file offset, excerpt or evidence record.
+For samples, cite manifest identity and SHA-256, reproduction command and relevant
+test results. The historical 59638 `.text` conversion is
+`file offset = VA − 0x401000 + 0x400`; it is not a general PE conversion rule.
+
+Use neutral object-offset field names until evidence supports an added semantic
+name. Label uncertainty where the claim appears. Retain raw values, negative
+results and conflicting observations. A digest proves internal integrity; the
+sample manifest pins input identity and provenance, without proving the recording
+itself genuine.
+
+**Historical vs. current:** code is the authority for implemented behavior;
+current references describe that behavior and cite research. Dated notes preserve
+what was known then. Corrections belong in a dated addendum or the current
+reference with a link back. [NEXT-STEPS.md](../NEXT-STEPS.md) owns priorities.
 
 ## 1. Container and command split (`wgrd_replay.py`)
 
-```
-bytes
- -> parse_header(b)            ESAV magic, container v1, declared size, SHA-224 at 0x0C..0x28 over b[0x28:], "rply" at 0x28
- -> iter_chunks(b, payload)    16-byte chunk headers; tags star / pact / endt; unknown -> unknown_chunks
- -> frames / pacts             star opens a frame (index must equal the running count); pact = one slot's command block; endt closes
- -> decode_command_block(block, count, slot)
-      -> _decode_command(cursor, slot)   per-opcode creator-backed layout
- -> parse_replay(b)            JSON-ready dict: header, metadata, stats, commands, unknown_chunks
-```
+| Stage | Entry point | Result / boundary |
+|---|---|---|
+| Header | `parse_header(b)` | ESAV version, size and metadata; digest not checked here |
+| Chunk walk | `iter_chunks(b, start)` | Bounded 16-byte headers; unknown tags retained |
+| Frame assembly | `parse_replay(b)` | Consecutive frames, ordered slots, constant slot count |
+| Command split | `decode_command_block(block, count, slot)` | Shared cursor, exact count and EOF; raw block retained |
+| File integrity | `parse_replay(b)` | SHA-224 checked after the structural walk by default |
+
+The parser result contains `header`, `metadata`, `stats`, pact `commands` and
+`unknown_chunks`. `commands` is a list of pact records, not a flat event list.
 
 - `iter_chunks` raises `ReplayFormatError` on any violation.
-- `parse_header` raises `ReplayFormatError` on any violation it checks, with one known gap: a metadata JSON whose root, or whose `game` value, is not an object raises `AttributeError` instead (reproduced 2026-10-28; not fixed).
+- `parse_header` raises `ReplayFormatError` for invalid headers, invalid JSON,
+  non-object metadata roots and present non-object `game` values. Missing `game`
+  or `Version` remains accepted. Explicit object checks fixed the former
+  `AttributeError` leak on 2026-10-28.
 - `_decode_command` returns `None` for opcodes without a layout; the block is then `unresolved`.
 - Layouts are keyed by opcode: 0x07, 0x04/0x09/0x0A, 0x08 (`decode_op08`), 0x17, 0x0D, 0x0C, 0x0E, 0x02, 0x13, 0x18.
   Field names follow `obj_XX_u32|hex|u8|array|points` (XX = creator object offset in hex).
@@ -48,19 +113,19 @@ bytes
 
 ## 2. Timeline and interpretation (`wgrd_timeline.py`)
 
-```
-parse_replay output
- -> build_timeline(parsed, unit_data=None)
-      - malformed block            -> ReplayFormatError (timeline export fails)
-      - one event per command      -> command_order, frame, player_slot, source offsets
-      - unknown tails              -> single known-boundary event, or unresolved_spans
-      - _interpretation(opcode)    -> per-event interpretation
-      - build_reference_catalog()  -> entity_references (wgrd_entities.py)
-      - enrich_production_types()  -> production_types   (only with unit_data)
-      - enrich_references()        -> catalog joined to unit data (only with unit_data)
-      - attribute_supply_requests()-> 0x18 events linked to 0x07 references
- -> timeline JSON (schema wgrd_timeline/1)
-```
+`build_timeline(parsed, unit_data=None)` emits one event per declared command,
+ordered by frame, recorded slot order and serialized command order. It rejects
+known malformed parser blocks; unresolved boundaries remain explicit placeholders
+and shared spans. Event `source` offsets trace back to the input bytes.
+
+Interpretation dispatch calls the order/production layers, then builds the
+reference catalog, optionally enriches production and reference types, and runs
+supply-target attribution. Output schema: `wgrd_timeline/1`.
+
+The parser leaves `0x0D` bodies opaque. The timeline's production layer separately
+checks supported interiors; its `payload_layout_status` can be `complete` or
+`malformed` while the parser block remains `framed`. An interior error produces
+an unknown interpretation rather than rejecting the whole timeline.
 
 - Unit data is opt-in: `--unit-data PATH` (with `--timeline`). `load_unit_data` in `wgrd_unit_data.py`
   dispatches to `wgrd_unit_index.load_index` for the build 59638 index file, or to the pinned public 58710 directory.
@@ -68,12 +133,17 @@ parse_replay output
 
 ### Interpretation status
 
-Values produced by the code: `verified`, `partial`, `inferred`, `unknown`.
-`verified` / `partial` apply only when the replay's `game_version` is `59638`; otherwise `inferred`.
-Some layers add an `execution_outcome` (`unknown` throughout); this is not evidence of success in the running game.
+| `interpretation.status` | Meaning |
+|---|---|
+| `verified` | Supported request interpretation on build 59638; execution success not asserted |
+| `partial` | Bounded interpretation on 59638 with unresolved semantics or runtime dependencies |
+| `inferred` | A supported interpretation transferred to a non-59638 replay by layout |
+| `unknown` | No supported interpretation; also used for invalid production interiors |
 
-The `opaque` label is a per-command `field_decode_status` (0x0D), not an interpretation status.
-The earlier vocabulary (`verified/partial/opaque/unknown/inferred`) is kept here as the list of terms used across notes.
+The build gate compares the replay version with `59638`; unsupported meanings
+remain `unknown` on every build. Where emitted, `execution_outcome` is always
+`unknown`. UI corroboration of the controlled 131544 sample does not change this
+export policy. Raw RTTI names alone are not action interpretations.
 
 | opcode | layout location                 | interpretation location                          |
 |--------|---------------------------------|--------------------------------------------------|
@@ -86,7 +156,7 @@ The earlier vocabulary (`verified/partial/opaque/unknown/inferred`) is kept here
 | 0x18   | `wgrd_replay._decode_command`   | `wgrd_entities.attribute_supply_requests` (post-pass) |
 | 0x02, 0x04, 0x13, 0x17, 0x0E | `wgrd_replay._decode_command` | none (layout only; `unknown`) |
 
-Field-level meanings and their confidence are in the per-opcode notes (section 4), not here.
+Field-level meanings and their confidence are in the per-opcode notes linked below.
 
 ## 3. Entities and unit data
 
@@ -118,14 +188,19 @@ Sample inputs are read from `samples/manifest.json` (external bytes, not in Git)
 
 | topic                              | canonical file                                  |
 |------------------------------------|-------------------------------------------------|
-| byte-level container and layouts   | `FORMAT.md`                                     |
-| per-opcode command layouts         | `research/COMMAND-LAYOUTS.md` + per-opcode notes (`research/FIXED-OPCODES-02-13-18.md`, `research/CHANGEPRODUCTION-0C.md`, `research/OP07-ORDERS.md`, `research/PRODUCTION-COMMANDS.md`) |
-| timeline semantics and status      | `research/TIMELINE-SEMANTICS.md`                |
-| entities and reference keys        | `research/ENTITY-CONTEXT.md`, `research/OP18-REFERENCE-KEYS.md`, `research/OP18-SUPPLY-TARGETS.md` |
-| executable analysis (addresses)    | `REA-NOTES-59638.md`                            |
-| research provenance                | `research/INDEX.md`                             |
-| current-build experiment and Phase 2 | `research/current-build/2026-10-28-controlled-experiment.md`, `research/current-build/PHASE-2-HANDOFF.md` |
-| priorities                         | `NEXT-STEPS.md`                                 |
-| usage                              | `README.md`                                     |
+| byte-level container and layouts   | [FORMAT.md](../FORMAT.md) |
+| per-opcode command layouts         | [research/COMMAND-LAYOUTS.md](../research/COMMAND-LAYOUTS.md) + per-opcode notes ([research/FIXED-OPCODES-02-13-18.md](../research/FIXED-OPCODES-02-13-18.md), [research/CHANGEPRODUCTION-0C.md](../research/CHANGEPRODUCTION-0C.md), [research/OP07-ORDERS.md](../research/OP07-ORDERS.md), [research/PRODUCTION-COMMANDS.md](../research/PRODUCTION-COMMANDS.md)) |
+| current output/status contract | This reference and [FORMAT.md](../FORMAT.md) |
+| timeline interpretation evidence | [research/TIMELINE-SEMANTICS.md](../research/TIMELINE-SEMANTICS.md) |
+| entities and reference keys        | [research/ENTITY-CONTEXT.md](../research/ENTITY-CONTEXT.md), [research/OP18-REFERENCE-KEYS.md](../research/OP18-REFERENCE-KEYS.md), [research/OP18-SUPPLY-TARGETS.md](../research/OP18-SUPPLY-TARGETS.md) |
+| executable analysis (addresses)    | [REA-NOTES-59638.md](../REA-NOTES-59638.md)                            |
+| research provenance                | [research/INDEX.md](../research/INDEX.md)                             |
+| current-build experiment and Phase 2 | [research/current-build/2026-10-28-controlled-experiment.md](../research/current-build/2026-10-28-controlled-experiment.md), [research/current-build/PHASE-2-HANDOFF.md](../research/current-build/PHASE-2-HANDOFF.md) |
+| priorities                         | [NEXT-STEPS.md](../NEXT-STEPS.md)                                 |
+| usage and API                      | [docs/USAGE.md](USAGE.md) |
+| onboarding and navigation          | [README.md](../README.md), [documentation map](README.md) |
+| contribution and validation        | [CONTRIBUTING.md](../CONTRIBUTING.md) |
 
-If two documents disagree, the one listed above for the topic wins; record the disagreement rather than silently editing either.
+Use these documents as the current reference for their topic, and the implementation
+as the authority on implemented behavior. Record contradictions and cite the
+correction; an old note does not override the current code.

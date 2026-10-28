@@ -18,6 +18,7 @@ unit-type candidates are not all supply units. Read-only.
 """
 import collections
 import glob
+from pathlib import Path
 import os
 import sys
 
@@ -38,7 +39,7 @@ def is_supply(debug_name):
 
 
 def analyse(path, unit_data):
-    tl = t.build_timeline(w.parse_replay(open(path, "rb").read()), unit_data)
+    tl = t.build_timeline(w.parse_replay(Path(path).read_bytes()), unit_data)
     cat = tl["entity_references"]
     by_key = collections.defaultdict(list)
     for e in cat["entries"]:

@@ -23,6 +23,7 @@ above, and asserts exact consumption. Read-only; writes nothing.
 """
 import glob
 import os
+from pathlib import Path
 import struct
 import sys
 
@@ -95,7 +96,7 @@ def parse_0c(b):
 
 
 def blocks_0c(path):
-    rep = w.parse_replay(open(path, "rb").read())
+    rep = w.parse_replay(Path(path).read_bytes())
     out = []
 
     def walk(x):
@@ -117,7 +118,7 @@ def main(argv):
     if len(argv) < 3:
         print(__doc__)
         return 2
-    exe = open(argv[1], "rb").read()
+    exe = Path(argv[1]).read_bytes()
     for op in (0x0C, 0x0D):
         case, stub, tgt = creator_from_table(exe, op)
         print("op %02x: case VA %08x stub %s -> creator VA %08x (file 0x%x)"
