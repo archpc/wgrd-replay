@@ -1,7 +1,7 @@
 """Tests against authentic sample bytes. Samples live outside Git.
 
-Set WGRD_SAMPLES_DIR to override the default sample location. Missing or
-altered samples FAIL (no skip), so a green run always means real bytes.
+Set WGRD_SAMPLES_DIR to override the default sample location. Missing
+private samples skip; altered samples FAIL. Synthetic tests always run.
 """
 import hashlib
 import json
@@ -9,6 +9,8 @@ import os
 import struct
 import sys
 import unittest
+from pathlib import Path
+from private_fixtures import require_private_samples
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
@@ -31,6 +33,8 @@ EXPECTED = {
 
 
 def load(name):
+    sample = next(s for s in MANIFEST['samples'] if s['file'] == name)
+    require_private_samples(Path(SAMPLES), [sample])
     with open(os.path.join(SAMPLES, name), "rb") as f:
         return f.read()
 

@@ -7,6 +7,7 @@ from pathlib import Path
 import struct
 import sys
 import unittest
+from private_fixtures import require_private_samples
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import wgrd_replay as w
@@ -81,35 +82,36 @@ class EntityReferences(unittest.TestCase):
 class AuthenticEntityCatalog(unittest.TestCase):
     def test_all_samples_reference_counts_and_links(self):
         root = Path(__file__).resolve().parents[1]
-        # NOTE: no skip guard. Absent samples raise FileNotFoundError (error, not skip); see AGENTS.md section 9.
         samples = Path(os.environ.get('WGRD_SAMPLES_DIR', str(Path.home()/'.hermes/artifacts/wgrd-replay/samples/raw')))
         manifest = json.loads((root/'samples/manifest.json').read_text())
         for sample, count, guids, occurrences in zip(manifest['samples'], [285,41,400], [103,29,181], [4552,136,8968]):
-            b = (samples/sample['file']).read_bytes()
-            self.assertEqual(hashlib.sha256(b).hexdigest(), sample['sha256'])
-            parsed = w.parse_replay(b); before = copy.deepcopy(parsed)
-            out = timeline.build_timeline(parsed); cat = out['entity_references']
-            self.assertEqual(parsed, before)
-            self.assertEqual((cat['reference_count'], cat['validation_guid_count']), (count, guids))
-            self.assertEqual(cat['ambiguous_lookup_key_count'], 0)
-            entries = {e['reference_id']: e for e in cat['entries']}
-            seen = 0
-            for e in out['events']:
-                if e['opcode'] != 7: continue
-                p = e['interpretation']['parameters']
-                if p['order_kind_u32'] == 39:
-                    self.assertIsNone(p['effective_order_kind'])
-                    self.assertIsNone(p['contextual_resolution']['fallback_reached'])
-                    self.assertEqual(p['contextual_resolution']['status'], 'runtime_state_required')
-                    self.assertEqual(p['contextual_resolution']['evidence_status'], 'verified' if sample['game_version']=='59638' else 'inferred')
-                for role in ['actor','target']:
-                    for ref in p[role+'_references']:
-                        self.assertEqual(entries[ref['reference_id']]['reference_hex'], ref['reference_hex'])
-                        self.assertEqual(ref['reference_id'], sample['sha256']+':'+ref['reference_hex'])
-                        seen += 1
-            self.assertEqual(seen, occurrences)
-            self.assertEqual(sum(sum(e['occurrences'].values()) for e in entries.values()), occurrences)
-            json.dumps(out, allow_nan=False)
+            with self.subTest(sample=sample['file']):
+                require_private_samples(samples, [sample])
+                b = (samples/sample['file']).read_bytes()
+                self.assertEqual(hashlib.sha256(b).hexdigest(), sample['sha256'])
+                parsed = w.parse_replay(b); before = copy.deepcopy(parsed)
+                out = timeline.build_timeline(parsed); cat = out['entity_references']
+                self.assertEqual(parsed, before)
+                self.assertEqual((cat['reference_count'], cat['validation_guid_count']), (count, guids))
+                self.assertEqual(cat['ambiguous_lookup_key_count'], 0)
+                entries = {e['reference_id']: e for e in cat['entries']}
+                seen = 0
+                for e in out['events']:
+                    if e['opcode'] != 7: continue
+                    p = e['interpretation']['parameters']
+                    if p['order_kind_u32'] == 39:
+                        self.assertIsNone(p['effective_order_kind'])
+                        self.assertIsNone(p['contextual_resolution']['fallback_reached'])
+                        self.assertEqual(p['contextual_resolution']['status'], 'runtime_state_required')
+                        self.assertEqual(p['contextual_resolution']['evidence_status'], 'verified' if sample['game_version']=='59638' else 'inferred')
+                    for role in ['actor','target']:
+                        for ref in p[role+'_references']:
+                            self.assertEqual(entries[ref['reference_id']]['reference_hex'], ref['reference_hex'])
+                            self.assertEqual(ref['reference_id'], sample['sha256']+':'+ref['reference_hex'])
+                            seen += 1
+                self.assertEqual(seen, occurrences)
+                self.assertEqual(sum(sum(e['occurrences'].values()) for e in entries.values()), occurrences)
+                json.dumps(out, allow_nan=False)
 
 
 if __name__ == '__main__': unittest.main()

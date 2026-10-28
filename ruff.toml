@@ -1,0 +1,11 @@
+# Defect checks only. Compact research/test style is intentional; no formatter.
+target-version = "py313"
+required-version = "==0.14.2"
+
+[lint]
+select = ["E9", "F"]
+
+[lint.per-file-ignores]
+# Preserved historical probe: Path is undefined at line 23. Keep original evidence.
+# This exception does not apply to any other file or any other defect rule.
+"research/evidence/work-archive-2026-10-26/production_rea.py" = ["F821"]

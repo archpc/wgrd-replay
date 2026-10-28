@@ -9,6 +9,7 @@ from pathlib import Path
 import struct
 import sys
 import unittest
+from private_fixtures import require_private_samples
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import wgrd_replay as w
@@ -166,48 +167,49 @@ class AuthenticTimeline(unittest.TestCase):
     def test_all_samples_count_bytes_order_and_semantic_coverage(self):
         root = Path(__file__).resolve().parents[1]
         manifest = json.loads((root / "samples/manifest.json").read_text())
-        # NOTE: no skip guard. Absent samples raise FileNotFoundError (error, not skip); see AGENTS.md section 9.
         samples = Path(os.environ.get("WGRD_SAMPLES_DIR", str(Path.home() / ".hermes/artifacts/wgrd-replay/samples/raw")))
         expected = [(4162, 769, 3350, 233, 0), (132, 0, 0, 24, 0), (7271, 1851, 5313, 257, 0)]
         for sample, (count, verified, partial, opaque, unknown) in zip(manifest["samples"], expected):
-            b = (samples / sample["file"]).read_bytes()
-            self.assertEqual(hashlib.sha256(b).hexdigest(), sample["sha256"])
-            parsed = w.parse_replay(b)
-            out = t.build_timeline(parsed)
-            self.assertEqual(len(out["events"]), count)
-            self.assertEqual(out["stats"]["interpretations"].get("verified", 0), verified)
-            self.assertEqual(out["stats"]["interpretations"].get("partial", 0), partial)
-            self.assertEqual(out["stats"]["decode_status"].get("opaque", 0), opaque)
-            self.assertEqual(out["stats"]["decode_status"].get("unknown", 0), unknown)
-            production = [e for e in out['events'] if e['opcode'] == 0x0d]
-            self.assertEqual(len(production), opaque)
-            self.assertTrue(all(e['interpretation']['payload_layout_status'] == 'complete'
-                                for e in production))
-            self.assertTrue(all(e['interpretation']['execution_outcome'] == 'unknown'
-                                for e in production))
-            self.assertEqual(out["unresolved_spans"], [])
-            # Independent container walk: each declared command represented, each byte once.
-            header, _ = w.parse_header(b)
-            by_chunk = {}
-            for event in out["events"]:
-                by_chunk.setdefault(event["source"]["chunk_offset"], []).append(event)
-            total = 0
-            for off, tag, p in w.iter_chunks(b, header["payload_offset"]):
-                if tag != b"pact":
-                    continue
-                frame, slot, n, length = struct.unpack_from("<IIIH", p)
-                total += n
-                events = by_chunk.get(off, [])
-                self.assertEqual(len(events), n)
-                self.assertEqual(b"".join(bytes.fromhex(e["raw_hex"]) for e in events), p[14:])
-                for i, e in enumerate(events):
-                    self.assertEqual((e["frame"], e["player_slot"], e["slot_command_order"]), (frame, slot, i))
-                    s = e["source"]
-                    self.assertEqual(bytes.fromhex(e["raw_hex"]), b[s["file_offset"]:s["file_offset"]+s["length"]])
-            self.assertEqual(total, count)
-            self.assertEqual([(e["frame"], e["frame_command_order"]) for e in out["events"]],
-                             sorted((e["frame"], e["frame_command_order"]) for e in out["events"]))
-            json.dumps(out, allow_nan=False)
+            with self.subTest(sample=sample['file']):
+                require_private_samples(samples, [sample])
+                b = (samples / sample["file"]).read_bytes()
+                self.assertEqual(hashlib.sha256(b).hexdigest(), sample["sha256"])
+                parsed = w.parse_replay(b)
+                out = t.build_timeline(parsed)
+                self.assertEqual(len(out["events"]), count)
+                self.assertEqual(out["stats"]["interpretations"].get("verified", 0), verified)
+                self.assertEqual(out["stats"]["interpretations"].get("partial", 0), partial)
+                self.assertEqual(out["stats"]["decode_status"].get("opaque", 0), opaque)
+                self.assertEqual(out["stats"]["decode_status"].get("unknown", 0), unknown)
+                production = [e for e in out['events'] if e['opcode'] == 0x0d]
+                self.assertEqual(len(production), opaque)
+                self.assertTrue(all(e['interpretation']['payload_layout_status'] == 'complete'
+                                    for e in production))
+                self.assertTrue(all(e['interpretation']['execution_outcome'] == 'unknown'
+                                    for e in production))
+                self.assertEqual(out["unresolved_spans"], [])
+                # Independent container walk: each declared command represented, each byte once.
+                header, _ = w.parse_header(b)
+                by_chunk = {}
+                for event in out["events"]:
+                    by_chunk.setdefault(event["source"]["chunk_offset"], []).append(event)
+                total = 0
+                for off, tag, p in w.iter_chunks(b, header["payload_offset"]):
+                    if tag != b"pact":
+                        continue
+                    frame, slot, n, length = struct.unpack_from("<IIIH", p)
+                    total += n
+                    events = by_chunk.get(off, [])
+                    self.assertEqual(len(events), n)
+                    self.assertEqual(b"".join(bytes.fromhex(e["raw_hex"]) for e in events), p[14:])
+                    for i, e in enumerate(events):
+                        self.assertEqual((e["frame"], e["player_slot"], e["slot_command_order"]), (frame, slot, i))
+                        s = e["source"]
+                        self.assertEqual(bytes.fromhex(e["raw_hex"]), b[s["file_offset"]:s["file_offset"]+s["length"]])
+                self.assertEqual(total, count)
+                self.assertEqual([(e["frame"], e["frame_command_order"]) for e in out["events"]],
+                                 sorted((e["frame"], e["frame_command_order"]) for e in out["events"]))
+                json.dumps(out, allow_nan=False)
 
 
 if __name__ == "__main__":

@@ -46,8 +46,8 @@ separates the original three-sample baseline from later experiments.
 
 ## Run it
 
-Clone the repository and run from its root with Python 3. No dependency installation
-or game installation is required to decode a replay you already have. Sample replay
+Clone the repository and run from its root with Python 3.13 or later (CI: 3.13 and 3.15).
+No dependency installation or game installation is required to decode a replay you already have. Sample replay
 bytes and game executables are kept outside Git.
 
 ```sh
