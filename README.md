@@ -40,7 +40,7 @@ Default output is JSON with the header, metadata, and per-pact command decode. `
 
     python3 -m unittest discover -s tests -q
 
-The 2026-10-28 local run executed 139 tests with no skips. New cross-build tests use `WGRD_ARTIFACTS_DIR` and skip explicitly when their external files are absent; altered files fail. Existing sample/executable tests retain their original prerequisites (`WGRD_SAMPLES_DIR`, `WGRD_EXE_59638`, and optional `WGRD_UNIT_DATA`). See the experiment report for exact verification results and baseline warnings.
+The 2026-10-28 local run executed 139 tests with no skips with its external artifacts available; this is a historical result, not the current test count. Cross-build tests use `WGRD_ARTIFACTS_DIR` and skip explicitly when external files are absent; altered files fail. Existing sample/executable tests retain their original prerequisites (`WGRD_SAMPLES_DIR`, `WGRD_EXE_59638`, and optional `WGRD_UNIT_DATA`). Report the actual run and any skips. See the experiment report for historical verification and warnings.
 
 ## Reproducing research findings
 
@@ -70,7 +70,7 @@ The 2026-10-26 research notes under `research/` name their artifacts (build, SHA
 
 ## Next milestone
 
-The first controlled current-build recording and playback are complete. Broader validation remains open: movement outcomes, coordinate mapping, markers, production changes, cancellations, and a general frame-to-seconds mapping. The current evidence and limits are in the controlled experiment report above; `research/GROUND-TRUTH-PREREQUISITES.md` remains a historical prerequisite record.
+The first controlled current-build recording and playback are complete. The next timing and movement work is described in [the Phase 2 handoff](research/current-build/PHASE-2-HANDOFF.md); it does not authorize VM operation. The controlled experiment report holds current evidence and limits; `research/GROUND-TRUTH-PREREQUISITES.md` remains a historical prerequisite record.
 
 ## Not included
 

@@ -30,7 +30,8 @@ Verified paths at the repo root:
 - `research/` — per-topic notes (`*.md`), `*-PLAN.md` historical plans, reproduction scripts (`*.py`),
   generated coverage JSON, `research/evidence/` (REA `ev_*.json` records and disassembly excerpts),
   `research/unit-data/` (versioned index and manifest), `research/chatgpt-session-2026-10-23/` (archived outputs).
-- `research/INDEX.md` — research provenance index (being written; may not exist yet).
+- `research/INDEX.md` — research provenance index.
+- `research/current-build/` — revision 131544 experiment, evidence ledger, helper history and Phase 2 handoff.
 - `work/` — git-ignored local scratch (NDF extraction outputs). Not committable.
 
 ## 3. Start here
@@ -40,8 +41,8 @@ Read in this order:
 1. `README.md` — usage and scope.
 2. `NEXT-STEPS.md` — current priorities.
 3. `docs/ARCHITECTURE.md` — pipeline, status vocabularies, opcode-to-file map.
-4. `research/INDEX.md` — where prior findings are recorded (if present).
-5. The task-specific note in `research/` (for example `research/TIMELINE-SEMANTICS.md`, `research/COMMAND-LAYOUTS.md`).
+4. `research/INDEX.md` — where prior findings are recorded.
+5. For revision 131544, read `research/current-build/PHASE-2-HANDOFF.md` and its linked experiment and evidence; otherwise read the task-specific research note.
 6. `tests/` and the code in the relevant module.
 
 ## 4. Current technical baseline
@@ -63,19 +64,20 @@ read the files or regenerate them.
   `1c7533eb5387a3e82db66595c782f23c20f5871250d6b6a24d630b9d074bda46`.
 - Hashes for other builds are in `samples/game-binaries.json`.
 - `Sample2` is build `510117427` and its interpretations are marked `inferred`.
+- The controlled experiment used internal revision **131544** and Steam content build **15652829**; these are different identifiers. See the current-build report and cross-build manifest.
 - Do not assume the installed game's root executable is 59638. Check its SHA-256 before using it as evidence.
 
 ## 6. Research workflow
 
 1. Search `research/INDEX.md` and existing notes before starting. Do not redo recorded work.
 2. State a falsifiable hypothesis (what byte pattern, value, or control flow would prove or disprove it).
-3. Use targeted rizin/REA queries against the build 59638 executable. Record addresses and bytes.
+3. For executable research, identify and hash the matching build before targeted rizin/REA queries. The existing creator and consumer traces concern historical build 59638, not automatically revision 131544. Do not repeat completed analysis without a specific question.
 4. Preserve evidence under `research/evidence/` (hash-named JSON) or as a note; do not keep only in chat.
 5. Separate observation (bytes, disassembly, sample values) from interpretation (names, meanings). Label each.
-6. Validate on authentic samples in `samples/manifest.json`. A result on one sample is not a general claim.
+6. Validate against the relevant authenticated samples in `samples/manifest.json` and `samples/cross-build-manifest.json`. A result on one sample is not a general claim.
 7. Add or update a reproduction script that exits non-zero on failure.
 8. Add or update tests in `tests/`.
-9. Update the canonical document for the topic (section 11) and link the new evidence.
+9. Update the canonical document for the topic (`docs/ARCHITECTURE.md`) and link the new evidence.
 
 ## 7. Evidence standards
 
@@ -120,18 +122,18 @@ Run from the repo root. The commands below were run in this worktree; re-run aft
 PYTHONDONTWRITEBYTECODE=1 python3 -B -m unittest discover -s tests -q
 ```
 
-Expected result: all tests pass; one skip (`test_all_726_exact_matches_no_contextual_resolution`) when the pinned public
-unit snapshot is not cached (set `WGRD_UNIT_DATA` to enable it).
+Report the actual run and skips, not a fixed expected total. The pinned public-unit snapshot test skips when its data is absent; other external corpus or executable tests can also skip when their artifacts are unavailable. The 2026-10-28 run had 139 tests and no skips with its artifacts available; see the current-build report for that historical result.
 
 ```
 python3 -B research/maintenance/check_links.py
 ```
 
-Exits 1 when a tracked Markdown file has a missing relative link or repo-path reference. Does not modify files.
+Exits 1 for references it cannot resolve; path-like prose and intentionally external references can produce warnings. It does not modify files. The 2026-10-28 baseline had 32 warnings; compare and classify findings rather than assuming each is a broken link.
 
 Corpus tests skip when authentic samples are absent. Environment variables:
 
 - `WGRD_SAMPLES_DIR` — default `~/.hermes/artifacts/wgrd-replay/samples/raw`.
+- `WGRD_ARTIFACTS_DIR` — default `~/.hermes/artifacts/wgrd-replay`; used by cross-build corpus tests.
 - `WGRD_EXE_59638` — default `~/.hermes/artifacts/wgrd-replay/game/win64/Data/PC/59638/WarGame3.exe`.
 - `WGRD_UNIT_DATA` — path to a unit index or pinned public directory.
 

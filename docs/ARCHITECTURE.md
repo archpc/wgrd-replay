@@ -110,7 +110,8 @@ Sample inputs are read from `samples/manifest.json` (external bytes, not in Git)
 | timeline semantics and status      | `research/TIMELINE-SEMANTICS.md`                |
 | entities and reference keys        | `research/ENTITY-CONTEXT.md`, `research/OP18-REFERENCE-KEYS.md`, `research/OP18-SUPPLY-TARGETS.md` |
 | executable analysis (addresses)    | `REA-NOTES-59638.md`                            |
-| research provenance                | `research/INDEX.md` (when present)              |
+| research provenance                | `research/INDEX.md`                             |
+| current-build experiment and Phase 2 | `research/current-build/2026-10-28-controlled-experiment.md`, `research/current-build/PHASE-2-HANDOFF.md` |
 | priorities                         | `NEXT-STEPS.md`                                 |
 | usage                              | `README.md`                                     |
 

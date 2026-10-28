@@ -9,7 +9,8 @@ This is the visual record of the first controlled current-build replay experimen
 - [Comprehensive experimental report](2026-10-28-controlled-experiment.md): environment, executable identity, failures, workaround, chronological log, findings, limitations, and reproduction.
 - [Command and screenshot evidence ledger](2026-10-28-evidence.json).
 - [Cross-build replay provenance and regression expectations](../../samples/cross-build-manifest.json).
-- [Working C# helper](tools/WgrdUi.cs) and [exact initial version](history/WgrdUi-v1.cs), committed as ordinary source.
+- [Current C# helper](tools/WgrdUi.cs), [experiment version](history/WgrdUi-v2.cs), and [exact initial version](history/WgrdUi-v1.cs). The later helper additions have not been exercised in the VM.
+- [Phase 2 handoff](PHASE-2-HANDOFF.md): proposed timing and movement work, not authorization to run it.
 - [Complete versioned screenshot archive](https://github.com/archpc/wgrd-replay/releases/tag/oshkosh-incident-2026-10-28-v1) and [archive manifest](screenshot-archive-manifest.json).
 
 ## Preservation without clone inflation

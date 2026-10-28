@@ -22,8 +22,9 @@ and is NOT committed. Only the WGRD-authored content is tracked, under
 
 Portable presentation without the runtime (already tracked):
 `research/chatgpt-session-2026-10-23/outputs/sample1-battle-report.html`
-(self-contained build, 2.9 MB), `sample1-battle-report.md` (same text as
-BATTLE-REPORT.md) and `sample1-report-preview.png`.
+(self-contained build, 2.9 MB),
+`research/chatgpt-session-2026-10-23/outputs/sample1-battle-report.md` (same text as
+BATTLE-REPORT.md) and `research/chatgpt-session-2026-10-23/outputs/sample1-report-preview.png`.
 
 ## Recalculate
 

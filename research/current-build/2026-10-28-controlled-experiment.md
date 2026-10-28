@@ -1,5 +1,7 @@
 # The Oshkosh Incident: current-build controlled replay experiment, 2026-10-28
 
+**2026-10-28 Phase 2 maintenance note:** The helper used in this experiment is preserved byte-for-byte as [WgrdUi-v2.cs](history/WgrdUi-v2.cs). The evidence ledger's historical `WgrdUi.cs` filename and hash identify that version. The [current helper](tools/WgrdUi.cs) adds input-only and capture-only entry points; those changes have not been exercised in the VM. See the [Phase 2 handoff](PHASE-2-HANDOFF.md).
+
 ## 1. Executive summary
 
 This session crossed the project's previous boundary between static analysis of historical executable build 59638 and observation of a running, current Windows release. A short, network-isolated skirmish was recorded with internal game revision **131544**, copied without changing the original, parsed by the existing decoder, and played back in the same game installation through the post-match results screen.
@@ -161,10 +163,10 @@ Coordinates supplied to the helper are **physical guest-screen pixels**, with or
 | capture-active-game.ps1 | Execution denied because scripts were disabled; policy was not changed |
 | guest_ui.py using direct host prlctl | Returned an unable-to-open-guest-session error; not the working route |
 | [WgrdUi-v1.cs](history/WgrdUi-v1.cs) | Exact initial left-click/capture helper recovered from the session's original write, message 31140 |
-| [WgrdUi.cs](tools/WgrdUi.cs) | Added CaptureRight and a shared CaptureAction implementation; compiled and exercised during the controlled right-click order |
+| [WgrdUi-v2.cs](history/WgrdUi-v2.cs) | Original `WgrdUi.cs` from this experiment: added CaptureRight and a shared CaptureAction implementation; compiled and exercised during the controlled right-click order |
 
 Initial helper SHA-256: `64e36d7eadf7d7ded45421028e6ead70ff22de7a012106cdd098b2d866465ea7`.
-Current helper SHA-256: `27d754195dc6f7ad701ede32b240e91f8e4fa35a5ff3768b71f5034c58f124df`.
+Experiment helper SHA-256: `27d754195dc6f7ad701ede32b240e91f8e4fa35a5ff3768b71f5034c58f124df`.
 
 The failed PowerShell-file and direct-prlctl probes remain in the private artifact directory. They contain machine-specific paths and are not presented as portable working recipes. The two C# versions are committed, without personal paths or VM identifiers. Loading the authored C# with Add-Type worked; no ExecutionPolicy bypass was used.
 
@@ -436,6 +438,8 @@ The lead route was OpenAI GPT-6 Astra Flex through Nous. Bounded delegated tasks
 Usage is measured from the local session_model_usage ledger, not estimated from prose length. The [usage snapshot](2026-10-28-usage.json) covers the parent and six completed direct children through its recorded cutoff: 298 API calls, 119,545 input tokens, 189,531 output tokens, 38,720,453 cache-read tokens, and 951,267 cache-write tokens. It records an estimated total of **$25.137584275**, comprising **$25.0252565** for the lead model and **$0.112327775** across Haiku delegation and auxiliary rows. Reasoning tokens are reported separately and must not be added to output tokens.
 
 These are **ledger estimates, not Nous Portal-reconciled charges**, and exclude later publication calls/turns. Auxiliary cost rows have incomplete pricing-status metadata; their stored estimates have not been independently repriced. An actual_cost_usd field of zero in an unreconciled row does not mean the work was free. The snapshot distinguishes child task scopes and auxiliary tasks. The main session cannot be precisely apportioned into investigation, implementation, and documentation from its aggregate row; no such split is invented.
+
+**Accounting clarification:** The 298 API calls are model-inference requests recorded in that ledger, not counts of tool calls, guest-control invocations, input actions, screenshots or vision analyses. Separate definitions for future work are in the [Phase 2 handoff](PHASE-2-HANDOFF.md#accounting-vocabulary); the missing historical interaction counts are not reconstructed.
 
 ## 12. Sources
 

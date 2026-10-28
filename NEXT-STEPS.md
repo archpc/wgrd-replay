@@ -4,6 +4,8 @@
 
 Acquisition and game launch are no longer blocked. A new offline revision-131544 recording was decoded and played back; two additional historical archive samples passed the same runner. The full experiment, helper source/history, bounded ground-truth findings, and unresolved questions are in [the controlled experiment report](research/current-build/2026-10-28-controlled-experiment.md). Hash-pinned expectations: samples/cross-build-manifest.json. General frame-to-seconds conversion, movement outcomes, coordinate mapping, and marker/production-change/cancellation validation remain unresolved. No version-specific decoder patch was required by these samples.
 
+Next controlled timing and movement work: [Phase 2 handoff](research/current-build/PHASE-2-HANDOFF.md). It is a plan, not authorization to operate the VM.
+
 ## Prior priorities (2026-10-26; historical)
 
 The acquisition/authorization blockers below are superseded by the checkpoint above; retain the original record.
@@ -22,7 +24,7 @@ The acquisition/authorization blockers below are superseded by the checkpoint ab
 Status counts below are historical checkpoints; research/coverage.json and
 research/timeline-coverage.json are authoritative. Provenance: research/INDEX.md.
 
-## Status and detailed items
+## Status and detailed items (2026-10-26; historical)
 
 Milestone: **594/594 multi-command blocks split**, with exact count and EOF.
 571 complete layouts; 23 explicitly opaque-framed blocks. All 10,942 non-empty
