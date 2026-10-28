@@ -90,7 +90,10 @@ The parser result contains `header`, `metadata`, `stats`, pact `commands` and
 `unknown_chunks`. `commands` is a list of pact records, not a flat event list.
 
 - `iter_chunks` raises `ReplayFormatError` on any violation.
-- `parse_header` raises `ReplayFormatError` on any violation it checks, with one known gap: a metadata JSON whose root, or whose `game` value, is not an object raises `AttributeError` instead (reproduced 2026-10-28; not fixed).
+- `parse_header` raises `ReplayFormatError` for invalid headers, invalid JSON,
+  non-object metadata roots and present non-object `game` values. Missing `game`
+  or `Version` remains accepted. Explicit object checks fixed the former
+  `AttributeError` leak on 2026-10-28.
 - `_decode_command` returns `None` for opcodes without a layout; the block is then `unresolved`.
 - Layouts are keyed by opcode: 0x07, 0x04/0x09/0x0A, 0x08 (`decode_op08`), 0x17, 0x0D, 0x0C, 0x0E, 0x02, 0x13, 0x18.
   Field names follow `obj_XX_u32|hex|u8|array|points` (XX = creator object offset in hex).

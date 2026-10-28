@@ -122,8 +122,6 @@ well-defended contribution boundary.
   state, and execution outcomes remain unknown in exported interpretations.
 - Opcode `0x0D` bodies are opaque in the parser. The timeline separately decodes
   supported production interiors; inspect its payload status and limitations.
-- `parse_header()` can raise `AttributeError` for non-object metadata roots or
-  non-object `game` values. This known defect needs a separate tested fix.
 - Timeline JSON normalizes non-finite floats to explicit objects. Default parser
   JSON can still contain non-standard NaN/Infinity tokens.
 - Corpus coverage is bounded. Passing the recorded samples is not universal

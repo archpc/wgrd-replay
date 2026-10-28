@@ -7,7 +7,7 @@ Instructions for AI agents working in this repository. Facts only; the linked fi
 wgrd-replay is a stdlib-only Python decoder for Wargame: Red Dragon `.wargamerpl2` replay files.
 
 - **Parsing (done for build 59638):** the ESAV container, SHA-224 digest, star/pact/endt chunks, and the
-  command-block split are read strictly. Malformed input generally raises `ReplayFormatError`; a known defect in `parse_header` can raise `AttributeError` instead (section 13). Exact byte consumption is enforced.
+  command-block split are read strictly. Malformed input generally raises `ReplayFormatError`; metadata object shapes are validated explicitly (section 13). Exact byte consumption is enforced.
 - **Interpreting (partial):** a subset of opcodes is given action meanings, with status labels and evidence references.
   Gameplay meaning is not established for most fields, and execution outcomes are never asserted.
 
@@ -184,5 +184,5 @@ python3 wgrd_replay.py SAMPLE --timeline [--unit-data research/unit-data/build59
 - The interior of 0x0D serializer bodies is opaque (boundary only).
 - The 0x0C consumer analysis is deferred; field meanings there are TENTATIVE or unresolved.
 - Entity attribution for 0x18 depends on per-replay key uniqueness and is not cross-replay identity.
-- `parse_header` raises `AttributeError`, not `ReplayFormatError`, when the metadata JSON root or its `game` value is not an object. Reproduced 2026-10-28 with a root of `[]`. The fix belongs in a separate, tested change.
+- **2026-10-28 correction:** `parse_header` now raises `ReplayFormatError` for non-object metadata roots or present non-object `game` values. The earlier `AttributeError` leak (reproduced with `[]`) is fixed; see `tests/test_header_metadata.py`. Missing `game` or `Version` remains accepted.
 - Priorities and open questions: `NEXT-STEPS.md`. Do not add a second roadmap in this file.

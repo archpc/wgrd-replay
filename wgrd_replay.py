@@ -116,10 +116,11 @@ def parse_header(b):
         metadata = json.loads(b[HEADER_SIZE:end].decode("utf-8"))
     except (UnicodeDecodeError, json.JSONDecodeError) as e:
         raise ReplayFormatError("metadata JSON invalid: %s" % e)
-    # KNOWN DEFECT (reproduced 2026-10-28, not fixed in this pass): a metadata JSON root
-    # that is not an object, or a "game" value that is not an object, makes the .get
-    # calls below raise AttributeError instead of ReplayFormatError. That breaks the
-    # module contract at the top of this file. Reproduced with a root of [].
+    if not isinstance(metadata, dict):
+        raise ReplayFormatError("metadata JSON root must be an object")
+    game = metadata.get("game", {})
+    if not isinstance(game, dict):
+        raise ReplayFormatError("metadata game must be an object")
     return {
         "magic": MAGIC.decode(),
         "container_version": version,
@@ -128,7 +129,7 @@ def parse_header(b):
         "json_offset": HEADER_SIZE,
         "json_length": json_len,
         "payload_offset": end,
-        "game_version": metadata.get("game", {}).get("Version"),
+        "game_version": game.get("Version"),
     }, metadata
 
 
