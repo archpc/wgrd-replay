@@ -94,40 +94,35 @@ class PartialPrivateCorpus(unittest.TestCase):
 
 
 class PreservationChecks(unittest.TestCase):
-    def test_evidence_revision_manifest_and_cow_corruption_fail(self):
+    def test_archive_integrity_and_cow_without_freezing_research(self):
         import json
         import shutil
         from unittest.mock import patch
         check = load_script('check_preservation')
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            paths = ['research/maintenance/preservation-manifest.json',
-                     'research/maintenance/work-artifacts-manifest.json', 'wgrd_orders.py']
-            historical = json.loads((ROOT / paths[0]).read_text())
-            copies = json.loads((ROOT / paths[1]).read_text())
-            paths += [e.get('moved_to') or e['path'] for e in historical['entries']]
-            paths += [e['copied_to'] for e in copies['entries'] if e.get('copied_to')]
-            for path in set(paths):
+            inventory = 'research/maintenance/work-artifacts-manifest.json'
+            copies = json.loads((ROOT / inventory).read_text())
+            archives = [e['copied_to'] for e in copies['entries'] if e.get('copied_to')]
+            for path in [inventory, 'wgrd_orders.py', *archives]:
                 dest = root / path
                 dest.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copyfile(ROOT / path, dest)
+            # Ordinary scripts, notes and inventory formatting can change freely.
+            (root / 'research/op0c_layout.py').write_text('# edited research script\n')
+            (root / 'research/INDEX.md').write_text('# updated notes\n')
+            (root / inventory).write_text(json.dumps(copies))
             with patch.object(check, 'ROOT', root):
                 self.assertEqual(check.problems(), [])
-                for path in ['research/op0c_layout.py',
-                             next(e['copied_to'] for e in copies['entries'] if e.get('copied_to')),
-                             paths[0], paths[1], 'wgrd_orders.py']:
+                for path in [archives[0], 'wgrd_orders.py']:
                     target = root / path
                     original = target.read_bytes()
                     target.write_bytes(original.replace(b'(oo)', b'(xx)') if path == 'wgrd_orders.py'
                                        else original + b'\n')
                     self.assertTrue(check.problems(), path)
                     target.write_bytes(original)
-                evidence = root / next(e['copied_to'] for e in copies['entries'] if e.get('copied_to'))
-                evidence.unlink()
+                (root / archives[0]).unlink()
                 self.assertTrue(check.problems(), 'missing archived evidence')
-                shutil.copyfile(ROOT / evidence.relative_to(root), evidence)
-                (root / 'README.md').unlink()
-                self.assertTrue(check.problems(), 'allowed_changes still requires existence')
 
 
 class MarkdownLinkSemantics(unittest.TestCase):

@@ -7,8 +7,8 @@ for Wargame: Red Dragon `.wargamerpl2` files. It turns the game's binary recordi
 into inspectable command streams and evidence-qualified timelines, with raw bytes
 and source offsets available for checking the interpretation.
 
-[Research & evidence](research/INDEX.md) · [Binary format](FORMAT.md) ·
-[Usage](docs/USAGE.md) · [Documentation map](docs/README.md)
+[Usage](docs/USAGE.md) · [Format](FORMAT.md) · [Architecture](docs/ARCHITECTURE.md) ·
+[Research archive](research/INDEX.md)
 
 ## What it can do
 
@@ -91,8 +91,8 @@ See [usage](docs/USAGE.md) for flags, JSON contracts, enrichment and corpus chec
 
 ## Contribute
 
-Start with [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, artifact
-requirements, testing and preservation rules. Research contributions need a
+Start with the [change guide](docs/ARCHITECTURE.md#change-guide) to find the owning
+module and tests, then [CONTRIBUTING.md](CONTRIBUTING.md) for setup and checks. Research contributions need a
 falsifiable claim, identified builds and samples, evidence, and a reproduction
 command. Exact consumption is necessary. It is not a theory of warfare.
 

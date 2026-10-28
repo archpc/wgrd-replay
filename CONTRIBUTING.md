@@ -2,7 +2,7 @@
 
 Use Python **3.13–3.15** from the repository root. Runtime and tests use only the
 standard library; there is no package installation or mandatory formatter.
-[Architecture](docs/ARCHITECTURE.md) maps modules and invariants;
+[The change guide](docs/ARCHITECTURE.md#change-guide) maps changes to modules and tests;
 [AGENTS.md](AGENTS.md) records repository operating rules.
 
 ## Change boundaries
@@ -74,15 +74,13 @@ and fragments; it is not a full Markdown parser. Stage new Markdown paths
 explicitly before running it. The old prose-path diagnostic remains available at
 `research/maintenance/check_links.py`; its warnings are not CI failures.
 
-The portable preservation check pins the original manifests, verifies their
-historical records and archived copies, and protects the cow. Three exact script
-revisions are accepted after reviewing their diff and reproducing behavior; see
-the [maintenance review](docs/DEVELOPMENT-REVIEW.md#repository-rationalization-2026-10-28).
-Do not regenerate baselines or add exemptions to make a failure disappear.
-Investigate changed bytes and preserve the justification for any accepted revision.
+The portable preservation check covers archived source copies and the cow.
+Maintained research scripts and notes are editable: use normal review and
+regression tests, with Git history retaining earlier versions. Intentional archive
+or inventory changes receive ordinary diff review. Preserve original observations
+when adding corrections; no special hash-waiver process is required.
 
-For a local historical `work/` inventory audit, use
-`research/maintenance/work_artifacts_verify.py`. Missing private/regenerable
-scratch outputs are expected in fresh checkouts and are not a portable CI gate.
-The original preservation verifier remains unchanged for reproducing the old
-snapshot, including its three known script mismatches.
+Historical manifests/verifiers remain available as optional audit records, not
+CI requirements. They can report old script mismatches or absent private `work/`
+outputs. The [maintenance review](docs/DEVELOPMENT-REVIEW.md#repository-rationalization-2026-10-28)
+records why the old blanket freeze was retired.
