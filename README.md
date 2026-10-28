@@ -7,9 +7,6 @@ for Wargame: Red Dragon `.wargamerpl2` files. It turns the game's binary recordi
 into inspectable command streams and evidence-qualified timelines, with raw bytes
 and source offsets available for checking the interpretation.
 
-The interesting part is the boundary between what the bytes say and what the game
-does. This project documents that boundary rather than quietly stepping over it.
-
 [Research & evidence](research/INDEX.md) · [Binary format](FORMAT.md) ·
 [Usage](docs/USAGE.md) · [Documentation map](docs/README.md)
 
@@ -46,7 +43,7 @@ separates the original three-sample baseline from later experiments.
 
 ## Run it
 
-Clone the repository and run from its root with Python 3.13 or later (CI: 3.13 and 3.15).
+Clone the repository and run from its root with Python 3.13 or later (CI: 3.13, 3.14 and 3.15).
 No dependency installation or game installation is required to decode a replay you already have. Sample replay
 bytes and game executables are kept outside Git.
 
@@ -84,20 +81,13 @@ A `create_map_marker` row describes a marker request, not a unit location.
 Frame numbers are not seconds; slots are not established player identities.
 See [usage](docs/USAGE.md) for flags, JSON contracts, enrichment and corpus checks.
 
-## Follow the investigation
+## Documentation
 
-| Question | Start here |
-|---|---|
-| How are bytes framed and commands split? | [Binary format](FORMAT.md) → [creator traces](research/COMMAND-LAYOUTS.md) |
-| Why does an opcode get an action name? | [Evidence conventions](docs/ARCHITECTURE.md#evidence-conventions) → [research index](research/INDEX.md) |
-| How do parsing, timelines and unit data fit together? | [Architecture](docs/ARCHITECTURE.md) |
-| What did recorded gameplay actually corroborate? | [Controlled experiment](research/current-build/2026-10-28-controlled-experiment.md) |
-| What should be investigated next? | [Current priorities](NEXT-STEPS.md) and [Phase 2 handoff](research/current-build/PHASE-2-HANDOFF.md) |
-
-The research trail includes executable addresses, hash-pinned artifacts, archived
-REA responses and reproduction scripts. [REA notes](REA-NOTES-59638.md) retain the
-static-analysis record; [the investigation log](REPLAY-RESEARCH.md) retains its
-chronology. Historical plans describe the work as it stood then, not today's API.
+- [Usage](docs/USAGE.md): CLI flags, Python API, enrichment and corpus checks.
+- [Format reference](FORMAT.md): byte maps, layouts, semantics and uncertainties.
+- [Architecture](docs/ARCHITECTURE.md): implementation boundaries and output statuses.
+- [Research archive](research/INDEX.md): evidence, investigations and reproduction.
+- [Next steps](NEXT-STEPS.md): current priorities.
 
 ## Contribute
 
@@ -110,8 +100,9 @@ command. Exact consumption is necessary. It is not a theory of warfare.
 PYTHONDONTWRITEBYTECODE=1 python3 -B -m unittest discover -s tests -q
 ```
 
-The full suite needs external artifacts: some tests skip when they are absent,
-while older sample tests fail. Report the actual results and skip reasons.
+Fetch the hash-pinned public unit fixture first with
+`python3 -B scripts/fetch_public_fixture.py`. Tests needing absent private artifacts
+report skips; present altered artifacts fail. Report actual results and skip reasons.
 [AGENTS.md](AGENTS.md) specifies repository operating and evidence standards.
 [The ASCII Dragon Incident](research/DRAGON-INCIDENT.md) explains one unusually
 well-defended contribution boundary.
@@ -129,29 +120,5 @@ well-defended contribution boundary.
 
 ## Credits
 
-The repository owner directed and reviewed the work. Earlier research and
-implementation ran through [Hermes Agent](https://hermes-agent.nousresearch.com)
-and the Nous Portal; this documentation redesign was carried out in OpenAI Codex.
-
-| Contributor | Work |
-|---|---|
-| Claude Fable 5.1 (Anthropic) | Technical lead for the 2026-10-26 build-59638 investigation: `0x0C` creator/helpers, fixed `0x02`/`0x13`/`0x18` layouts and `0x18` reference keys; assessment, roadmap, review and integration |
-| Claude Haiku 5.5 (Anthropic) | Decoder implementation, regression tests, coverage and implementation docs for those opcodes, including the `0x0C` timeline; isolated worktrees under lead review. Bounded support for the October 28 experiment is recorded in its report |
-| GPT-6 Astra (OpenAI) | Lead for the October 28 controlled recording and playback experiment; VM control, interpretation, integration and verification |
-| GPT-6.1 Terra (OpenAI) | October 28 follow-up work, maintenance and documentation |
-| OpenAI Codex | Repository-wide documentation audit and redesign, technical reference corrections, navigation and publication |
-| GLM 5.3-flash | The context-collapse spiral. Not every contribution advances the decoder |
-| ASCII cow in `wgrd_orders.py` | Maintainer |
-
-Earlier container, framing, command, NDF and timeline investigations are recorded
-in [the investigation log](REPLAY-RESEARCH.md), [REA notes](REA-NOTES-59638.md)
-and [the session archive](research/chatgpt-session-2026-10-23/).
-The [October 28 experiment report](research/current-build/2026-10-28-controlled-experiment.md#11-model-attribution-and-cost-accounting)
-records its model roles and usage. The [research index](research/INDEX.md) connects
-findings to evidence, reproduction scripts and tests; not every historical finding
-has a standalone reproducer.
-
-Tools used include rizin, Ghidra, REA MCP and Python's standard library.
-The [Sample1 battle report](research/reports/sample1/) was authored with
-Codex/ChatGPT's `build-report` skill on OpenAI's `data-app` runtime. Authored
-content and a self-contained HTML build are preserved; the runtime is external.
+The owner directed and reviewed the work. [Research credits](research/INDEX.md#project-credits)
+retain contributor roles, tools and historical session attribution.

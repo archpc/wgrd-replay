@@ -17,15 +17,6 @@ def load_script(name):
 
 
 class DocumentationChecks(unittest.TestCase):
-    def test_exceptions_cover_only_exact_backtick_references(self):
-        docs = load_script('check_docs')
-        exceptions = {('docs/old.md', 'gone.py'): 'Historical probe; preserved elsewhere.'}
-        tracked = {'docs/old.md', 'README.md'}
-        self.assertEqual(docs.check_line('docs/old.md', '`gone.py`', tracked, exceptions), [])
-        self.assertEqual(docs.check_line('docs/other.md', '`gone.py`', tracked, exceptions), ['gone.py'])
-        self.assertEqual(docs.check_line('docs/old.md', '[link](gone.py)', tracked, exceptions), ['gone.py'])
-        self.assertEqual(docs.check_line('docs/old.md', '[link](new.md)', tracked, exceptions), ['new.md'])
-
     def test_links_resolve_only_to_tracked_targets(self):
         docs = load_script('check_docs')
         tracked = {'docs/guide.md', 'README.md', 'docs/space name.md'}
@@ -100,3 +91,65 @@ class PartialPrivateCorpus(unittest.TestCase):
         self.assertTrue(result.wasSuccessful(), (result.errors, result.failures))
         self.assertEqual(result.passed_samples, 1)
         self.assertEqual(len(result.skipped), 2)
+
+
+class PreservationChecks(unittest.TestCase):
+    def test_evidence_revision_manifest_and_cow_corruption_fail(self):
+        import json
+        import shutil
+        from unittest.mock import patch
+        check = load_script('check_preservation')
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            paths = ['research/maintenance/preservation-manifest.json',
+                     'research/maintenance/work-artifacts-manifest.json', 'wgrd_orders.py']
+            historical = json.loads((ROOT / paths[0]).read_text())
+            copies = json.loads((ROOT / paths[1]).read_text())
+            paths += [e.get('moved_to') or e['path'] for e in historical['entries']]
+            paths += [e['copied_to'] for e in copies['entries'] if e.get('copied_to')]
+            for path in set(paths):
+                dest = root / path
+                dest.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(ROOT / path, dest)
+            with patch.object(check, 'ROOT', root):
+                self.assertEqual(check.problems(), [])
+                for path in ['research/op0c_layout.py',
+                             next(e['copied_to'] for e in copies['entries'] if e.get('copied_to')),
+                             paths[0], paths[1], 'wgrd_orders.py']:
+                    target = root / path
+                    original = target.read_bytes()
+                    target.write_bytes(original.replace(b'(oo)', b'(xx)') if path == 'wgrd_orders.py'
+                                       else original + b'\n')
+                    self.assertTrue(check.problems(), path)
+                    target.write_bytes(original)
+                evidence = root / next(e['copied_to'] for e in copies['entries'] if e.get('copied_to'))
+                evidence.unlink()
+                self.assertTrue(check.problems(), 'missing archived evidence')
+                shutil.copyfile(ROOT / evidence.relative_to(root), evidence)
+                (root / 'README.md').unlink()
+                self.assertTrue(check.problems(), 'allowed_changes still requires existence')
+
+
+class MarkdownLinkSemantics(unittest.TestCase):
+    def test_links_are_relative_to_document_not_repo_fallback(self):
+        docs = load_script('check_docs')
+        self.assertEqual(docs.check_line('docs/guide.md', '[x](README.md)', {'README.md'}, {}), ['README.md'])
+
+    def test_prose_is_not_a_link_and_examples_are_not_links(self):
+        docs = load_script('check_docs')
+        self.assertEqual(docs.check_line('docs/guide.md', '`unknown.py` and `[x](example.md)`', set(), {}), [])
+
+    def test_fenced_examples_are_ignored_but_prose_links_fail(self):
+        from unittest.mock import patch
+        docs = load_script('check_docs')
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            path = root / 'README.md'
+            path.write_text('```markdown\n[x](missing.md)\n```\n'
+                            '~~~~\n[x](missing.md)\n~~~\n[x](missing.md)\n~~~~\n')
+            with patch.object(docs, 'ROOT', root), \
+                    patch.object(docs.subprocess, 'check_output', return_value=b'README.md\0'), \
+                    contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(docs.main(), 0)
+                path.write_text(path.read_text() + '[real link](missing.md)\n')
+                self.assertEqual(docs.main(), 1)

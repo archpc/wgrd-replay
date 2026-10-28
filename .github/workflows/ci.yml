@@ -30,7 +30,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python: ['3.13', '3.15']
+        python: ['3.13', '3.14', '3.15']
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -43,9 +43,9 @@ jobs:
         run: python3 -B scripts/fetch_public_fixture.py
       - name: Full unittest discovery (private-fixture skips visible)
         run: python3 -B -m unittest discover -s tests -v
-      - name: Ensure checks left research and cow unchanged
+      - name: Ensure checks left tracked files unchanged
         if: always()
-        run: git diff --exit-code HEAD -- research wgrd_orders.py
+        run: git diff --exit-code HEAD --
 
   quality:
     name: Quality
@@ -66,23 +66,8 @@ jobs:
         run: git ls-files -z '*.py' | xargs -0 python3 -m ruff check --force-exclude
       - name: Offline documentation links and local references
         run: python3 -B scripts/check_docs.py
-      - name: Ensure checks left research and cow unchanged
+      - name: Evidence preservation and cow integrity
+        run: python3 -B scripts/check_preservation.py
+      - name: Ensure checks left tracked files unchanged
         if: always()
-        run: git diff --exit-code HEAD -- research wgrd_orders.py
-
-  preservation:
-    name: Preservation
-    runs-on: ubuntu-24.04
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
-        with:
-          python-version: '3.13'
-      - name: Verify historical preservation manifest (never regenerate)
-        run: python3 -B research/maintenance/preservation_manifest.py verify research/maintenance/preservation-manifest.json
-      - name: Ensure verification left research and cow unchanged
-        if: always()
-        run: git diff --exit-code HEAD -- research wgrd_orders.py
+        run: git diff --exit-code HEAD --

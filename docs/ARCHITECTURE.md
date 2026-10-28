@@ -40,21 +40,20 @@ is right. `opaque` is a structural label, never an interpretation confidence.
 
 ### Documentation confidence labels
 
-| Vocabulary | Label | Read it as |
-|---|---|---|
-| Format/reference | **VERIFIED** | Layout or observation directly reproduced within the stated executable/sample scope; no universal build claim |
-| Format/reference | **INFERRED** | Interpretation or transfer beyond what was directly demonstrated |
-| Format/reference | **UNKNOWN** | Not determined |
-| Executable research | **CONFIRMED** | Reproduced from bytes or code with the required evidence |
-| Executable research | **STRONGLY SUPPORTED** | Multiple consistent observations; one step not directly reproduced |
-| Executable research | **TENTATIVE** | Plausible, with limited evidence |
-| Executable research | **UNRESOLVED** | Not determined |
+Use **confirmed** for a claim directly reproduced within its stated build/sample
+scope, **inferred** for an extrapolation, and **unknown** for what has not been
+determined. A confirmed field width can still have unknown meaning.
 
-The two historical scales are not interchangeable. A creator can confirm a field's
-width while its meaning remains unknown. “Ground-truth verified” describes a
-bounded UI/recording observation, not an automatic upgrade to exported `verified`.
-The [provenance index](../research/INDEX.md) separately defines S/T/E/N/G/X codes:
-those say which kinds of supporting material exist, not how certain a claim is.
+Historical references retain **VERIFIED**, **CONFIRMED**, **STRONGLY SUPPORTED**,
+**TENTATIVE** and **UNRESOLVED** where their distinctions matter. Do not mechanically
+merge them: strongly supported observations can lack a directly reproduced step,
+and tentative meanings are hypotheses. The [research index](../research/INDEX.md)
+defines its archival S/T/E/N/G/X evidence-type codes.
+
+These prose labels do not rename parser/runtime statuses. In particular,
+`interpretation.status` retains `verified`, `partial`, `inferred` and `unknown`.
+“Ground-truth verified” is a bounded UI/recording observation, not an automatic
+upgrade to exported `verified`.
 
 ### Read and write a claim
 
@@ -92,8 +91,7 @@ The parser result contains `header`, `metadata`, `stats`, pact `commands` and
 - `iter_chunks` raises `ReplayFormatError` on any violation.
 - `parse_header` raises `ReplayFormatError` for invalid headers, invalid JSON,
   non-object metadata roots and present non-object `game` values. Missing `game`
-  or `Version` remains accepted. Explicit object checks fixed the former
-  `AttributeError` leak on 2026-10-28.
+  or `Version` remains accepted.
 - `_decode_command` returns `None` for opcodes without a layout; the block is then `unresolved`.
 - Layouts are keyed by opcode: 0x07, 0x04/0x09/0x0A, 0x08 (`decode_op08`), 0x17, 0x0D, 0x0C, 0x0E, 0x02, 0x13, 0x18.
   Field names follow `obj_XX_u32|hex|u8|array|points` (XX = creator object offset in hex).
@@ -117,6 +115,10 @@ The parser result contains `header`, `metadata`, `stats`, pact `commands` and
 ordered by frame, recorded slot order and serialized command order. It rejects
 known malformed parser blocks; unresolved boundaries remain explicit placeholders
 and shared spans. Event `source` offsets trace back to the input bytes.
+
+`wgrd_replay.json_safe` supplies the shared non-finite-number representation for
+parser CLI output, decoded point fields and timeline output. The former private
+helper names remain compatible aliases.
 
 Interpretation dispatch calls the order/production layers, then builds the
 reference catalog, optionally enriches production and reference types, and runs
@@ -204,3 +206,12 @@ Sample inputs are read from `samples/manifest.json` (external bytes, not in Git)
 Use these documents as the current reference for their topic, and the implementation
 as the authority on implemented behavior. Record contradictions and cite the
 correction; an old note does not override the current code.
+
+## Development checks
+
+[CONTRIBUTING.md](../CONTRIBUTING.md) owns setup, fixture requirements and CI commands.
+The portable preservation check verifies historical records, archived evidence
+copies and the cow; it does not freeze all implementation files. Historical
+verifiers remain available for reproducing the original audits. The
+[maintenance review](DEVELOPMENT-REVIEW.md#repository-rationalization-2026-10-28)
+explains the three exact accepted script revisions and preservation boundaries.

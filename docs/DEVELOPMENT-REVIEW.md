@@ -164,3 +164,106 @@ Minimum supported Python versions have not been established by a version matrix.
 Frame timing, coordinates and general execution semantics still require research;
 polished documentation does not resolve them. The known metadata defect and JSON
 policy differences remain separate implementation work.
+
+## Repository rationalization (2026-10-28)
+
+Based on remote main `460a3ab8c18c7ac188abb0b4deae8defb0f0699e`, source tree
+`4d4df498d47246522bf93c5317be189e1c6af74d`. A separate scratch checkout was used;
+the primary checkout was not edited. The user authorized GitHub branch/commit/PR
+publication and broad maintenance discretion, preserving APIs, evidence and the cow.
+
+### Decisions
+
+- Retain the existing module boundaries: parsing, interpretation, attribution and
+  static enrichment already have different invariants. A package rewrite adds risk
+  without a demonstrated benefit. Consolidate only duplicate non-finite JSON
+  conversion in `wgrd_replay.json_safe`; retain the former private helper names.
+- Keep the byte maps and research evidence. Shorten the normal reading path:
+  README for entry points, FORMAT for wire layouts, architecture for invariants,
+  CONTRIBUTING for checks. Move the previous full roadmap into
+  [a dated archive](../research/NEXT-STEPS-2026-10-28.md), with source identity;
+  move contributor attribution into the [research index](../research/INDEX.md#project-credits).
+- Use confirmed/inferred/unknown in new prose. Keep historical confidence nuances
+  and all parser/timeline statuses; they answer different questions.
+- Check explicit Markdown links in CI, relative to their document. Drop the
+  37-entry prose-path exception list: inline code is not a hyperlink. Keep the old
+  diagnostic for historical reproduction. External URLs, fragment existence and
+  full Markdown grammar remain outside this offline check.
+- Merge preservation into quality rather than provisioning a separate runner.
+  Test every supported minor (3.13/3.14/3.15). Retain read-only permissions,
+  SHA-pinned official Actions, timeouts, full discovery, mandatory hash-pinned
+  public data, and explicit absent-private-artifact skips. Detect tracked writes
+  across the whole repository after each job, instead of only two path scopes.
+
+### Preservation discrepancy: exact resolution
+
+Neither original manifest nor its historical verifier was changed or regenerated.
+The historical verifier still reports the three original mismatches. The current
+portable checker pins both manifest files themselves, checks every historical
+entry (including existence for mutable documents), authenticates all `copied_to`
+archive records in the work-artifact inventory, and hashes the cow comment block.
+It does not require private or regenerable `work/` outputs to exist in CI.
+
+The only accepted historical script revisions are the exact files introduced by
+[24a1f5c](https://github.com/archpc/wgrd-replay/commit/24a1f5c61b540ed17b4ad0b77871ec1b5760e934).
+Inspection against baseline `681d8ee7ff61856503c8e915be44f328cdd14f08` shows only
+`Path` imports and substitutions of `open(path, "rb").read()` with
+`Path(path).read_bytes()` (two substitutions in the first script, one each in the
+others). This closes file handles deterministically; byte inputs, parsing and
+analysis logic are unchanged. These are runnable reproduction scripts, not raw
+captured evidence. Accepting these specific bytes preserves the findings without
+requiring implementation immutability or a broad path exemption.
+
+| Script | Original SHA-256 (unchanged manifest) | Accepted SHA-256 |
+|---|---|---|
+| `research/op0c_layout.py` | `cc51c6600cfa426063919ac7dfc338b9eab242c9aa05f901a0f7018c3d3bf8bd` | `c23f4163d451b33dbd4579530b8a9402ed113d0df39183a4aac43f0d38cbbce0` |
+| `research/op18_reference_keys.py` | `af521a5c088fab63bd90c0e8e42a6532193eb10749e3b83ffb58fb89636bbc4c` | `8150fa93f9b1da6b53cfd690bbb7faea98d3059cf51dd5cf402c6c47c94899ee` |
+| `research/op18_supply_targets.py` | `c335d665503266b94fe9b29cf1492151635843465f21e4b2692fd92b2c440ea5` | `ec73dc092b2478752738e2957859715b83d3b537a8a431a3e0b5000cac390ee7` |
+
+Reproduce the change review with `git diff 681d8ee 24a1f5c --` followed by the
+three paths. Run `python3 -B scripts/check_preservation.py` for the current gate;
+use the historical verifier for the original snapshot result. Further changed
+script bytes fail. Corruption tests cover both manifests, reviewed scripts,
+archived evidence, missing records and cow edits. Future accepted revisions need
+an explicit review of evidence and behavior, not a baseline refresh.
+
+The full historical records remain recoverable at their existing paths. No
+research scripts, evidence, byte maps, generated coverage or sample manifests
+were removed. The deleted prose exceptions contained CI false-positive handling,
+not binary findings; Git history retains them.
+
+### Validation of this change
+
+- Baseline: 161 tests, no skips on Python 3.15. After rationalization: 164 tests,
+  no skips on Python 3.13.15, 3.14.7 and 3.15.0. Tests used the authenticated
+  original three replays, three cross-build replays, the 59638 executable and
+  the hash-pinned public fixture. Private artifacts were read locally, not copied
+  into Git.
+- With all private fixture locations redirected to absent paths, discovery ran
+  164 tests and reported 51 skip records (including sample subtests). Synthetic
+  and mandatory public-fixture checks ran. This is unavailable private coverage,
+  not 164 passing cases.
+- All six replay hashes were checked before comparing 48 before/after results:
+  parser dictionaries, timeline/enriched dictionaries, and five CLI modes per
+  replay (default, summary, timeline, timeline summary, enriched timeline).
+  Canonical API JSON hashes and CLI byte hashes were identical.
+- The three accepted research-script revisions were loaded alongside their
+  `681d8ee` sources and compared on all original authenticated samples. Analysis
+  results matched; `op0c_layout.main` stdout/return status also matched using the
+  SHA-256-verified 59638 executable. No executable was run.
+- Syntax (65 tracked Python files), Ruff 0.14.2, explicit Markdown links (53 files),
+  portable preservation and actionlint 1.7.12 passed. ShellCheck was unavailable;
+  actionlint ran with its ShellCheck integration disabled. The historical link
+  diagnostic reported 46 findings before and after, with identical source/target
+  pairs; these depend on external/local paths and are not 46 broken hyperlinks.
+- Historical preservation still reports exactly three script mismatches, by
+  design. The local-only work inventory reports 439 missing entries in scratch;
+  these were not copied merely to satisfy an audit. Its 71 committed archive
+  copies are authenticated by the portable gate. Both historical manifests and
+  verifiers, all evidence bytes and the entire orders module remain unchanged.
+
+The active README/CONTRIBUTING/NEXT-STEPS path is shorter; archival text remains
+accessible through explicit links. No package rewrite, third-party runtime
+requirement, new evidence taxonomy or generated coverage baseline was introduced.
+The preservation gate remains an accidental-change check, not a security boundary
+against someone editing both the checker and its expected hashes in one PR.
