@@ -1,26 +1,88 @@
 name: CI
 
 on:
-  push:
   pull_request:
+    branches: [main]
+  push:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  PYTHONDONTWRITEBYTECODE: '1'
+  PIP_DISABLE_PIP_VERSION_CHECK: '1'
+
 jobs:
   tests:
-    runs-on: ubuntu-latest
+    name: Tests (Python ${{ matrix.python }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.9', '3.14']
+        python: ['3.13', '3.15']
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: ${{ matrix.python-version }}
-      - name: Run tests without private artifacts
-        run: python -B .github/run_ci_tests.py
+          python-version: ${{ matrix.python }}
+      # Runtime and tests are stdlib-only. No project dependency installation.
+      - name: Fetch and authenticate public unit fixture
+        run: python3 -B scripts/fetch_public_fixture.py
+      - name: Full unittest discovery (private-fixture skips visible)
+        run: python3 -B -m unittest discover -s tests -v
+      - name: Ensure checks left research and cow unchanged
+        if: always()
+        run: git diff --exit-code HEAD -- research wgrd_orders.py
+
+  quality:
+    name: Quality
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.13'
+      - name: Install pinned lint tool
+        run: python3 -m pip install --no-deps ruff==0.14.2
+      - name: Syntax of all tracked Python files
+        run: python3 -B scripts/check_python.py
+      - name: Ruff defect checks on all tracked Python files
+        run: git ls-files -z '*.py' | xargs -0 python3 -m ruff check --force-exclude
+      - name: Offline documentation links and local references
+        run: python3 -B scripts/check_docs.py
+      - name: Ensure checks left research and cow unchanged
+        if: always()
+        run: git diff --exit-code HEAD -- research wgrd_orders.py
+
+  preservation:
+    name: Preservation
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.13'
+      - name: Verify historical preservation manifest (never regenerate)
+        run: python3 -B research/maintenance/preservation_manifest.py verify research/maintenance/preservation-manifest.json
+      - name: Ensure verification left research and cow unchanged
+        if: always()
+        run: git diff --exit-code HEAD -- research wgrd_orders.py

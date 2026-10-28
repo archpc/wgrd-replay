@@ -1,0 +1,187 @@
+[
+  {
+    "source": "AGENTS.md",
+    "target": "work",
+    "reason": "Explicitly git-ignored local artifact or scratch location; not a repository deliverable. Inventory/provenance is retained in the referring document."
+  },
+  {
+    "source": "CONTRIBUTING.md",
+    "target": "work/public-units/wargame-data",
+    "reason": "Explicitly git-ignored local artifact or scratch location; not a repository deliverable. Inventory/provenance is retained in the referring document."
+  },
+  {
+    "source": "docs/ARCHITECTURE.md",
+    "target": "work",
+    "reason": "Explicitly git-ignored local artifact or scratch location; not a repository deliverable. Inventory/provenance is retained in the referring document."
+  },
+  {
+    "source": "research/INDEX.md",
+    "target": "work",
+    "reason": "Explicitly git-ignored local artifact or scratch location; not a repository deliverable. Inventory/provenance is retained in the referring document."
+  },
+  {
+    "source": "research/INDEX.md",
+    "target": "work/ndf59638",
+    "reason": "Explicitly git-ignored local artifact or scratch location; not a repository deliverable. Inventory/provenance is retained in the referring document."
+  },
+  {
+    "source": "research/INDEX.md",
+    "target": "work/public-units/wargame-data",
+    "reason": "Explicitly git-ignored local artifact or scratch location; not a repository deliverable. Inventory/provenance is retained in the referring document."
+  },
+  {
+    "source": "research/evidence/RECOVERED-2026-10-26.md",
+    "target": "request_dump_local-91d17880d8c44363c1b54ae760cb9b5973082b1c91952b4665d66b7c4326ac4e_20261023_093231_540090.json",
+    "reason": "External transcript dump basename; recovered evidence records are tracked separately in this note."
+  },
+  {
+    "source": "research/maintenance/WORK-ARTIFACTS.md",
+    "target": "work",
+    "reason": "Explicitly git-ignored local artifact or scratch location; not a repository deliverable. Inventory/provenance is retained in the referring document."
+  },
+  {
+    "source": "research/maintenance/WORK-ARTIFACTS.md",
+    "target": "work/rea-mcp-3..21.json",
+    "reason": "Explicitly git-ignored local artifact or scratch location; not a repository deliverable. Inventory/provenance is retained in the referring document."
+  },
+  {
+    "source": "research/maintenance/WORK-ARTIFACTS.md",
+    "target": "rea_mcp.py",
+    "reason": "Historical inventory or proposed destination for local work artifacts; see the preservation actions and manifest mapping in this document."
+  },
+  {
+    "source": "research/maintenance/WORK-ARTIFACTS.md",
+    "target": "production_rea.py",
+    "reason": "Historical inventory or proposed destination for local work artifacts; see the preservation actions and manifest mapping in this document."
+  },
+  {
+    "source": "research/maintenance/WORK-ARTIFACTS.md",
+    "target": "production_probe.py",
+    "reason": "Historical inventory or proposed destination for local work artifacts; see the preservation actions and manifest mapping in this document."
+  },
+  {
+    "source": "research/maintenance/WORK-ARTIFACTS.md",
+    "target": "read_ndf_manifest.py",
+    "reason": "Historical inventory or proposed destination for local work artifacts; see the preservation actions and manifest mapping in this document."
+  },
+  {
+    "source": "research/maintenance/WORK-ARTIFACTS.md",
+    "target": "inspect_localization_manifests.py",
+    "reason": "Historical inventory or proposed destination for local work artifacts; see the preservation actions and manifest mapping in this document."
+  },
+  {
+    "source": "research/maintenance/WORK-ARTIFACTS.md",
+    "target": "work/sample1-battle-report-app",
+    "reason": "Explicitly git-ignored local artifact or scratch location; not a repository deliverable. Inventory/provenance is retained in the referring document."
+  },
+  {
+    "source": "research/maintenance/WORK-ARTIFACTS.md",
+    "target": "dist",
+    "reason": "Historical inventory or proposed destination for local work artifacts; see the preservation actions and manifest mapping in this document."
+  },
+  {
+    "source": "research/maintenance/WORK-ARTIFACTS.md",
+    "target": "blocks.json",
+    "reason": "Historical inventory or proposed destination for local work artifacts; see the preservation actions and manifest mapping in this document."
+  },
+  {
+    "source": "research/maintenance/WORK-ARTIFACTS.md",
+    "target": "op07-fields.json",
+    "reason": "Historical inventory or proposed destination for local work artifacts; see the preservation actions and manifest mapping in this document."
+  },
+  {
+    "source": "research/maintenance/WORK-ARTIFACTS.md",
+    "target": "work/ndf59638",
+    "reason": "Explicitly git-ignored local artifact or scratch location; not a repository deliverable. Inventory/provenance is retained in the referring document."
+  },
+  {
+    "source": "research/maintenance/WORK-ARTIFACTS.md",
+    "target": "work/ndf-recovery",
+    "reason": "Explicitly git-ignored local artifact or scratch location; not a repository deliverable. Inventory/provenance is retained in the referring document."
+  },
+  {
+    "source": "research/maintenance/WORK-ARTIFACTS.md",
+    "target": "work/localization59638",
+    "reason": "Explicitly git-ignored local artifact or scratch location; not a repository deliverable. Inventory/provenance is retained in the referring document."
+  },
+  {
+    "source": "research/maintenance/WORK-ARTIFACTS.md",
+    "target": "work/public-units",
+    "reason": "Explicitly git-ignored local artifact or scratch location; not a repository deliverable. Inventory/provenance is retained in the referring document."
+  },
+  {
+    "source": "research/maintenance/WORK-ARTIFACTS.md",
+    "target": "work/runtime59638",
+    "reason": "Explicitly git-ignored local artifact or scratch location; not a repository deliverable. Inventory/provenance is retained in the referring document."
+  },
+  {
+    "source": "research/maintenance/WORK-ARTIFACTS.md",
+    "target": "work/compat59638",
+    "reason": "Explicitly git-ignored local artifact or scratch location; not a repository deliverable. Inventory/provenance is retained in the referring document."
+  },
+  {
+    "source": "research/maintenance/WORK-ARTIFACTS.md",
+    "target": "work/rea-tool-schemas.json",
+    "reason": "Explicitly git-ignored local artifact or scratch location; not a repository deliverable. Inventory/provenance is retained in the referring document."
+  },
+  {
+    "source": "research/maintenance/WORK-ARTIFACTS.md",
+    "target": ".py",
+    "reason": "File extension in inventory prose, not a file target."
+  },
+  {
+    "source": "research/maintenance/WORK-ARTIFACTS.md",
+    "target": "src/content",
+    "reason": "Historical inventory or proposed destination for local work artifacts; see the preservation actions and manifest mapping in this document."
+  },
+  {
+    "source": "research/maintenance/WORK-ARTIFACTS.md",
+    "target": "src/data.json",
+    "reason": "Historical inventory or proposed destination for local work artifacts; see the preservation actions and manifest mapping in this document."
+  },
+  {
+    "source": "research/maintenance/WORK-ARTIFACTS.md",
+    "target": ".openai/hosting.json",
+    "reason": "Historical inventory or proposed destination for local work artifacts; see the preservation actions and manifest mapping in this document."
+  },
+  {
+    "source": "research/maintenance/WORK-ARTIFACTS.md",
+    "target": "protected-runtime.json",
+    "reason": "Historical inventory or proposed destination for local work artifacts; see the preservation actions and manifest mapping in this document."
+  },
+  {
+    "source": "research/maintenance/WORK-ARTIFACTS.md",
+    "target": "research/reports/sample1/app",
+    "reason": "Historical inventory or proposed destination for local work artifacts; see the preservation actions and manifest mapping in this document."
+  },
+  {
+    "source": "research/reports/sample1/README.md",
+    "target": ".openai/hosting.json",
+    "reason": "Excluded third-party authoring runtime metadata/source path; redistribution unconfirmed. Portable report tracked separately."
+  },
+  {
+    "source": "research/reports/sample1/README.md",
+    "target": "protected-runtime.json",
+    "reason": "Excluded third-party authoring runtime metadata/source path; redistribution unconfirmed. Portable report tracked separately."
+  },
+  {
+    "source": "research/reports/sample1/README.md",
+    "target": "src/content",
+    "reason": "Excluded third-party authoring runtime metadata/source path; redistribution unconfirmed. Portable report tracked separately."
+  },
+  {
+    "source": "research/reports/sample1/README.md",
+    "target": "src/data.json",
+    "reason": "Excluded third-party authoring runtime metadata/source path; redistribution unconfirmed. Portable report tracked separately."
+  },
+  {
+    "source": "research/reports/sample1/app-content/content/shared/README.md",
+    "target": "../../data-app-public.jsx",
+    "reason": "Preserved authored content depends on an untracked third-party runtime import. Portable report tracked separately."
+  },
+  {
+    "source": "research/session-records/2026-10-28-documentation-dx.md",
+    "target": "work/dx-audit",
+    "reason": "Explicitly git-ignored local artifact or scratch location; not a repository deliverable. Inventory/provenance is retained in the referring document."
+  }
+]

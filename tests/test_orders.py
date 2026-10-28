@@ -8,6 +8,7 @@ from pathlib import Path
 import struct
 import sys
 import unittest
+from private_fixtures import require_private_samples
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import wgrd_replay as w
@@ -117,29 +118,30 @@ class AuthenticOrders(unittest.TestCase):
     def test_all_10461_order_requests_and_raw_fields(self):
         root = Path(__file__).resolve().parents[1]
         manifest = json.loads((root / 'samples/manifest.json').read_text())
-        # NOTE: no skip guard. Absent samples raise FileNotFoundError (error, not skip); see AGENTS.md section 9.
         samples = Path(os.environ.get('WGRD_SAMPLES_DIR', str(Path.home() / '.hermes/artifacts/wgrd-replay/samples/raw')))
         expected = [(3794, 476, 3318), (86, 31, 55), (6581, 1321, 5260)]
         for sample, (total, explicit, contextual) in zip(manifest['samples'], expected):
-            b = (samples / sample['file']).read_bytes()
-            self.assertEqual(hashlib.sha256(b).hexdigest(), sample['sha256'])
-            parsed = w.parse_replay(b)
-            result = timeline.build_timeline(parsed)
-            events = [e for e in result['events'] if e['opcode'] == 7]
-            self.assertEqual(len(events), total)
-            counts = {'explicit_request': 0, 'runtime_dependent': 0}
-            for e in events:
-                p = e['interpretation']['parameters']; f = e['parameters']
-                counts[p['order_selection']] += 1
-                self.assertEqual(p['order_kind_u32'], struct.unpack_from('<I', bytes.fromhex(f['obj_d0_hex']), 16)[0])
-                for name, field in [('actor_references', 'obj_04_array'), ('target_references', 'obj_60_array')]:
-                    self.assertEqual(''.join(r['reference_hex'] for r in p[name]), f[field]['items_hex'])
-                    self.assertEqual(len(p[name]), f[field]['count_u32'])
-                source = e['source']
-                self.assertEqual(bytes.fromhex(e['raw_hex']), b[source['file_offset']:source['file_offset']+source['length']])
-                if sample['game_version'] != '59638': self.assertEqual(e['interpretation']['status'], 'inferred')
-            self.assertEqual(counts, {'explicit_request': explicit, 'runtime_dependent': contextual})
-            json.dumps(result, allow_nan=False)
+            with self.subTest(sample=sample['file']):
+                require_private_samples(samples, [sample])
+                b = (samples / sample['file']).read_bytes()
+                self.assertEqual(hashlib.sha256(b).hexdigest(), sample['sha256'])
+                parsed = w.parse_replay(b)
+                result = timeline.build_timeline(parsed)
+                events = [e for e in result['events'] if e['opcode'] == 7]
+                self.assertEqual(len(events), total)
+                counts = {'explicit_request': 0, 'runtime_dependent': 0}
+                for e in events:
+                    p = e['interpretation']['parameters']; f = e['parameters']
+                    counts[p['order_selection']] += 1
+                    self.assertEqual(p['order_kind_u32'], struct.unpack_from('<I', bytes.fromhex(f['obj_d0_hex']), 16)[0])
+                    for name, field in [('actor_references', 'obj_04_array'), ('target_references', 'obj_60_array')]:
+                        self.assertEqual(''.join(r['reference_hex'] for r in p[name]), f[field]['items_hex'])
+                        self.assertEqual(len(p[name]), f[field]['count_u32'])
+                    source = e['source']
+                    self.assertEqual(bytes.fromhex(e['raw_hex']), b[source['file_offset']:source['file_offset']+source['length']])
+                    if sample['game_version'] != '59638': self.assertEqual(e['interpretation']['status'], 'inferred')
+                self.assertEqual(counts, {'explicit_request': explicit, 'runtime_dependent': contextual})
+                json.dumps(result, allow_nan=False)
 
 
 if __name__ == '__main__': unittest.main()

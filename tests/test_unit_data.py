@@ -8,6 +8,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from private_fixtures import require_private_samples
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
@@ -97,26 +98,31 @@ class UnitData(unittest.TestCase):
 
 
 class AuthenticPublicData(unittest.TestCase):
+    def test_pinned_public_snapshot_integrity(self):
+        public = Path(os.environ.get('WGRD_UNIT_DATA', str(ROOT/'work/public-units/wargame-data')))
+        load_unit_data(public)  # Missing public inputs are failures, never private-data skips.
+
     def test_all_726_exact_matches_no_contextual_resolution(self):
         public = Path(os.environ.get('WGRD_UNIT_DATA',str(ROOT/'work/public-units/wargame-data')))
-        if not public.exists(): self.skipTest('pinned public snapshot not cached; set WGRD_UNIT_DATA')
         data=load_unit_data(public)
-        # NOTE: the public-snapshot skip above does not cover samples; absent samples raise FileNotFoundError.
         samples=Path(os.environ.get('WGRD_SAMPLES_DIR',str(Path.home()/'.hermes/artifacts/wgrd-replay/samples/raw')))
-        for sample,n,names in zip(json.loads((ROOT/'samples/manifest.json').read_text())['samples'],[285,41,400],[1,0,3]):
-            parsed=parse_replay((samples/sample['file']).read_bytes()); before=copy.deepcopy(parsed)
-            base=build_timeline(parsed); enriched=build_timeline(parsed,unit_data=data)
-            self.assertEqual(enriched['events'],base['events'])
-            cat=enriched['entity_references']
-            self.assertEqual(cat['descriptor_data']['replay_version'],sample['game_version'])
-            self.assertEqual(cat['descriptor_data']['reference_mapping_status'],
-                             'verified_build_59638' if sample['game_version']=='59638' else 'inferred_build_59638')
-            self.assertEqual(cat['descriptor_data']['matched_references'],n)
-            self.assertEqual(sum(bool(e['static_descriptor']['unit_card']) for e in cat['entries']),names)
-            self.assertTrue(all(e['unit_identity'] is None for e in cat['entries']))
-            self.assertTrue(all(e['descriptor_match_status']=='exact_guid_cross_version' for e in cat['entries']))
-            self.assertEqual(parsed,before)
-            json.dumps(enriched,allow_nan=False)
+        manifest = json.loads((ROOT/'samples/manifest.json').read_text())['samples']
+        for sample,n,names in zip(manifest,[285,41,400],[1,0,3]):
+            with self.subTest(sample=sample['file']):
+                require_private_samples(samples, [sample])
+                parsed=parse_replay((samples/sample['file']).read_bytes()); before=copy.deepcopy(parsed)
+                base=build_timeline(parsed); enriched=build_timeline(parsed,unit_data=data)
+                self.assertEqual(enriched['events'],base['events'])
+                cat=enriched['entity_references']
+                self.assertEqual(cat['descriptor_data']['replay_version'],sample['game_version'])
+                self.assertEqual(cat['descriptor_data']['reference_mapping_status'],
+                                 'verified_build_59638' if sample['game_version']=='59638' else 'inferred_build_59638')
+                self.assertEqual(cat['descriptor_data']['matched_references'],n)
+                self.assertEqual(sum(bool(e['static_descriptor']['unit_card']) for e in cat['entries']),names)
+                self.assertTrue(all(e['unit_identity'] is None for e in cat['entries']))
+                self.assertTrue(all(e['descriptor_match_status']=='exact_guid_cross_version' for e in cat['entries']))
+                self.assertEqual(parsed,before)
+                json.dumps(enriched,allow_nan=False)
         # A changed dataset must fail even if its XML remains well formed.
         import unittest.mock
         with unittest.mock.patch('wgrd_unit_data.hashlib.sha256') as sha:
