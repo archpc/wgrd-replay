@@ -6,6 +6,31 @@ The decoder reads Wargame: Red Dragon replays strictly. It checks the container,
 
 Malformed input generally raises `ReplayFormatError`. A known defect in `parse_header()` can instead propagate `AttributeError` for non-object JSON metadata. See [Known limitations](#known-limitations).
 
+## Quick start
+
+Run from the repository root with Python 3; no dependency installation or game
+installation is needed to decode a replay you already have. Replay files are
+external and are not included in this repository.
+
+```sh
+python3 -B wgrd_replay.py --help
+python3 -B wgrd_replay.py /path/to/match.wargamerpl2 --summary
+python3 -B wgrd_replay.py /path/to/match.wargamerpl2 --timeline > /path/to/private-timeline.json
+```
+
+Replace the example paths with your replay and a fresh output filename. Output
+can contain player names and chat; keep it private. A summary reports structure;
+a timeline adds evidence-qualified action requests. Neither establishes gameplay
+outcomes or a frame-to-seconds conversion.
+
+| I want to… | Read |
+|---|---|
+| Decode files, use the Python API, or diagnose an error | [Usage guide](docs/USAGE.md) |
+| Change code or docs and run the right checks | [Contributing guide](CONTRIBUTING.md) |
+| Understand the pipeline and status labels | [Architecture](docs/ARCHITECTURE.md) |
+| Inspect byte layouts and their evidence | [Format reference](FORMAT.md) and [research index](research/INDEX.md) |
+| Find current research priorities | [Next steps](NEXT-STEPS.md) |
+
 ## Current-build milestone (2026-10-28)
 
 A controlled offline replay from internal revision **131544** (Steam build **15652829**) was recorded, decoded, and played back to completion. Two newly acquired historical recordings (Versions 510061340 and 510064564) also passed structural and timeline checks. This is sample-specific compatibility, not a guarantee for every current-build replay.
@@ -36,13 +61,13 @@ The following counts and source limits describe the original corpus, not the exp
     python3 wgrd_replay.py REPLAY.wargamerpl2 [--summary] [--include-empty] [--no-verify-digest]
     python3 wgrd_replay.py REPLAY.wargamerpl2 --timeline [--summary] [--unit-data research/unit-data/build59638-v1.json.gz]
 
-Default output is JSON with the header, metadata, and per-pact command decode. `--timeline` emits the ordered `wgrd_timeline/1` event list with source byte offsets. `--unit-data` adds offline unit-type names from the build 59638 index. Output is strict JSON; non-finite float32 values are emitted as `{"nonfinite": "+Infinity"}` style markers.
+Default output contains the header, metadata, and per-pact command decode. `--timeline` emits the ordered `wgrd_timeline/1` event list with source byte offsets. `--unit-data` adds offline unit-type names from the build 59638 index. Timeline output is strict JSON; non-finite float32 values are emitted as `{"nonfinite": "+Infinity"}` style markers. **2026-10-28 correction:** the default parser CLI still permits Python's non-standard NaN/Infinity JSON tokens. Use timeline output when strict JSON is required; see the [usage guide](docs/USAGE.md).
 
 ## Tests
 
     python3 -m unittest discover -s tests -q
 
-The 2026-10-28 local run executed 139 tests with no skips with its external artifacts available; this is a historical result, not the current test count. A later run at commit 2bde168 (2026-10-28) executed 148 tests, OK, with no skips. Cross-build tests use `WGRD_ARTIFACTS_DIR` and skip explicitly when external files are absent; altered files fail. Existing sample/executable tests retain their original prerequisites (`WGRD_SAMPLES_DIR`, `WGRD_EXE_59638`, and optional `WGRD_UNIT_DATA`). Report the actual run and any skips. See the experiment report for historical verification and warnings.
+The 2026-10-28 local run executed 139 tests with no skips with its external artifacts available; this is a historical result, not the current test count. A later run at commit 2bde168 (2026-10-28) executed 148 tests, OK, with no skips. Cross-build tests use `WGRD_ARTIFACTS_DIR` and skip explicitly when external files are absent; altered files fail. **2026-10-28 clarification:** some older sample-backed tests fail with missing-file errors rather than skipping. See [test prerequisites](CONTRIBUTING.md#tests-and-external-artifacts) before interpreting a fresh-checkout run. Report actual results and skips.
 
 ## Reproducing research findings
 
