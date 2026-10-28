@@ -57,6 +57,7 @@ The 2026-10-26 research notes under `research/` name their artifacts (build, SHA
 - `docs/ARCHITECTURE.md`: data flow, status vocabularies, canonical document per subsystem.
 - `FORMAT.md`: byte-level format spec. Each field is tagged VERIFIED, INFERRED, or UNKNOWN with evidence. Start here for the format.
 - `research/INDEX.md`: provenance index. Every current claim mapped to its original note, evidence record, reproduction script and tests, with a reproducibility status code.
+- [The ASCII Dragon Incident](research/DRAGON-INCIDENT.md): a cautionary tale about agent overengineering, uncertain dragons, and one victorious cow.
 - `NEXT-STEPS.md`: current priorities and detailed open items.
 - `REA-NOTES-59638.md`: executable analysis notes for build 59638 (addresses, evidence IDs). `REPLAY-RESEARCH.md`: investigation log.
 - `research/`: per-topic research notes, historical plans, reproduction scripts, generated coverage JSON, `research/evidence/` (REA records, disassembly excerpts), `research/chatgpt-session-2026-10-23/` (archived session), `research/maintenance/` (preservation manifests and verifiers, link checker), `research/session-records/`.
