@@ -1,0 +1,430 @@
+{
+  "schema": "wgrd_controlled_evidence/1",
+  "artifact_root": "current-build-20261028",
+  "clock_note": "Host screenshot mtimes and tool-log UTC are acquisition timestamps, not exact original input times. No universal frame-to-seconds conversion asserted.",
+  "current_replay_sha256": "1b060d2ab2e5501c6c8731fcb87ac0c7ac6dc4598387dcdb261ab8bb06bc8d70",
+  "screenshots": [
+    {
+      "file": "parallels-black-after-gdi-success.png",
+      "bytes": 5749,
+      "sha256": "95153a54cec226bfcc5c0a1ff94aa967872c235b5697f5a14458674a98d853bd",
+      "host_mtime_utc": "2026-10-28T05:36:35.359780+00:00"
+    },
+    {
+      "file": "parallels-initial-black.png",
+      "bytes": 5749,
+      "sha256": "95153a54cec226bfcc5c0a1ff94aa967872c235b5697f5a14458674a98d853bd",
+      "host_mtime_utc": "2026-10-28T05:24:18.505479+00:00"
+    },
+    {
+      "file": "parallels-ui-launch-black.png",
+      "bytes": 5749,
+      "sha256": "95153a54cec226bfcc5c0a1ff94aa967872c235b5697f5a14458674a98d853bd",
+      "host_mtime_utc": "2026-10-28T05:32:35.663202+00:00"
+    },
+    {
+      "file": "parallels-windowed-fullscreen-black.png",
+      "bytes": 5749,
+      "sha256": "95153a54cec226bfcc5c0a1ff94aa967872c235b5697f5a14458674a98d853bd",
+      "host_mtime_utc": "2026-10-28T05:37:51.139865+00:00"
+    },
+    {
+      "file": "parallels-working-desktop.png",
+      "bytes": 2016393,
+      "sha256": "d98f40bbdca0a27a3615107ad1966d01c42ceef7a3fa88ef085cf5355cbfa875",
+      "host_mtime_utc": "2026-10-28T05:24:57.393229+00:00"
+    },
+    {
+      "file": "wgrd-active-game.png",
+      "bytes": 1346921,
+      "sha256": "fd1d65620e84341c92ddcde7f0620485cc420d3d263dc24853885ec4f0c596fa",
+      "host_mtime_utc": "2026-10-28T05:36:20.993526+00:00"
+    },
+    {
+      "file": "wgrd-after-exit.png",
+      "bytes": 6126678,
+      "sha256": "61613f36f814b0115b05885bca7b3ea4a89dbc78994909df57caa003950d9515",
+      "host_mtime_utc": "2026-10-28T05:51:21.108022+00:00"
+    },
+    {
+      "file": "wgrd-back.png",
+      "bytes": 5437338,
+      "sha256": "212029a09c7ec9fb269aadb793d3b07205510b1c027a82f0f0699c216d4bb548",
+      "host_mtime_utc": "2026-10-28T05:39:35.412663+00:00"
+    },
+    {
+      "file": "wgrd-battle-start.png",
+      "bytes": 10705078,
+      "sha256": "6d12838f79f3cae1e64486c3f77e418efdd03b383cf56511b4b23a43114bde60",
+      "host_mtime_utc": "2026-10-28T05:46:26.726342+00:00"
+    },
+    {
+      "file": "wgrd-continue.png",
+      "bytes": 10697289,
+      "sha256": "7406eb7556012fa2b2109f2bfe641023f1244aafe7559ed679f1624b1dd4746d",
+      "host_mtime_utc": "2026-10-28T05:44:41.302393+00:00"
+    },
+    {
+      "file": "wgrd-deployment.png",
+      "bytes": 10700021,
+      "sha256": "cebb49141dcdd0ee7bd8223423e18c032f35064524a7dcb87a48a509527deed1",
+      "host_mtime_utc": "2026-10-28T05:42:38.924819+00:00"
+    },
+    {
+      "file": "wgrd-end-menu.png",
+      "bytes": 5474089,
+      "sha256": "55a6e1f80338bb9143f63ce43f65a1eb08d77de3626485c583d425c54dbdb615",
+      "host_mtime_utc": "2026-10-28T05:48:51.445337+00:00"
+    },
+    {
+      "file": "wgrd-exit-results.png",
+      "bytes": 14009646,
+      "sha256": "6ac74e2efb8407e606c0ab0b1b8f1e9a17fa14abb374b55d004bf8ea1c71e598",
+      "host_mtime_utc": "2026-10-28T05:50:48.008572+00:00"
+    },
+    {
+      "file": "wgrd-fuel-off.png",
+      "bytes": 10285911,
+      "sha256": "76e5ada872025d14d9b0e23f52417217ffdf24bfb4054fc55ae0b6973ce68471",
+      "host_mtime_utc": "2026-10-28T05:48:22.342740+00:00"
+    },
+    {
+      "file": "wgrd-fuel-on.png",
+      "bytes": 10260622,
+      "sha256": "ba948d6a4cc71d1f3a1886c8925adc9ead1bb37f0afa2df730461b72b02a0ddd",
+      "host_mtime_utc": "2026-10-28T05:48:48.965030+00:00"
+    },
+    {
+      "file": "wgrd-full-menu.png",
+      "bytes": 5077138,
+      "sha256": "d0204b05cba5cf97cd4fc9f1c6849a58aa2dd1517ae6a1318d557e47b6ab5479",
+      "host_mtime_utc": "2026-10-28T05:38:21.230468+00:00"
+    },
+    {
+      "file": "wgrd-game-gdi.png",
+      "bytes": 10904812,
+      "sha256": "c86bd299fe323bc77978cec97dd2c957109bda04013a031454906104fb0927e7",
+      "host_mtime_utc": "2026-10-28T05:33:09.822361+00:00"
+    },
+    {
+      "file": "wgrd-guest-diagnostic.png",
+      "bytes": 1079661,
+      "sha256": "19bb3a95651f8fdc8277a58ec6354aad5ccce4316de114431cb5628bd7d31ced",
+      "host_mtime_utc": "2026-10-28T05:30:56.395030+00:00"
+    },
+    {
+      "file": "wgrd-hq.png",
+      "bytes": 5494811,
+      "sha256": "4fd023e7439d2e99d92dcc3f42f12c1bb8e5f5e75c632f8f6697e0745e93833c",
+      "host_mtime_utc": "2026-10-28T05:44:10.913406+00:00"
+    },
+    {
+      "file": "wgrd-launch.png",
+      "bytes": 9967375,
+      "sha256": "ffd22188de12dcfa5061be2445c7d66cdc5f5688b0c496e8582dce13803df9e2",
+      "host_mtime_utc": "2026-10-28T05:42:20.153924+00:00"
+    },
+    {
+      "file": "wgrd-main-return.png",
+      "bytes": 5435882,
+      "sha256": "77707300f44115d32d029bb40b8b3191b99fbb7b9da8762bcc893849dd2c3c86",
+      "host_mtime_utc": "2026-10-28T05:51:47.856820+00:00"
+    },
+    {
+      "file": "wgrd-move-issued.png",
+      "bytes": 10243012,
+      "sha256": "64ec7e5e34feca4edb3939bd9900a110db34ea6484e94e1d5478a06508eb1a63",
+      "host_mtime_utc": "2026-10-28T05:47:25.194985+00:00"
+    },
+    {
+      "file": "wgrd-playback-exit-menu.png",
+      "bytes": 5472426,
+      "sha256": "4251b32002da04cc4bf0297eb99114875be526ef73f2c2ab55c273e2d9c3bc67",
+      "host_mtime_utc": "2026-10-28T06:01:58.842988+00:00"
+    },
+    {
+      "file": "wgrd-playback-fuel-window.png",
+      "bytes": 10507589,
+      "sha256": "6d6eb944fbe846b1b5545c3fd337fae1f157bbf6af8ed32bb00aae67103e2cd6",
+      "host_mtime_utc": "2026-10-28T06:01:21.658940+00:00"
+    },
+    {
+      "file": "wgrd-playback-later.png",
+      "bytes": 10728072,
+      "sha256": "bd4e6b3459b8018b929f6ca53f48fe6107812b2335632923c58c888963bc1cc4",
+      "host_mtime_utc": "2026-10-28T05:58:13.173300+00:00"
+    },
+    {
+      "file": "wgrd-playback-launch.png",
+      "bytes": 14093027,
+      "sha256": "5a672c49046af9d7632365c48677155cc26aa724546ff562e44475e241987558",
+      "host_mtime_utc": "2026-10-28T05:55:44.765636+00:00"
+    },
+    {
+      "file": "wgrd-playback-loaded.png",
+      "bytes": 10728429,
+      "sha256": "8d2ae15c0afe1f3cf3d6213190d7143ac9a59d55058acf6ebb724e0f6c1100d1",
+      "host_mtime_utc": "2026-10-28T05:56:15.837463+00:00"
+    },
+    {
+      "file": "wgrd-playback-observation-final.png",
+      "bytes": 10220396,
+      "sha256": "0cfa5db2d2ae1a92e88dc469bffa8f8c11827d646e6ca725e1163da932945d8f",
+      "host_mtime_utc": "2026-10-28T06:00:16.406179+00:00"
+    },
+    {
+      "file": "wgrd-playback-progress.png",
+      "bytes": 10728321,
+      "sha256": "bdadb7e502c9d120eec5484ee50e3dbefed63ae4a22d8af7d88e153dc01dd5e5",
+      "host_mtime_utc": "2026-10-28T05:57:04.958570+00:00"
+    },
+    {
+      "file": "wgrd-playback-truck.png",
+      "bytes": 10673028,
+      "sha256": "a21c8bee1e6442c69920d4a7d2e2398283cf1da3b1d27825e7482755ae2441ab",
+      "host_mtime_utc": "2026-10-28T05:59:16.288709+00:00"
+    },
+    {
+      "file": "wgrd-postmatch.png",
+      "bytes": 5453927,
+      "sha256": "90e6fba632ce9d324ffb461e65e07fc303a641f2b5c813b8b078050555840c0d",
+      "host_mtime_utc": "2026-10-28T05:49:58.003597+00:00"
+    },
+    {
+      "file": "wgrd-profile.png",
+      "bytes": 5293163,
+      "sha256": "6fe426709a9e87c42b2dad2df550a5d332c23e5c18e629a22d53c56e5b63616a",
+      "host_mtime_utc": "2026-10-28T05:51:50.290658+00:00"
+    },
+    {
+      "file": "wgrd-purchase.png",
+      "bytes": 10819811,
+      "sha256": "f3f93193bb86caa9446ec79732920e7ad77c1ab3e0aba1586d11c4e05e21efc5",
+      "host_mtime_utc": "2026-10-28T05:44:43.784274+00:00"
+    },
+    {
+      "file": "wgrd-replay-browser.png",
+      "bytes": 4858742,
+      "sha256": "566426e8980aa91f670f8d8a37d0bbdd8fae65a570d62df8de96a212039c3fa1",
+      "host_mtime_utc": "2026-10-28T05:52:16.828490+00:00"
+    },
+    {
+      "file": "wgrd-replay-selected.png",
+      "bytes": 4927889,
+      "sha256": "9f26d62fae37b207d2cfb790deb96c9ef8e3783ff6ced68cfe26cd6dba223f0a",
+      "host_mtime_utc": "2026-10-28T05:55:35.120545+00:00"
+    },
+    {
+      "file": "wgrd-results.png",
+      "bytes": 10272424,
+      "sha256": "d68e1b3a0dfb1a20821f4cdf7a420393eefdebb56a0cc6190d0da48bbe789390",
+      "host_mtime_utc": "2026-10-28T05:49:18.219953+00:00"
+    },
+    {
+      "file": "wgrd-resume-browser.png",
+      "bytes": 4859438,
+      "sha256": "abac8e2b92a4a305e4ce44652a15a39c81c4c6e01ac4b5d890ce24afa2b149ee",
+      "host_mtime_utc": "2026-10-28T05:54:59.867839+00:00"
+    },
+    {
+      "file": "wgrd-skirmish.png",
+      "bytes": 5538359,
+      "sha256": "f177290ebb2ff9aa9e15cc2ae9b057c51136fe18a13124de1662198d3a20c6a8",
+      "host_mtime_utc": "2026-10-28T05:41:45.609546+00:00"
+    },
+    {
+      "file": "wgrd-solo.png",
+      "bytes": 6126284,
+      "sha256": "2e923abea65927a5c28c8a3df4180df64fe688a538af0e0a1ffb9292c2fa79f5",
+      "host_mtime_utc": "2026-10-28T05:41:00.334621+00:00"
+    },
+    {
+      "file": "wgrd-surrender-prompt.png",
+      "bytes": 4019624,
+      "sha256": "f5467b2aa4d5ef5fa2c729c50d089a045b8cdbe686027b624f614994dbe4c39b",
+      "host_mtime_utc": "2026-10-28T05:48:53.912902+00:00"
+    },
+    {
+      "file": "wgrd-truck-placed.png",
+      "bytes": 10641363,
+      "sha256": "7dda124a56f1ae0cfa1b9524b69707200e78ae9632d68a7f0d8c5778ccd7460b",
+      "host_mtime_utc": "2026-10-28T05:45:51.761955+00:00"
+    },
+    {
+      "file": "wgrd-truck-select.png",
+      "bytes": 10610805,
+      "sha256": "81e007f81dc5daf199dea38c0705b4bdcc4f249b06ba04b819b42efcf05d8950",
+      "host_mtime_utc": "2026-10-28T05:45:17.403339+00:00"
+    },
+    {
+      "file": "wgrd-truck-selected-live.png",
+      "bytes": 10250262,
+      "sha256": "2ffe38679859b16c4e924cd501e24e9cc9f970e930693e8758e004a24a01e404",
+      "host_mtime_utc": "2026-10-28T05:47:22.718517+00:00"
+    }
+  ],
+  "commands": [
+    {
+      "frame": 0,
+      "slot": 0,
+      "chunk_offset": 1166,
+      "block_command_offset": 0,
+      "file_offset": 1196,
+      "opcode": "0x04",
+      "length": 25,
+      "decode_status": "layout"
+    },
+    {
+      "frame": 0,
+      "slot": 0,
+      "chunk_offset": 1166,
+      "block_command_offset": 25,
+      "file_offset": 1221,
+      "opcode": "0x04",
+      "length": 25,
+      "decode_status": "layout"
+    },
+    {
+      "frame": 1,
+      "slot": 0,
+      "chunk_offset": 1298,
+      "block_command_offset": 0,
+      "file_offset": 1328,
+      "opcode": "0x0d",
+      "length": 145,
+      "decode_status": "opaque"
+    },
+    {
+      "frame": 1,
+      "slot": 0,
+      "chunk_offset": 1298,
+      "block_command_offset": 145,
+      "file_offset": 1473,
+      "opcode": "0x0d",
+      "length": 145,
+      "decode_status": "opaque"
+    },
+    {
+      "frame": 1,
+      "slot": 0,
+      "chunk_offset": 1298,
+      "block_command_offset": 290,
+      "file_offset": 1618,
+      "opcode": "0x0e",
+      "length": 25,
+      "decode_status": "layout"
+    },
+    {
+      "frame": 7,
+      "slot": 0,
+      "chunk_offset": 2105,
+      "block_command_offset": 0,
+      "file_offset": 2135,
+      "opcode": "0x0e",
+      "length": 25,
+      "decode_status": "layout"
+    },
+    {
+      "frame": 885,
+      "slot": 0,
+      "chunk_offset": 74126,
+      "block_command_offset": 0,
+      "file_offset": 74156,
+      "opcode": "0x0d",
+      "length": 153,
+      "decode_status": "opaque"
+    },
+    {
+      "frame": 1060,
+      "slot": 0,
+      "chunk_offset": 88629,
+      "block_command_offset": 0,
+      "file_offset": 88659,
+      "opcode": "0x13",
+      "length": 13,
+      "decode_status": "layout"
+    },
+    {
+      "frame": 1352,
+      "slot": 0,
+      "chunk_offset": 112586,
+      "block_command_offset": 0,
+      "file_offset": 112616,
+      "opcode": "0x07",
+      "length": 91,
+      "decode_status": "layout"
+    },
+    {
+      "frame": 1638,
+      "slot": 0,
+      "chunk_offset": 136129,
+      "block_command_offset": 0,
+      "file_offset": 136159,
+      "opcode": "0x18",
+      "length": 10,
+      "decode_status": "layout",
+      "raw_fields": {
+        "obj_04_u32": 3221225609,
+        "obj_08_u32": 2,
+        "obj_0c_u8": 0
+      }
+    },
+    {
+      "frame": 1771,
+      "slot": 0,
+      "chunk_offset": 147045,
+      "block_command_offset": 0,
+      "file_offset": 147075,
+      "opcode": "0x18",
+      "length": 10,
+      "decode_status": "layout",
+      "raw_fields": {
+        "obj_04_u32": 3221225609,
+        "obj_08_u32": 2,
+        "obj_0c_u8": 1
+      }
+    },
+    {
+      "frame": 1783,
+      "slot": 0,
+      "chunk_offset": 148039,
+      "block_command_offset": 0,
+      "file_offset": 148069,
+      "opcode": "0x02",
+      "length": 22,
+      "decode_status": "layout"
+    }
+  ],
+  "helper_history": [
+    {
+      "version": "v1-left-click",
+      "file": "WgrdUi-v1.cs",
+      "sha256": "64e36d7eadf7d7ded45421028e6ead70ff22de7a012106cdd098b2d866465ea7"
+    },
+    {
+      "version": "v2-left-right-click",
+      "file": "WgrdUi.cs",
+      "sha256": "27d754195dc6f7ad701ede32b240e91f8e4fa35a5ff3768b71f5034c58f124df"
+    }
+  ],
+  "binary_evidence": {
+    "rea_pe_resources_evidence_id": "ev_5ccbb4fde44b7ed628a26ef4ec074f5887c1da7f8f4230ce956b7de09b235c3f",
+    "svn_revision_string_file_offset": "0x151ea00",
+    "svn_revision_string": "####SVNREVISION####0000131544####SVNREVISION####",
+    "version_resource_file_offset": 30031824,
+    "version_resource_bytes": 624,
+    "version_resource_sha256": "0c364371d1cb4156c54fc451bd0c2088ce3425f5f3799cbe68eb487740b86802",
+    "fixed_file_version": [
+      1,
+      0,
+      0,
+      1
+    ],
+    "fixed_product_version": [
+      1,
+      0,
+      0,
+      1
+    ]
+  }
+}

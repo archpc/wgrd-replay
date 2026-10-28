@@ -1,0 +1,118 @@
+{
+  "schema": "wgrd_external_regressions/1",
+  "artifact_root_env": "WGRD_ARTIFACTS_DIR",
+  "default_artifact_root": "~/.hermes/artifacts/wgrd-replay",
+  "scope": "No replay bytes or player identities. Structural fit is not a general semantic or execution guarantee. Configured TimeLimit is not match duration.",
+  "samples": [
+    {
+      "filename": "replay_2026-10-28_01-49-18.wargamerpl2",
+      "size": 148119,
+      "sha256": "1b060d2ab2e5501c6c8731fcb87ac0c7ac6dc4598387dcdb261ab8bb06bc8d70",
+      "game_version": "131544",
+      "map": "Destruction_2x3_Montagne_1",
+      "game_mode_raw": "0",
+      "frames": 1784,
+      "slots_per_frame": 1,
+      "declared_commands": 12,
+      "decoded_opcodes": {
+        "0x02": 1,
+        "0x04": 2,
+        "0x07": 1,
+        "0x0d": 3,
+        "0x0e": 2,
+        "0x13": 1,
+        "0x18": 2
+      },
+      "block_statuses": {
+        "complete": 7,
+        "framed": 2
+      },
+      "artifact_path": "current-build-20261028/raw/replay_2026-10-28_01-49-18.wargamerpl2",
+      "id": "controlled-131544",
+      "source": {
+        "kind": "controlled_offline_skirmish",
+        "steam_build_id": "15652829",
+        "internal_revision": "131544",
+        "game_reported_version": "v.24.09.10.131544",
+        "executable_sha256": "5eaa6d6168c9570ff9789bffb3b2cc16fd908be61263b12fcc1e8b2f09efc75d",
+        "displayed_battle_duration": "2 min. 24 sec."
+      }
+    },
+    {
+      "filename": "komachi.wargamerpl2",
+      "size": 1358077,
+      "sha256": "93953b293e65a69434b2a70d4edbd6e1ca7daf6f0683c196542411615ccdd2fd",
+      "game_version": "510061340",
+      "map": "Conquete_2x3_Gangjin",
+      "game_mode_raw": "1",
+      "frames": 9727,
+      "slots_per_frame": 2,
+      "declared_commands": 2711,
+      "decoded_opcodes": {
+        "0x04": 4,
+        "0x07": 2491,
+        "0x08": 11,
+        "0x0a": 28,
+        "0x0c": 19,
+        "0x0d": 111,
+        "0x0e": 4,
+        "0x13": 2,
+        "0x17": 37,
+        "0x18": 4
+      },
+      "block_statuses": {
+        "complete": 2389,
+        "framed": 110
+      },
+      "artifact_path": "historical-getuploader-20261028/komachi.wargamerpl2",
+      "id": "getuploader-218",
+      "source": {
+        "kind": "historical_public_archive",
+        "url": "https://uu.getuploader.com/wargame_ee/download/218",
+        "posted_raw": "2017/01/14 18:50:58",
+        "posted_timezone": "unknown",
+        "retrieved_utc": "2026-10-28T05:43:12.153843+00:00",
+        "site_md5": "a58d435813bf4dc86b9498bc106ce12e"
+      }
+    },
+    {
+      "filename": "replay_2017-10-14_23-19-39.wargamerpl2",
+      "size": 10642223,
+      "sha256": "7406065c11258bcc0e82663d229e4d4529c6da13e91ee5511673a580af389583",
+      "game_version": "510064564",
+      "map": "Destruction_5x3_Asgard_10v10",
+      "game_mode_raw": "1",
+      "frames": 14207,
+      "slots_per_frame": 20,
+      "declared_commands": 12126,
+      "decoded_opcodes": {
+        "0x02": 2,
+        "0x04": 40,
+        "0x07": 10555,
+        "0x08": 55,
+        "0x09": 3,
+        "0x0a": 52,
+        "0x0c": 83,
+        "0x0d": 1114,
+        "0x0e": 20,
+        "0x13": 4,
+        "0x17": 109,
+        "0x18": 89
+      },
+      "block_statuses": {
+        "complete": 10492,
+        "framed": 1092
+      },
+      "artifact_path": "historical-getuploader-20261028/replay_2017-10-14_23-19-39.wargamerpl2",
+      "id": "getuploader-219",
+      "source": {
+        "kind": "historical_public_archive",
+        "url": "https://uu.getuploader.com/wargame_ee/download/219",
+        "posted_raw": "2017/10/15 10:43:11",
+        "posted_timezone": "unknown",
+        "retrieved_utc": "2026-10-28T05:42:51.047787+00:00",
+        "site_md5": "a1fad321f462f2c83fb01b4806bc877a"
+      }
+    }
+  ]
+}

@@ -1,5 +1,13 @@
 # Research index: provenance map for wgrd-replay
 
+## Current-build experiment (2026-10-28)
+
+[Comprehensive controlled-experiment report](current-build/2026-10-28-controlled-experiment.md): Steam build 15652829, internal revision 131544, actual launched executable identity; black Parallels capture versus working guest GDI; portable C# input/capture helper and exact initial version; offline Death Row recording and completed playback; sample-specific fuel-toggle corroboration; replay/battle time-base distinction; two additional historical archive sources; regression runner and validation.
+
+Evidence: [screenshot hashes and controlled command locations](current-build/2026-10-28-evidence.json), [external regression manifest](../samples/cross-build-manifest.json), [helper](current-build/tools/WgrdUi.cs), [initial helper](current-build/history/WgrdUi-v1.cs), and tests/test_cross_build_corpus.py. [The Oshkosh Incident gallery](current-build/README.md) includes curated screenshots and links the complete versioned screenshot archive. Replay bytes and private player metadata remain external.
+
+Dated correction to the historical sections below: ground-truth work is no longer wholly absent, and the earlier acquisition/launch blockers in GROUND-TRUTH-PREREQUISITES.md are superseded for this experiment. Only the specific observed relationships in the new report are corroborated; this does not promote all historical or current-build semantics to verified. Prior notes and evidence are retained unchanged.
+
 Purpose: locate the original investigation, evidence, reproduction script and
 tests behind every current technical claim. Organized by subject and
 dependency, not alphabetically. Historical notes are archival: they are not

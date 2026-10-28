@@ -4,7 +4,23 @@ Offline, stdlib-only decoder for Wargame: Red Dragon replay files (`.wargamerpl2
 
 It parses the `ESAV` container, verifies the SHA-224 digest, walks the `star` / `pact` / `endt` frame stream, and splits command blocks into opcode-level commands. Unknown or unsupported data is kept as raw hex. Nothing is guessed or silently skipped. Malformed input raises `ReplayFormatError`.
 
-## Status
+## Current-build milestone (2026-10-28)
+
+A controlled offline replay from internal revision **131544** (Steam build **15652829**) was recorded, decoded, and played back to completion. Two newly acquired historical recordings (Versions 510061340 and 510064564) also passed structural and timeline checks. This is sample-specific compatibility, not a guarantee for every current-build replay.
+
+The full investigation, Windows GDI capture workaround, helper development history, chronology, fuel-toggle observations, hashes, limitations, and reproduction commands are in [the controlled experiment report](research/current-build/2026-10-28-controlled-experiment.md). Browse [The Oshkosh Incident visual archive](research/current-build/README.md) for curated screenshots and the complete versioned screenshot release. Replay bytes and private session data remain outside Git. General non-59638 semantics remain inferred and execution outcomes remain unknown.
+
+Read-only corpus inventory and regression checks:
+
+    python3 -B wgrd_corpus.py /path/to/replays > /path/to/private-inventory.json
+    python3 -B wgrd_corpus.py /path/to/replays --expect /path/to/private-inventory.json
+    python3 -B wgrd_corpus.py /path/to/replays --headers-only
+
+Reports can contain player metadata and absolute source paths. Keep them private. Exit 1 means a failed/unsupported file or baseline mismatch; exit 2 means invalid invocation or no files found. Header-only mode does not claim command compatibility.
+
+## Original three-sample baseline (historical checkpoint)
+
+The following counts and source limits describe the original corpus, not the expanded milestone above.
 
 - Container, digest, and frame framing: verified on all 3 samples.
 - Command splitting: 594/594 multi-command blocks split with exact count and EOF.
@@ -24,7 +40,7 @@ Default output is JSON with the header, metadata, and per-pact command decode. `
 
     python3 -m unittest discover -s tests -q
 
-129 tests pass (1 skipped without the cached public unit snapshot). Corpus and executable-backed tests skip when the replay samples or WarGame3.exe are not present locally; `WGRD_SAMPLES_DIR` and `WGRD_EXE_59638` override the default paths.
+The 2026-10-28 local run executed 139 tests with no skips. New cross-build tests use `WGRD_ARTIFACTS_DIR` and skip explicitly when their external files are absent; altered files fail. Existing sample/executable tests retain their original prerequisites (`WGRD_SAMPLES_DIR`, `WGRD_EXE_59638`, and optional `WGRD_UNIT_DATA`). See the experiment report for exact verification results and baseline warnings.
 
 ## Reproducing research findings
 
@@ -54,7 +70,7 @@ The 2026-10-26 research notes under `research/` name their artifacts (build, SHA
 
 ## Next milestone
 
-Ground-truth validation: record a scripted match on the Parallels Windows guest (game build 59638 binary and NDF verified present) and compare decoded commands against the action log. Prerequisites, blockers and protocol: `research/GROUND-TRUTH-PREREQUISITES.md`. Until then no semantic claim in this repository has been checked against observed gameplay.
+The first controlled current-build recording and playback are complete. Broader validation remains open: movement outcomes, coordinate mapping, markers, production changes, cancellations, and a general frame-to-seconds mapping. The current evidence and limits are in the controlled experiment report above; `research/GROUND-TRUTH-PREREQUISITES.md` remains a historical prerequisite record.
 
 ## Not included
 
