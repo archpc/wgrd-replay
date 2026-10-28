@@ -6,6 +6,30 @@ The decoder has two deliberate boundaries: exact byte parsing, then qualified
 interpretation. Static unit data can enrich the latter; it cannot reconstruct a
 running game. `wgrd_corpus.py` checks collections using both layers.
 
+## Change guide
+
+Start with the code and tests for the behavior you want to change. Routine fixes
+and refactors do not require reading the research archive. Use [FORMAT.md](../FORMAT.md)
+when changing accepted bytes or field meaning; follow the evidence links only
+when the change depends on a claim that needs investigation.
+
+| Change | Owning entry points | Start testing with |
+|---|---|---|
+| Header, chunks, frames or command boundaries | `wgrd_replay.parse_header`, `parse_replay`, `decode_command_block` | `tests/test_wgrd_replay.py`, `tests/test_header_metadata.py`, opcode decoder tests |
+| Timeline shape, ordering or source offsets | `wgrd_timeline.build_timeline` | `tests/test_timeline.py` |
+| Standard-order interpretation | `wgrd_orders.decode_standard_order` | `tests/test_orders.py` |
+| Production interpretation | `wgrd_production.decode_production_action`, `decode_change_production` | `tests/test_production.py`, `tests/test_timeline_0c.py` |
+| References and supply attribution | `wgrd_entities.build_reference_catalog`, `attribute_supply_requests` | `tests/test_entities.py`, `tests/test_timeline_0x18.py` |
+| Static unit data | `wgrd_unit_data.load_unit_data`, `wgrd_unit_index.load_index` | `tests/test_unit_data.py`, `tests/test_unit_index.py` |
+| Corpus compatibility | `wgrd_corpus.inventory` | `tests/test_corpus.py`, `tests/test_cross_build_corpus.py` |
+| CI and documentation checks | `scripts/`, `.github/workflows/ci.yml` | `tests/test_ci_checks.py` |
+
+For example, to change timeline ordering, read `build_timeline`, run
+`python3 -B -m unittest discover -s tests -p 'test_timeline.py' -v`, and add a case
+that demonstrates the intended behavior. Then run the [full checks](../CONTRIBUTING.md#test-and-verify).
+Consult the archive if you need to establish what a command means; it is not part
+of this ordinary edit/test loop.
+
 ```mermaid
 flowchart TD
     A["Replay bytes"] --> B["Header, chunks and frames"]
@@ -18,62 +42,6 @@ flowchart TD
 ```
 
 A timeline describes serialized requests. The simulation is conspicuously absent.
-
-## Evidence conventions
-
-This is the documentation's authoritative reading guide for classifications.
-[AGENTS.md](../AGENTS.md) specifies the operational evidence requirements;
-historical notes retain the vocabulary they originally used.
-
-### Structure, confidence and meaning are separate
-
-| Question | Values | Scope |
-|---|---|---|
-| Did a block consume its declared commands and bytes? | `complete`, `framed`, `unresolved`, `malformed` | Parser block result; defined in section 1 |
-| Did this command expose fields or just a boundary? | `layout`, `opaque`; event-only `unknown`, `unresolved_boundary` | Per-command `field_decode_status`, exported as event `decode_status`; unknown single tails have a boundary, multi-command placeholders share an unresolved span |
-| Does the replay match the layout's source build? | `matching_build`, `inferred_build_59638` | Timeline `layout_status`, independent of semantic confidence |
-| What meaning is supported? | `verified`, `partial`, `inferred`, `unknown` | Event `interpretation.status`; defined in section 2 |
-| How well is a research claim supported? | Uppercase documentation labels below | A specific claim and its evidence, not an output field |
-
-`complete` means the bytes add up. It says nothing about whether the interpretation
-is right. `opaque` is a structural label, never an interpretation confidence.
-
-### Documentation confidence labels
-
-Use **confirmed** for a claim directly reproduced within its stated build/sample
-scope, **inferred** for an extrapolation, and **unknown** for what has not been
-determined. A confirmed field width can still have unknown meaning.
-
-Historical references retain **VERIFIED**, **CONFIRMED**, **STRONGLY SUPPORTED**,
-**TENTATIVE** and **UNRESOLVED** where their distinctions matter. Do not mechanically
-merge them: strongly supported observations can lack a directly reproduced step,
-and tentative meanings are hypotheses. The [research index](../research/INDEX.md)
-defines its archival S/T/E/N/G/X evidence-type codes.
-
-These prose labels do not rename parser/runtime statuses. In particular,
-`interpretation.status` retains `verified`, `partial`, `inferred` and `unknown`.
-“Ground-truth verified” is a bounded UI/recording observation, not an automatic
-upgrade to exported `verified`.
-
-### Read and write a claim
-
-Keep **observation** (bytes, control flow, sample values) separate from
-**interpretation** (names, roles, gameplay meaning). Identify the executable build
-and SHA-256; for code claims, cite VA and file offset, excerpt or evidence record.
-For samples, cite manifest identity and SHA-256, reproduction command and relevant
-test results. The historical 59638 `.text` conversion is
-`file offset = VA − 0x401000 + 0x400`; it is not a general PE conversion rule.
-
-Use neutral object-offset field names until evidence supports an added semantic
-name. Label uncertainty where the claim appears. Retain raw values, negative
-results and conflicting observations. A digest proves internal integrity; the
-sample manifest pins input identity and provenance, without proving the recording
-itself genuine.
-
-**Historical vs. current:** code is the authority for implemented behavior;
-current references describe that behavior and cite research. Dated notes preserve
-what was known then. Corrections belong in a dated addendum or the current
-reference with a link back. [NEXT-STEPS.md](../NEXT-STEPS.md) owns priorities.
 
 ## 1. Container and command split (`wgrd_replay.py`)
 
@@ -210,8 +178,64 @@ correction; an old note does not override the current code.
 ## Development checks
 
 [CONTRIBUTING.md](../CONTRIBUTING.md) owns setup, fixture requirements and CI commands.
-The portable preservation check verifies historical records, archived evidence
-copies and the cow; it does not freeze all implementation files. Historical
+The portable preservation check verifies archived source copies and the cow.
+Maintained code and notes use regression tests, normal review and Git history. Historical
 verifiers remain available for reproducing the original audits. The
 [maintenance review](DEVELOPMENT-REVIEW.md#repository-rationalization-2026-10-28)
-explains the three exact accepted script revisions and preservation boundaries.
+explains the retired blanket freeze and current preservation boundaries.
+
+## Evidence conventions
+
+This is the documentation's authoritative reading guide for classifications.
+[AGENTS.md](../AGENTS.md) specifies the operational evidence requirements;
+historical notes retain the vocabulary they originally used.
+
+### Structure, confidence and meaning are separate
+
+| Question | Values | Scope |
+|---|---|---|
+| Did a block consume its declared commands and bytes? | `complete`, `framed`, `unresolved`, `malformed` | Parser block result; defined in section 1 |
+| Did this command expose fields or just a boundary? | `layout`, `opaque`; event-only `unknown`, `unresolved_boundary` | Per-command `field_decode_status`, exported as event `decode_status`; unknown single tails have a boundary, multi-command placeholders share an unresolved span |
+| Does the replay match the layout's source build? | `matching_build`, `inferred_build_59638` | Timeline `layout_status`, independent of semantic confidence |
+| What meaning is supported? | `verified`, `partial`, `inferred`, `unknown` | Event `interpretation.status`; defined in section 2 |
+| How well is a research claim supported? | Uppercase documentation labels below | A specific claim and its evidence, not an output field |
+
+`complete` means the bytes add up. It says nothing about whether the interpretation
+is right. `opaque` is a structural label, never an interpretation confidence.
+
+### Documentation confidence labels
+
+Use **confirmed** for a claim directly reproduced within its stated build/sample
+scope, **inferred** for an extrapolation, and **unknown** for what has not been
+determined. A confirmed field width can still have unknown meaning.
+
+Historical references retain **VERIFIED**, **CONFIRMED**, **STRONGLY SUPPORTED**,
+**TENTATIVE** and **UNRESOLVED** where their distinctions matter. Do not mechanically
+merge them: strongly supported observations can lack a directly reproduced step,
+and tentative meanings are hypotheses. The [research index](../research/INDEX.md)
+defines its archival S/T/E/N/G/X evidence-type codes.
+
+These prose labels do not rename parser/runtime statuses. In particular,
+`interpretation.status` retains `verified`, `partial`, `inferred` and `unknown`.
+“Ground-truth verified” is a bounded UI/recording observation, not an automatic
+upgrade to exported `verified`.
+
+### Read and write a claim
+
+Keep **observation** (bytes, control flow, sample values) separate from
+**interpretation** (names, roles, gameplay meaning). Identify the executable build
+and SHA-256; for code claims, cite VA and file offset, excerpt or evidence record.
+For samples, cite manifest identity and SHA-256, reproduction command and relevant
+test results. The historical 59638 `.text` conversion is
+`file offset = VA − 0x401000 + 0x400`; it is not a general PE conversion rule.
+
+Use neutral object-offset field names until evidence supports an added semantic
+name. Label uncertainty where the claim appears. Retain raw values, negative
+results and conflicting observations. A digest proves internal integrity; the
+sample manifest pins input identity and provenance, without proving the recording
+itself genuine.
+
+**Historical vs. current:** code is the authority for implemented behavior;
+current references describe that behavior and cite research. Dated notes preserve
+what was known then. Corrections belong in a dated addendum or the current
+reference with a link back. [NEXT-STEPS.md](../NEXT-STEPS.md) owns priorities.

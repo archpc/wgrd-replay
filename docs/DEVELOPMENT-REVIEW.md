@@ -178,7 +178,10 @@ publication and broad maintenance discretion, preserving APIs, evidence and the 
   static enrichment already have different invariants. A package rewrite adds risk
   without a demonstrated benefit. Consolidate only duplicate non-finite JSON
   conversion in `wgrd_replay.json_safe`; retain the former private helper names.
-- Keep the byte maps and research evidence. Shorten the normal reading path:
+- Put the module/test change guide before evidence taxonomy. Routine maintenance
+  starts with the owning code and tests; research reading is conditional on needing
+  new format knowledge. Replace the long agent checklist with the same practical
+  path. Keep the byte maps and research evidence. Shorten the normal reading path:
   README for entry points, FORMAT for wire layouts, architecture for invariants,
   CONTRIBUTING for checks. Move the previous full roadmap into
   [a dated archive](../research/NEXT-STEPS-2026-10-28.md), with source identity;
@@ -195,42 +198,32 @@ publication and broad maintenance discretion, preserving APIs, evidence and the 
   public data, and explicit absent-private-artifact skips. Detect tracked writes
   across the whole repository after each job, instead of only two path scopes.
 
-### Preservation discrepancy: exact resolution
+### Preservation policy: preserve sources, allow maintenance
 
-Neither original manifest nor its historical verifier was changed or regenerated.
-The historical verifier still reports the three original mismatches. The current
-portable checker pins both manifest files themselves, checks every historical
-entry (including existence for mutable documents), authenticates all `copied_to`
-archive records in the work-artifact inventory, and hashes the cow comment block.
-It does not require private or regenerable `work/` outputs to exist in CI.
+The first version of this PR retained the historical hash freeze and added exact
+exceptions. The owner asked to loosen preservation because it obstructed useful
+work. That machinery is now removed: no manifest hash pins, script-revision
+allowlist or blanket freeze on research notes and code.
 
-The only accepted historical script revisions are the exact files introduced by
-[24a1f5c](https://github.com/archpc/wgrd-replay/commit/24a1f5c61b540ed17b4ad0b77871ec1b5760e934).
-Inspection against baseline `681d8ee7ff61856503c8e915be44f328cdd14f08` shows only
-`Path` imports and substitutions of `open(path, "rb").read()` with
-`Path(path).read_bytes()` (two substitutions in the first script, one each in the
-others). This closes file handles deterministically; byte inputs, parsing and
-analysis logic are unchanged. These are runnable reproduction scripts, not raw
-captured evidence. Accepting these specific bytes preserves the findings without
-requiring implementation immutability or a broad path exemption.
+CI checks archived source copies against the existing work-artifact inventory,
+and protects the cow. Maintained scripts and documentation rely on ordinary diff
+review, regression tests and Git history. Intentional inventory updates use the
+same review process; there is no separate preservation approval flow. Original
+observations should remain recoverable when a finding is corrected.
 
-| Script | Original SHA-256 (unchanged manifest) | Accepted SHA-256 |
-|---|---|---|
-| `research/op0c_layout.py` | `cc51c6600cfa426063919ac7dfc338b9eab242c9aa05f901a0f7018c3d3bf8bd` | `c23f4163d451b33dbd4579530b8a9402ed113d0df39183a4aac43f0d38cbbce0` |
-| `research/op18_reference_keys.py` | `af521a5c088fab63bd90c0e8e42a6532193eb10749e3b83ffb58fb89636bbc4c` | `8150fa93f9b1da6b53cfd690bbb7faea98d3059cf51dd5cf402c6c47c94899ee` |
-| `research/op18_supply_targets.py` | `c335d665503266b94fe9b29cf1492151635843465f21e4b2692fd92b2c440ea5` | `ec73dc092b2478752738e2957859715b83d3b537a8a431a3e0b5000cac390ee7` |
+Both historical manifests and verifiers remain unchanged as optional audit
+records. Their three script mismatches trace to
+[24a1f5c](https://github.com/archpc/wgrd-replay/commit/24a1f5c61b540ed17b4ad0b77871ec1b5760e934):
+`Path` imports and `read_bytes()` replaced unclosed file reads in
+`research/op0c_layout.py`, `research/op18_reference_keys.py` and
+`research/op18_supply_targets.py`. Diff review and historical/current result
+comparisons found no analysis changes. This is an example of legitimate
+maintenance the old blanket freeze should not block. Reproduce with
+`git diff 681d8ee 24a1f5c --` followed by those paths.
 
-Reproduce the change review with `git diff 681d8ee 24a1f5c --` followed by the
-three paths. Run `python3 -B scripts/check_preservation.py` for the current gate;
-use the historical verifier for the original snapshot result. Further changed
-script bytes fail. Corruption tests cover both manifests, reviewed scripts,
-archived evidence, missing records and cow edits. Future accepted revisions need
-an explicit review of evidence and behavior, not a baseline refresh.
-
-The full historical records remain recoverable at their existing paths. No
-research scripts, evidence, byte maps, generated coverage or sample manifests
-were removed. The deleted prose exceptions contained CI false-positive handling,
-not binary findings; Git history retains them.
+No evidence, byte maps, coverage or sample manifests were removed. The full
+previous roadmap is archived with provenance. The deleted prose exceptions were
+CI false-positive handling, not binary findings.
 
 ### Validation of this change
 
@@ -247,7 +240,7 @@ not binary findings; Git history retains them.
   parser dictionaries, timeline/enriched dictionaries, and five CLI modes per
   replay (default, summary, timeline, timeline summary, enriched timeline).
   Canonical API JSON hashes and CLI byte hashes were identical.
-- The three accepted research-script revisions were loaded alongside their
+- The three historically changed research scripts were loaded alongside their
   `681d8ee` sources and compared on all original authenticated samples. Analysis
   results matched; `op0c_layout.main` stdout/return status also matched using the
   SHA-256-verified 59638 executable. No executable was run.
@@ -257,7 +250,7 @@ not binary findings; Git history retains them.
   diagnostic reported 46 findings before and after, with identical source/target
   pairs; these depend on external/local paths and are not 46 broken hyperlinks.
 - Historical preservation still reports exactly three script mismatches, by
-  design. The local-only work inventory reports 439 missing entries in scratch;
+  the retired snapshot policy. The local-only work inventory reports 439 missing entries in scratch;
   these were not copied merely to satisfy an audit. Its 71 committed archive
   copies are authenticated by the portable gate. Both historical manifests and
   verifiers, all evidence bytes and the entire orders module remain unchanged.
@@ -265,5 +258,5 @@ not binary findings; Git history retains them.
 The active README/CONTRIBUTING/NEXT-STEPS path is shorter; archival text remains
 accessible through explicit links. No package rewrite, third-party runtime
 requirement, new evidence taxonomy or generated coverage baseline was introduced.
-The preservation gate remains an accidental-change check, not a security boundary
-against someone editing both the checker and its expected hashes in one PR.
+The archive check detects accidental loss or edits; Git review evaluates intentional
+changes. It is not an immutable-history or security mechanism.
