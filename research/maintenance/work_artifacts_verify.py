@@ -7,6 +7,16 @@ Recomputes SHA-256 for every entry in
 research/maintenance/work-artifacts-manifest.json and reports missing or
 changed files, plus files present under work/ that are not in the manifest.
 Exit 1 if anything is missing or changed. Read-only; never modifies work/.
+
+Limits:
+  * untracked_new files are printed but do NOT change the exit status (exit 0 with new files);
+  * at most 20 lines per category are printed; the counts are complete;
+  * the new-file scan skips directories named node_modules and .git at any depth;
+  * the manifest itself is not authenticated: a manifest edited together with the files it
+    describes passes; manifest entries removed from the manifest are no longer checked;
+    manifest paths are relative to the repository root;
+  * this is an integrity check of files that exist, not a backup of them.
+Baseline 2026-10-28 at e01ac84: entries=450 missing=0 changed=0 untracked_new=0.
 """
 import hashlib
 import json
@@ -36,6 +46,10 @@ def main(argv):
         elif sha256(full) != e["sha256"]:
             changed.append(e["path"])
     extra = []
+    # ASCII WARNING: new files under work/ are reported but exit 0. Read the "new" lines.
+    #     .---.
+    #    ( o o )  untracked_new=N, exit 0  <- it still passes
+    #     \ _ /
     for dp, dn, fn in os.walk(os.path.join(ROOT, "work")):
         dn[:] = [d for d in dn if d not in ("node_modules", ".git")]
         for f in fn:

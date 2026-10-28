@@ -1,7 +1,14 @@
 """Hash-pinned external replays: one current recording and two historical sources.
 
-No replay bytes in Git. WGRD_ARTIFACTS_DIR overrides the local artifact root.
-Missing external files skip explicitly; altered files fail.
+No replay bytes in Git. WGRD_ARTIFACTS_DIR overrides the local artifact root (default
+~/.hermes/artifacts/wgrd-replay). Expected values come from samples/cross-build-manifest.json
+(the sample's "id" is the lookup key). Per-sample behaviour:
+  * file missing      -> skipTest (reported as SKIPPED, never as a pass);
+  * file present, SHA-256 or size differs -> test FAILS (altered evidence, not a skip);
+  * otherwise selected manifest fields must match and the timeline must have one event per
+    declared command with zero unresolved spans.
+Build labels: the 131544 recording and the two historical archives are all
+"inferred_from_59638" for layout purposes; none is verified against build 59638.
 """
 import hashlib
 import json
@@ -20,6 +27,12 @@ ARTIFACTS = Path(os.environ.get("WGRD_ARTIFACTS_DIR", "~/.hermes/artifacts/wgrd-
 
 class CrossBuildCorpus(unittest.TestCase):
     def check_sample(self, sample_id):
+        """Verify one manifest sample and return its parsed structure for further assertions.
+
+        The missing-file skip happens before any hash check, so a run with no artifacts reports
+        every test here as skipped. Counts are the decoder's output compared with the values
+        recorded in the manifest, so a decoder regression fails the test.
+        """
         expected = next(s for s in MANIFEST["samples"] if s["id"] == sample_id)
         path = ARTIFACTS / expected["artifact_path"]
         if not path.is_file():
@@ -44,23 +57,37 @@ class CrossBuildCorpus(unittest.TestCase):
         return parse_replay(data)
 
     def test_current_131544_recording_and_observed_fuel_pair(self):
+        """Sample-specific recording observation, not a general 0x18 semantic.
+
+        Two 0x18 events corroborate the observed Oshkosh Fuel OFF then ON toggles in this
+        recording, not a general causal mapping. Tuple fields are RAW: obj_04_u32 is 3221225609 (0xC0000089,
+        an opaque registry key), obj_08_u32 is raw value 2, and obj_0c_u8 carries the final-byte
+        values 0 then 1. None of these is a confirmed meaning. The loop below forbids promotion:
+        each event in this recording must be "inferred" or "unknown" and never
+        "verified"/"partial"; execution_outcome, when present, must stay "unknown".
+        """
         parsed = self.check_sample("controlled-131544")
         timeline = build_timeline(parsed)
         toggles = [e for e in timeline["events"] if e["opcode"] == 0x18]
         self.assertEqual([(e["frame"], e["parameters"]["obj_04_u32"],
                            e["parameters"]["obj_08_u32"], e["parameters"]["obj_0c_u8"])
                           for e in toggles], [(1638, 3221225609, 2, 0), (1771, 3221225609, 2, 1)])
-        # Recording observations are sample-specific; the general decoder must
-        # not promote all non-59638 actions or assert execution success.
+        # ASCII WARNING: an interpretation promoted for a non-59638 replay is silent evidence
+        # inflation. This loop guards the controlled recording against it.
+        #   ,---.
+        #   |o_o|  promoted to "verified"? -> this test must fail
+        #   |_^_|
         for event in timeline["events"]:
             self.assertIn(event["interpretation"]["status"], ("inferred", "unknown"))
             self.assertEqual(event["interpretation"].get("execution_outcome", "unknown"), "unknown")
         self.assertEqual(parsed["metadata"]["game"]["IsNetworkMode"], "0")
 
     def test_historical_archive_218(self):
+        """Historical 510061340: structural fit, not a verified build-specific layout."""
         self.check_sample("getuploader-218")
 
     def test_historical_archive_219(self):
+        """Historical 510064564: structural fit, not a verified build-specific layout."""
         self.check_sample("getuploader-219")
 
 

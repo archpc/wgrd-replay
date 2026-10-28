@@ -97,6 +97,10 @@ def _derive(nodes):
             add_unit(key)
             descriptors[guid]['candidates'].append({'unit_type_id': key, 'relation': 'direct',
                 'path': [key], 'selector_filters': [], 'conditions_evaluated': False})
+        # Path: unit -> CompanyUnit slot -> (selector -> Default) -> module ->
+        # CompanyDescriptor. Selector conditions are recorded but never evaluated
+        # (conditions_evaluated False), so these are configured candidates, not
+        # active modules or live members.
         for slot in p.get('Modules', []):
             if slot['key'] != 'CompanyUnit': raise ValueError('unexpected projected module slot')
             path = [key]; mid, module = resolve(slot['value']); path.append(mid); filters = []
@@ -135,6 +139,8 @@ def export_index(objects, source, names=None, localization=None):
             props = {k: v for k, v in props.items() if k in
                      ('DescriptorId', 'ClassNameForDebug', 'AliasName', 'NameInMenuToken')}
             props['Modules'] = [copy.deepcopy(s) for s in obj['properties'].get('Modules', []) if s['key'] == 'CompanyUnit']
+        # +40 is applied by this exporter to the source object offset. Its origin
+        # is not documented in the files reviewed for this comment pass.
         nodes[key] = {'class': obj['class'], 'class_id': obj['class_id'],
                       'file_offset': obj['offset']+40, 'properties': props}
         for ref in _refs(props): include(str(ref['ref_index']))
@@ -199,11 +205,14 @@ def enrich_index(catalog, data, replay_version):
             for path in desc['candidates']:
                 unit = copy.deepcopy(index['unit_types'][path['unit_type_id']])
                 names = copy.deepcopy(index['names'].get(unit['name_token'], []))
+                # Several dictionary records for one token: keep all, name stays None.
                 unit.update(localized_name=names[0]['text'] if len(names) == 1 else None,
                             name_status='localized' if len(names) == 1 else 'ambiguous' if names else 'missing',
                             name_candidates=names, provenance=copy.deepcopy(path))
                 candidates.append(unit)
                 for key in path['path']+path['selector_filters']: include(key)
+        # !! TRAP: unique means one configured static candidate. It is not an
+        # !! accepted runtime unit, a company member, or proof of ownership.
         status = 'missing' if not candidates else 'unique' if len(candidates) == 1 else 'ambiguous'
         counts[status] += 1
         entry['configured_unit_types'] = {'status': status, 'evidence_status': evidence,

@@ -101,6 +101,7 @@ class AuthenticPublicData(unittest.TestCase):
         public = Path(os.environ.get('WGRD_UNIT_DATA',str(ROOT/'work/public-units/wargame-data')))
         if not public.exists(): self.skipTest('pinned public snapshot not cached; set WGRD_UNIT_DATA')
         data=load_unit_data(public)
+        # NOTE: the public-snapshot skip above does not cover samples; absent samples raise FileNotFoundError.
         samples=Path(os.environ.get('WGRD_SAMPLES_DIR',str(Path.home()/'.hermes/artifacts/wgrd-replay/samples/raw')))
         for sample,n,names in zip(json.loads((ROOT/'samples/manifest.json').read_text())['samples'],[285,41,400],[1,0,3]):
             parsed=parse_replay((samples/sample['file']).read_bytes()); before=copy.deepcopy(parsed)

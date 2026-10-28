@@ -81,6 +81,7 @@ class EntityReferences(unittest.TestCase):
 class AuthenticEntityCatalog(unittest.TestCase):
     def test_all_samples_reference_counts_and_links(self):
         root = Path(__file__).resolve().parents[1]
+        # NOTE: no skip guard. Absent samples raise FileNotFoundError (error, not skip); see AGENTS.md section 9.
         samples = Path(os.environ.get('WGRD_SAMPLES_DIR', str(Path.home()/'.hermes/artifacts/wgrd-replay/samples/raw')))
         manifest = json.loads((root/'samples/manifest.json').read_text())
         for sample, count, guids, occurrences in zip(manifest['samples'], [285,41,400], [103,29,181], [4552,136,8968]):

@@ -117,6 +117,7 @@ class AuthenticOrders(unittest.TestCase):
     def test_all_10461_order_requests_and_raw_fields(self):
         root = Path(__file__).resolve().parents[1]
         manifest = json.loads((root / 'samples/manifest.json').read_text())
+        # NOTE: no skip guard. Absent samples raise FileNotFoundError (error, not skip); see AGENTS.md section 9.
         samples = Path(os.environ.get('WGRD_SAMPLES_DIR', str(Path.home() / '.hermes/artifacts/wgrd-replay/samples/raw')))
         expected = [(3794, 476, 3318), (86, 31, 55), (6581, 1321, 5260)]
         for sample, (total, explicit, contextual) in zip(manifest['samples'], expected):

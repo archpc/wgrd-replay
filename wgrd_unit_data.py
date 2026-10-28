@@ -28,7 +28,11 @@ EVIDENCE = [
 
 
 def ndf_guid_hex(text):
-    """.NET XML/CSV GUID text -> exact serialized16 bytes, mixed-endian fields."""
+    """.NET XML/CSV GUID text -> exact serialized16 bytes, mixed-endian fields.
+
+    uuid.bytes_le gives the serialized16 order used by the replay's 16-byte
+    block. The match is exact-byte; no rearrangement or arithmetic is applied.
+    """
     if not isinstance(text, str) or not re.fullmatch(r'[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}', text):
         raise ReplayFormatError('invalid NDF GUID text')
     return uuid.UUID(text).bytes_le.hex()
@@ -98,7 +102,7 @@ def descriptor_index(unit_xml, descriptor_xml, selector_xml, card_csv):
 
 
 def load_unit_data(directory):
-    """Load a versioned59638 index file or pinned public58710 directory. Offline."""
+    """Load a versioned 59638 index file or pinned public58710 directory. Offline."""
     if Path(directory).is_file():
         from wgrd_unit_index import load_index
         return load_index(directory)
@@ -123,6 +127,9 @@ def enrich_references(catalog, unit_data, replay_version):
     if 'index' in unit_data:
         from wgrd_unit_index import enrich_index
         return enrich_index(catalog, unit_data, replay_version)
+    # !! TRAP: 58710 matches are GUID-only, and that dataset differs from every
+    # !! sample build. A cross-version match does not verify names, capabilities
+    # !! or module values for the replay build.
     source = unit_data['source']; matched = 0
     for entry in catalog['entries']:
         desc = unit_data['descriptors'].get(entry['validation_guid_hex'])

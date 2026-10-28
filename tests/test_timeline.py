@@ -154,6 +154,7 @@ class AuthenticTimeline(unittest.TestCase):
     def test_all_samples_count_bytes_order_and_semantic_coverage(self):
         root = Path(__file__).resolve().parents[1]
         manifest = json.loads((root / "samples/manifest.json").read_text())
+        # NOTE: no skip guard. Absent samples raise FileNotFoundError (error, not skip); see AGENTS.md section 9.
         samples = Path(os.environ.get("WGRD_SAMPLES_DIR", str(Path.home() / ".hermes/artifacts/wgrd-replay/samples/raw")))
         expected = [(4162, 769, 3350, 233, 0), (132, 0, 0, 24, 0), (7271, 1851, 5313, 257, 0)]
         for sample, (count, verified, partial, opaque, unknown) in zip(manifest["samples"], expected):

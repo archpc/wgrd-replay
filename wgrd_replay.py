@@ -4,6 +4,18 @@ Scope: only structures verified against authentic samples (see FORMAT.md).
 Stdlib only, offline, deterministic. Any structural violation raises
 ReplayFormatError; nothing is guessed or silently skipped. Unknown records
 and undecoded command blocks are preserved as raw hex.
+
+Byte order and offsets (as the code below implements them):
+  - ESAV header and every chunk header: big-endian (struct ">").
+  - Chunk payloads, pact headers and command blocks: little-endian ("<").
+  - Reported "offset" values are absolute file offsets for chunks and
+    frame-level records; command "offset" values are relative to their block.
+Integrity: SHA-224 over file[0x28:EOF] is checked after the structural walk.
+parse_replay(verify_digest=False) (CLI --no-verify-digest) does not reject a
+digest mismatch; digest_valid still reports the comparison result.
+Unknown chunk tags are preserved in unknown_chunks. There is no opcode
+scanning or resynchronisation: a command is split only where its creator-proven
+reads say it ends.
 """
 from __future__ import annotations
 
@@ -14,13 +26,23 @@ import math
 import struct
 import sys
 
+# Container constants (FORMAT.md section 1). Header fields are big-endian.
 MAGIC = b"ESAV"
+# Strict policy: exact match. The executable accepts <= 1 (FUN_010b9300).
 SUPPORTED_CONTAINER_VERSIONS = {1}
+# Fixed header size; the JSON metadata starts here and runs for its declared length.
 HEADER_SIZE = 0x38
+# SHA-224 is stored at 0x0C..0x28 and covers file[0x28:EOF], starting at the rply chunk.
 DIGEST_START = 0x28
+# Chunk header: tag (4) | field A u32 BE | payload length u32 BE | field B u32 BE.
 CHUNK_HEADER_SIZE = 16
+# Currently unused: parse_replay dispatches on the literal tags, and any other tag
+# (including cmpg, which the executable handles but no sample contains) goes to
+# unknown_chunks. Kept as documentation of the tags the walk recognises.
 KNOWN_TAGS = (b"star", b"pact", b"endt")
 # Observed in every sample: command player handle == 0xC000001E + pact slot.
+# Verified for opcode 0x08 (226/226) per FORMAT.md section 5. Used only to report
+# handle_matches_slot; it never rejects a block.
 HANDLE_BASE = 0xC000001E
 # Opcode -> action class, build 59638. Source: dispatcher FUN_00b24050 (movzx opcode;
 # sub 2; cmp 0x20; jmp [eax*4+0xb241f4]); each case calls a creator whose body installs
@@ -57,6 +79,13 @@ def _u32be(b, o):
 
 
 def parse_header(b):
+    """Validate the fixed ESAV header and return (header_dict, metadata).
+
+    Layout (big-endian): magic 0x00, container version 0x04, declared size 0x08,
+    SHA-224 0x0C..0x28, rply chunk header at 0x28 (its reserved field A at 0x2C,
+    length at 0x30, reserved field B at 0x34), JSON metadata at 0x38.
+    The digest is not checked here; parse_replay checks it after the chunk walk.
+    """
     if len(b) < HEADER_SIZE:
         raise ReplayFormatError("file shorter than fixed header (%d bytes)" % len(b))
     if b[0:4] != MAGIC:
@@ -65,18 +94,25 @@ def parse_header(b):
     if version not in SUPPORTED_CONTAINER_VERSIONS:
         raise ReplayFormatError("unsupported container version %d at 0x4" % version)
     declared = _u32be(b, 0x08)
+    # Equality, not <=: truncated or padded files are rejected before any chunk is read.
+    # The executable does not compare this field; the exact match is decoder policy.
     if declared != len(b):
         raise ReplayFormatError("declared size %d at 0x8 != actual %d" % (declared, len(b)))
     if b[0x28:0x2C] != b"rply":
         raise ReplayFormatError("expected 'rply' at 0x28, got %r" % b[0x28:0x2C])
+    # 0x2C and 0x34 are the rply chunk's reserved fields. Zero in every sample; the
+    # executable does not test them, so this is strictness, not executable parity.
     for off in (0x2C, 0x34):
         if _u32be(b, off) != 0:
             raise ReplayFormatError("reserved u32 at 0x%x is non-zero (unobserved)" % off)
+    # 0x30 is the rply chunk length, and the JSON is that chunk's whole payload.
     json_len = _u32be(b, 0x30)
     end = HEADER_SIZE + json_len
     if end > len(b):
         raise ReplayFormatError("JSON length %d overruns file" % json_len)
     try:
+        # json.loads also accepts NaN/Infinity tokens, which are not strict JSON.
+        # Metadata is echoed back to the caller as-is.
         metadata = json.loads(b[HEADER_SIZE:end].decode("utf-8"))
     except (UnicodeDecodeError, json.JSONDecodeError) as e:
         raise ReplayFormatError("metadata JSON invalid: %s" % e)
@@ -88,11 +124,21 @@ def parse_header(b):
         "json_offset": HEADER_SIZE,
         "json_length": json_len,
         "payload_offset": end,
+        # KNOWN DEFECT (not fixed in this pass): if the JSON root is not an object, or
+        # "game" is not an object, these .get calls raise AttributeError instead of
+        # ReplayFormatError, which breaks the module contract at the top of this file.
         "game_version": metadata.get("game", {}).get("Version"),
     }, metadata
 
 
 def iter_chunks(b, start):
+    """Yield (offset, tag, payload) for each chunk from start to EOF.
+
+    Chunks are contiguous: no padding and no trailing bytes, so the walk must end
+    exactly at len(b). Field A and field B must be zero in this decoder (a policy
+    choice; field A's meaning is UNKNOWN per FORMAT.md). Offsets are absolute.
+    This is a generator, so violations raise during iteration, not at the call.
+    """
     o = start
     while o < len(b):
         if o + CHUNK_HEADER_SIZE > len(b):
@@ -105,6 +151,8 @@ def iter_chunks(b, start):
             raise ReplayFormatError("chunk at 0x%x length %d overruns file" % (o, length))
         yield o, tag, b[o + CHUNK_HEADER_SIZE:o + CHUNK_HEADER_SIZE + length]
         o += CHUNK_HEADER_SIZE + length
+    # Effectively unreachable: the loop exits only when o >= len(b), and any overrun
+    # is raised above. Kept as a final assertion of exact EOF consumption.
     if o != len(b):
         raise ReplayFormatError("chunk walk ended at 0x%x, file is 0x%x" % (o, len(b)))
 
@@ -119,6 +167,8 @@ def decode_op08(block, slot):
     """
     if len(block) < 39 or block[0] != 0x08:
         return None
+    # Byte map after the opcode (offset 0 in block): 1 handle u32 | 5 unknown16 |
+    # 21 float32 x3 position | 33 type u32 | 37 text length u16 | 39 text bytes.
     handle, = struct.unpack_from("<I", block, 1)
     x, y, z = struct.unpack_from("<fff", block, 21)
     mtype, tlen = struct.unpack_from("<IH", block, 33)
@@ -150,6 +200,8 @@ class _CommandCursor:
         self.block, self.offset = block, 0
 
     def take(self, size):
+        # Bounds check before slicing, so a hostile count fails with ReplayFormatError
+        # instead of reading past the block. size < 0 is defensive only.
         if size < 0 or size > len(self.block) - self.offset:
             raise ReplayFormatError("command read of %d bytes overruns block at 0x%x"
                                     % (size, self.offset))
@@ -162,6 +214,8 @@ class _CommandCursor:
 
 
 def _read_array(cursor, width):
+    # count is an untrusted u32. take() bounds count * width before any slicing,
+    # so a huge count fails cleanly rather than reading past the block.
     count = cursor.uint(4)
     return {"count_u32": count, "items_hex": cursor.take(count * width).hex()}
 
@@ -179,7 +233,11 @@ def _read_u32_array(cursor):
 
 
 def _f32_json(value):
-    """Strict JSON: non-finite floats use the wgrd_timeline._json_safe convention."""
+    """Strict JSON: non-finite floats use the wgrd_timeline._json_safe convention.
+
+    JSON has no NaN/Infinity tokens, so raw float32 values that are not finite are
+    written as explicit objects. The raw bytes are kept alongside, so nothing is lost.
+    """
     if math.isfinite(value):
         return value
     return {"nonfinite": "NaN" if math.isnan(value) else ("+Infinity" if value > 0 else "-Infinity")}
@@ -200,11 +258,25 @@ def _read_points(cursor):
 
 
 def _decode_command(cursor, slot):
+    """Decode one command at the cursor, or return None if the opcode has no layout.
+
+    Returning None is not an error here: the caller marks the block "unresolved"
+    and stops. Each branch reads fields in the creator's order. Field names are
+    storage offsets (obj_XX), not game meanings. Layouts were recovered from build
+    59638 only (AGENTS.md section 5).
+    """
     start = cursor.offset
+    # DRAGON (layout trust): these layouts were recovered from build 59638 only. A replay
+    # from another build can split to the exact byte count and still carry different
+    # field meanings. Exact consumption proves structure, not semantics (AGENTS.md 7).
+    #      __/\__
+    #     /  o  o \      "It parsed cleanly" is a structural claim.
+    #     \__  ^  _/     Read it as bytes, not as game actions.
     opcode = cursor.uint(1)
     field_status = "layout"
     if opcode == 0x07:
         # FUN_00b2f850; two FUN_00b35e30 arrays: u32 count, 20 bytes/entry.
+        # Creator bound: obj+f4 <= 3 (checked below). Total 71 + 20*(N1+N2) + T.
         fields = {"obj_04_array": _read_array(cursor, 20),
                   "obj_60_array": _read_array(cursor, 20),
                   "obj_bc_hex": cursor.take(12).hex(),
@@ -262,7 +334,8 @@ def _decode_command(cursor, slot):
         fields = {"obj_04_u32": cursor.uint(4), "obj_08_u32": cursor.uint(4),
                   "obj_0c_hex": cursor.take(16).hex()}
     elif opcode == 0x02:
-        # FUN_00b30660 (build 59638): 4 -> obj+4, 16 -> obj+8, 1 -> obj+0x18. No bounds checks.
+        # FUN_00b30660 (build 59638): 4 -> obj+4, 16 -> obj+8, 1 -> obj+0x18.
+        # The creator has no bounds checks; this decoder's cursor still bounds every read.
         fields = {"obj_04_u32": cursor.uint(4), "obj_08_hex": cursor.take(16).hex(),
                   "obj_18_u8": cursor.uint(1)}
     elif opcode in (0x13, 0x18):
@@ -289,6 +362,8 @@ def decode_command_block(block, count, slot):
     """
     cursor, commands = _CommandCursor(block), []
     status, reason = "complete", None
+    # Cheap pre-bound: every command is at least one byte, so a larger declared count
+    # cannot be satisfied. This avoids looping over failed reads for a hostile count.
     if count < 0 or count > len(block):
         status, reason = "malformed", "command count exceeds available opcode bytes"
     else:
@@ -317,6 +392,16 @@ def decode_command_block(block, count, slot):
 
 
 def parse_replay(b, include_empty=False, verify_digest=True):
+    """Decode a whole replay into a result dict; format checks raise ReplayFormatError.
+
+    Walk: header, then chunks. star opens a frame and its index must equal the running
+    frame count (no gaps). Each pact is one slot's block: u32 frame, u32 slot,
+    u32 count, u16 block length, then the block, all little-endian. Slots must appear
+    in order, and the slot count must be constant across frames. endt closes the
+    frame. Empty pacts (count 0) are counted in stats but omitted from commands
+    unless include_empty is set. The SHA-224 check runs last, so structural
+    errors are reported before digest errors.
+    """
     header, metadata = parse_header(b)
     frames = 0
     stats = {"star": 0, "pact": 0, "endt": 0, "empty_pact": 0, "unknown_chunks": 0,
@@ -393,6 +478,12 @@ def parse_replay(b, include_empty=False, verify_digest=True):
     # 0x0C..0x27 = SHA-224(file[0x28:EOF]): verified on all samples and in the
     # executable (FUN_010b9500 hashes every chunk; FUN_016fd070 = SHA-224 init).
     # Checked after the structural walk so structural errors are reported first.
+    # DRAGON (integrity): the digest proves the bytes match the header. It does not prove
+    # the replay is genuine, and with verify_digest=False this function still returns
+    # the full parsed structure for a file whose digest is wrong.
+    #        __/ \__      HERE BE DRAGONS: a matching SHA-224 means the
+    #       (  o  o  )     bytes agree with the header. It is not proof of
+    #        \_/\_/        authenticity, and the dragon does not read receipts.
     actual = hashlib.sha224(b[DIGEST_START:]).digest()
     header["digest_valid"] = actual == b[0x0C:0x28]
     if verify_digest and not header["digest_valid"]:

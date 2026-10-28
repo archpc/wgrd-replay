@@ -10,9 +10,23 @@ Checks two forms in every `git ls-files '*.md'` file:
 
 A target resolves if it exists relative to the referencing file OR relative
 to the repository root. Missing targets are printed as file:line: target.
-Exit status: 0 if none missing, 1 otherwise, 2 if git ls-files fails.
+Exit status: 0 if none missing, 1 otherwise. A failed `git ls-files` also exits 1
+(sys.exit with a message on stderr), not 2 as older text claimed.
 Read-only; stdlib only. Run from any directory:
     python3 -B research/maintenance/check_links.py
+
+Known limits (false negatives, not checked):
+  * markdown links with a title, e.g. [t](path "title"), and angle-bracket targets
+    [t](<path with spaces>) are not matched by LINK;
+  * backtick spans containing whitespace are skipped entirely;
+  * backtick spans with an anchor (`file.md#section`) are NOT stripped and are
+    reported as missing;
+  * only single-line link text is matched.
+Reported findings can also be false positives: prose such as `verified/partial`
+and paths that exist only in an uncommitted or external tree are reported as missing.
+
+Baseline on 2026-10-28 at e01ac84: 31 "missing" lines (AGENTS.md cites 32).
+A clean run is not proof of no broken links; classify each finding.
 """
 import re
 import subprocess
@@ -44,8 +58,14 @@ def link_targets(line):
 
 
 def tick_targets(line):
+    # ASCII WARNING: exit 0 covers only recognized forms, not the docstring's excluded cases.
+    #      ____
+    #     / ..  \  "0 missing" != "0 broken"
+    #    |  --  |
+    #     \____/
     for match in TICK.finditer(line):
         text = match.group(1)
+        # Anchors are not stripped here (unlike link targets): `x.md#y` is checked as a file name.
         if any(c.isspace() for c in text) or SKIP_CHARS & set(text):
             continue
         if "://" in text or text.startswith("/") or SCHEMA.match(text):

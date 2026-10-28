@@ -57,6 +57,10 @@ def decode_production(fields, matched):
 
     Exact scope/EOF checks are decoder policy, not executable acceptance claims.
     No parallel-array equality or reference-resolution success is assumed.
+
+    !! TRAP: requested_quantity sums group quantities for variants 1/3. It is a
+    !! request, not a physical-unit count. Variant 2 gets no quantity at all.
+    !! Deployment points are arguments that the runtime may clamp or reject.
     """
     try:
         raw = bytes.fromhex(fields['serializer_payload_hex'])
@@ -75,6 +79,7 @@ def decode_production(fields, matched):
     bundle_header, bundle = cursor.section()
     references = []
     for i in range(3):
+        # Declared descriptor GUID, not a configured type ID or runtime identity.
         guid = bundle.take(16).hex()
         references.append({'bundle_index': i, 'descriptor_guid_hex': guid,
                            'reference_status': 'null' if guid == '0'*32 else 'declared',
@@ -127,6 +132,8 @@ def decode_production_action(opcode, fields, raw_hex, matched):
     if opcode == 0x0d and fields is not None:
         return decode_production(fields, matched)
     if opcode == 0x0a and fields is not None:
+        # Request ID is compared with queued entries at runtime. No purchase join
+        # is established, so do not subtract cancellations from purchase totals.
         result = _result('cancel_production', {
             'player_reference': {'lookup_key_u32': fields['obj_04_u32'],
                                  'validation_guid_hex': fields['obj_08_hex']},
@@ -153,6 +160,8 @@ def decode_change_production(fields, matched, slot):
     Status mirrors the timeline convention for layout-verified, semantics-open
     actions: 'partial' on the matching build, 'inferred' on other builds.
     """
+    # 0xC000001E + slot is the observed handle base (TIMELINE-SEMANTICS 08). The
+    # slot_consistent flag is a consistency check only, not a player identity.
     player_id = fields['obj_04_u32']
     result = {'status': 'partial' if matched else 'inferred',
               'action': 'change_production_request',

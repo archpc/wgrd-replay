@@ -14,6 +14,9 @@ edited intentionally). Any other mismatch or missing file -> exit 1.
 The manifest is the baseline for the 2026-10-26 maintenance milestone; it is not
 a backup. Git history holds the content; this file proves nothing was lost.
 """
+# Verify checks listed entries only, not unlisted additions or entry_count. It exempts
+# allowed_changes from hash comparison, and does not validate disposition or category.
+# Missing/unreadable manifests raise; verify returns 1 when listed entries fail.
 import hashlib
 import json
 import os
@@ -55,6 +58,8 @@ def category(rel):
 
 
 def tracked_files():
+    # Uses `git ls-files`, so untracked files under research/ are excluded at create time.
+    # Hashes are taken from the working tree, not the index.
     out = subprocess.check_output(["git", "-C", ROOT, "ls-files", "-z", "research", *ROOT_DOCS])
     return sorted(p.decode() for p in out.split(b"\0") if p)
 
@@ -70,6 +75,13 @@ def create():
 
 
 def verify(manifest):
+    # ASCII WARNING: "problems=0" covers only listed entries. Additions and changes
+    # to unlisted files pass silently; allowed_changes bypasses the hash check.
+    #    _____
+    #   |     |  <- new files? not here.
+    #   | o o |
+    #   |  ^  |  allowed_changes = hash exempt
+    #   |_____|
     bad = []
     for e in manifest["entries"]:
         rel = e.get("moved_to") or e["path"]
@@ -77,6 +89,7 @@ def verify(manifest):
         if not os.path.exists(full):
             bad.append(("missing", e["path"], rel))
             continue
+        # allowed_changes exempts by original path even when moved_to is set.
         if sha256(full) != e["sha256"] and e["path"] not in manifest.get("allowed_changes", []):
             bad.append(("changed", e["path"], rel))
     ok = len(manifest["entries"]) - len(bad)
@@ -93,6 +106,7 @@ def main(argv):
         sys.stdout.write("\n")
         return 0
     if len(argv) >= 3 and argv[1] == "verify":
+        # Note: the file handle is not closed explicitly (behaviour kept; CLI is short-lived).
         return verify(json.load(open(argv[2])))
     print(__doc__)
     return 2

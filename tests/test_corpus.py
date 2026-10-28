@@ -1,4 +1,11 @@
-"""Synthetic fixtures, not redistributed replay bytes."""
+"""Synthetic fixtures, not redistributed replay bytes.
+
+Each fixture is built by replay_bytes(): a 40-byte ESAV header (magic, container v1, total size,
+SHA-224 over bytes 0x28.., then "rply"), followed by chunks. In these fixtures a chunk header is
+16 bytes: 4-byte tag plus three big-endian uint32 (0, payload length, 0). Fixture payload structs
+are little-endian. These tests pin the corpus CLI/inventory contract: provenance fields, error
+isolation, the baseline comparison, and exit codes. They do NOT test the decoder's layouts.
+"""
 import hashlib
 import json
 from pathlib import Path
@@ -10,6 +17,13 @@ from wgrd_corpus import inventory
 
 
 def replay_bytes(block=b"\x18" + bytes(9), count=1, version="131544", extra=b""):
+    """Build a minimal valid replay: one frame, one pact holding `block` declared as `count` commands.
+
+    `extra` is appended after endt as raw trailing bytes. No current test passes it, so it is
+    an unexercised knob; it is not a chunk and is not covered by the chunk-header description.
+    Default block is a 10-byte 0x18 command; the default version 131544 yields
+    layout_evidence "inferred_from_59638".
+    """
     metadata = {"game": {"Version": version, "Map": "synthetic_map",
                          "GameMode": "1", "TimeLimit": "2400"},
                 "player_9": {"PlayerName": "synthetic", "PlayerAlliance": "0"}}
@@ -43,11 +57,12 @@ class CorpusTests(unittest.TestCase):
             self.assertEqual(row["observed_slots"], [0])
             self.assertIsNone(row["slot_to_player_identity"])
             self.assertIsNone(row["duration_seconds"])
-            self.assertEqual(row["configured_time_limit_raw"], "2400")
+            self.assertEqual(row["configured_time_limit_raw"], "2400")  # config, not match duration
             self.assertEqual(row["players"]["player_9"]["PlayerName"], "synthetic")
             self.assertEqual(row["timeline"]["events"], 1)
 
 
+    # Non-object metadata must fail only that file; the neighbour in the same run stays valid.
     def test_nonobject_metadata_is_reported_without_losing_other_files(self):
         with tempfile.TemporaryDirectory() as d:
             bad, good = Path(d) / "bad.wargamerpl2", Path(d) / "good.wargamerpl2"
@@ -60,6 +75,8 @@ class CorpusTests(unittest.TestCase):
             self.assertEqual(report["replays"][0]["errors"][0]["stage"], "header")
             self.assertEqual(report["replays"][1]["compatibility"], "structurally_compatible")
 
+    # Non-finite JSON numbers (NaN, Infinity, 1e999) must not reach the output: the CLI output is
+    # strict JSON (allow_nan=False). Each case runs both full and --headers-only modes.
     def test_nonfinite_metadata_is_isolated_and_cli_json_stays_valid(self):
         import subprocess
         import sys
@@ -81,6 +98,10 @@ class CorpusTests(unittest.TestCase):
                     self.assertEqual(report["replays"][0]["errors"][0]["stage"], "header")
                     self.assertIn(report["replays"][1]["compatibility"], ("structurally_compatible", "not_checked"))
 
+    # Offsets asserted below: the 0x18 command is 10 bytes, so the stray 0xFF starts at command
+    # offset 10; file_offset must point at that byte within the file. "malformed" is a block whose
+    # 0x18 command is truncated. "digest" is a valid-looking file whose last byte is replaced
+    # with 0x01, which breaks the SHA-224 check.
     def test_failures_keep_boundaries_without_scanning_tails(self):
         with tempfile.TemporaryDirectory() as d:
             cases = {"unknown": replay_bytes(b"\x18" + bytes(9) + b"\xff\x07", 2),
@@ -103,6 +124,9 @@ class CorpusTests(unittest.TestCase):
             self.assertEqual(rows["malformed.wargamerpl2"]["decode_failures"][0]["status"], "malformed")
             self.assertEqual(rows["digest.wargamerpl2"]["compatibility"], "error")
 
+    # Headers-only validates header/metadata and digest, but not the command stream. Zeroing
+    # the SHA-224 field (bytes 12..40) must make the digest check report "error".
+    # Note: inventory([p, p]) dedupes the path, so totals.files is 1.
     def test_headers_only_does_not_claim_command_compatibility(self):
         with tempfile.TemporaryDirectory() as d:
             p = Path(d) / "unknown.wargamerpl2"
@@ -115,6 +139,8 @@ class CorpusTests(unittest.TestCase):
             p.write_bytes(p.read_bytes()[:12] + bytes(28) + p.read_bytes()[40:])
             self.assertEqual(inventory([p], headers_only=True)["replays"][0]["compatibility"], "error")
 
+    # Exit codes under test: empty directory -> 2 (usage), missing path -> 1 with a "read" error
+    # row (not a crash), unsupported -> 1.
     def test_cli_empty_missing_and_unsupported_fail(self):
         import subprocess
         import sys
@@ -131,6 +157,9 @@ class CorpusTests(unittest.TestCase):
             self.assertEqual(result.returncode, 1)
             self.assertEqual(json.loads(result.stdout)["totals"]["compatibility"], {"unsupported": 1})
 
+    # Directory walk must match an uppercase ".WARGAMERPL2" suffix. The baseline round-trip is the
+    # regression guard: the same tree must match its own output, and a changed build version must
+    # make --expect fail with exit 1 while still emitting the new inventory on stdout.
     def test_cli_directory_and_regression_baseline(self):
         import subprocess
         import sys

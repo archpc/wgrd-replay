@@ -7,6 +7,8 @@ from wgrd_entities import reference_components, CONTEXT_RULE_ID
 
 # Name/value pairs at VA 0x1d86488..0x1d865b0; descriptor at 0x1d868b8.
 # 39 is the reflected Length sentinel, explicitly handled as contextual by c972a0.
+# Values 36-38 have no name in this table (OP07-ORDERS.md). Absent keys are
+# reported as unknown, never as Length.
 ORDER_KINDS = {
     0: 'FollowFormation', 1: 'Land', 2: 'Bombarder', 3: 'Parachuter', 4: 'Move',
     5: 'Voir', 6: 'Attack', 7: 'Replier', 8: 'Capture', 9: 'DoNothing', 10: 'Stop',
@@ -44,17 +46,36 @@ def _references(array, name):
 
 
 def decode_standard_order(fields, matched):
+    """Classify a 0x07 request into an explicit kind or a contextual one.
+
+    Reports what was requested. The effective kind per actor is a runtime result
+    and is always reported as None here. Target position is a transmitted
+    argument, not an observed destination or a guaranteed final position.
+    """
     options = _bytes(fields['obj_d0_hex'], 36, 'order structure')
     position = struct.unpack('<fff', _bytes(fields['obj_bc_hex'], 12, 'position'))
     _bytes(fields['obj_c8_hex'], 8, 'secondary vector')
     kind, token = struct.unpack_from('<II', options, 16)
     name = ORDER_KINDS.get(kind)
+    #   _________________________________________________
+    #  /  TRAP: kind 39 = Length sentinel, NOT "move".     \
+    #  |  Effective kind comes from runtime state (c9a140), |
+    #  |  so effective_order_kind stays None. Do not guess. |
+    #  \_________________________________________________/
+    #          \   ^__^
+    #           \  (oo)\_______
+    #              (__)\       )\/\
+    #                  ||----w |
+    #                  ||     ||
     contextual = kind == 39
     known_request = name is not None and not contextual
+    # All +Inf is the executable's absent-position sentinel (OP07-ORDERS.md).
+    # Mixed Inf/NaN is nonfinite: no usable location is asserted.
     if all(v == math.inf for v in position):
         usable_position, position_status = None, 'absent_sentinel'
     elif not all(math.isfinite(v) for v in position):
         usable_position, position_status = None, 'nonfinite'
+    # Stop (10): position bytes are retained raw but not exported as a target.
     elif kind == 10:
         usable_position, position_status = None, 'not_interpreted_for_stop_request'
     else:

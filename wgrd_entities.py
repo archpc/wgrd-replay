@@ -24,6 +24,13 @@ CONTEXT_RULE_ID = '59638.c9a140.fallback'
 
 
 def reference_components(reference_hex):
+    """Split a 20-byte 0x07 wire reference: u32 lookup key + 16-byte GUID block.
+
+    The key is a partial lookup: the executable translates it (ae5690), and a miss
+    returns the input key. The trailing 16 bytes are compared against saved-object
+    validation (b2e070, b5a630). Even a full match does not prove unit identity.
+    The GUID text uses four LE u32 words, not RFC UUID ordering.
+    """
     try:
         raw = bytes.fromhex(reference_hex)
     except (TypeError, ValueError) as error:
@@ -39,6 +46,9 @@ def reference_components(reference_hex):
 
 def contextual_fallback_rules():
     """Fresh metadata only. No evaluation without live state or reachability."""
+    # !! TRAP: these four branches are a fallback for kind 39 only. This is not an
+    # !! effective-order classifier. Do not label a 39 request Move from target
+    # !! presence, transmitted coordinates or reference words.
     return {
         'id': CONTEXT_RULE_ID, 'evidence_build': '59638',
         'procedure': '0x00c9a140',
@@ -70,12 +80,18 @@ def contextual_fallback_rules():
 
 
 def build_reference_catalog(events, replay_sha256, matched):
-    """Attach IDs to newly built event references; never mutate parser fields.
+    """Attach IDs to newly built event references; leave parser fields unchanged.
+
+    reference_id is written into the actor/target dicts inside each event's
+    interpretation parameters, which wgrd_orders builds. Those dicts are not the
+    parser's own fields.
 
     Full reference bytes + complete input hash form the key. Duplicated array
     entries remain duplicated occurrences. Reused lookup keys with different GUIDs
     remain separate references, flagged as ambiguous instead of silently merged.
     """
+    # !! TRAP: lookup_key_u32 is a partial key. One key with two GUIDs is two
+    # !! references flagged ambiguous. One GUID under two keys is NOT merged.
     entries, key_refs, guid_refs = {}, defaultdict(set), defaultdict(set)
     for event in events:
         if event['opcode'] != 7:
@@ -142,6 +158,8 @@ def attribute_supply_requests(events, reference_catalog, matched, has_unit_data)
         candidates = by_key.get(key, [])
         slot = event['player_slot']
         resolution, entry = 'unreferenced_key', None
+        # Slot test: the issuing pact slot must be among the 0x07 provenance slots
+        # (command origin, not ownership). temporal_relation is reported, not gated.
         if len(candidates) > 1 or any(c['lookup_key_ambiguous'] for c in candidates):
             resolution = 'ambiguous_key'
         elif len(candidates) == 1:

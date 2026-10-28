@@ -2,6 +2,11 @@
 
 Interpretations are limited to offline execution traces in build 59638. An action
 request is not proof that it succeeded in the running game.
+
+Time: entries are ordered by replay frame and recorded slot, never by seconds.
+The frame-to-seconds mapping is unresolved (time_basis). No repo source
+establishes a tick rate; any ~5 Hz figure is an unvalidated hypothesis and is
+not used here.
 """
 from collections import Counter
 import math
@@ -49,7 +54,11 @@ def _interpretation(opcode, fields, matched, slot=None):
                   execution_outcome="unknown")
     if not matched:
         result["limitation"] = "Replay build differs from executable; semantics transferred by layout only."
+    # Requests only: execution, acceptance and success stay unknown. 08/09 use
+    # the marker interpretation below; 07 delegates to the order decoder.
     if opcode == 0x08:
+        # Requests a marker at a transmitted float3 with type and optional text.
+        # Not a unit position observation or smoke deployment (TIMELINE-SEMANTICS 08).
         position = fields["position_f32"]
         result.update(action="create_map_marker", parameters={
             "position_f32": position if all(math.isfinite(v) for v in position) else None,
@@ -65,6 +74,8 @@ def _interpretation(opcode, fields, matched, slot=None):
         if result["parameters"]["position_f32"] is None:
             result["limitations"].append("Nonfinite position; inspect original bytes, no usable location asserted.")
     elif opcode == 0x09:
+        # The ID is manager-local, assigned during simulation. Whether a marker
+        # was removed is unknown from this command alone (TIMELINE-SEMANTICS 09).
         result.update(action="remove_map_marker", parameters={"marker_id_u32": fields["obj_18_u32"]})
         result["limitations"] = ["ID scoped to resolved player marker manager; affected marker and success unknown."]
     else:
@@ -80,6 +91,17 @@ def build_timeline(parsed, unit_data=None):
     multiple commands produce placeholders linked to one retained span. No byte
     scan or guessed opcode offsets. Malformed known layouts fail timeline export;
     the existing parser's diagnostic representation is unchanged.
+
+    Ordering: records sort by (frame, chunk file offset). FORMAT.md section 4 says
+    pact slots appear in slot order within a frame, so file offset stands in for
+    recorded slot order. command_order is the global export index;
+    frame_command_order counts across all slots in one frame; slot_command_order
+    is the index inside one pact block. None of these is execution order,
+    wall-clock time, or command completion.
+
+    !! TRAP: frame index is not seconds. The replay clock and the battle clock
+    !! have separate origins (controlled-experiment note, section 5). Do not
+    !! divide frame count by a battle duration.
     """
     events, spans = [], []
     frame_orders = Counter()
@@ -90,6 +112,8 @@ def build_timeline(parsed, unit_data=None):
         if decoded["status"] == "malformed":
             raise ReplayFormatError("timeline: malformed command block at 0x%x: %s" %
                                     (record["offset"], decoded.get("reason", "invalid command layout")))
+        # 14 = pact payload prefix (frame, slot, count and length, FORMAT.md section 4
+        # +0..+13) before the command block. Offsets are relative to the file.
         block_start = record["offset"] + CHUNK_HEADER_SIZE + 14
 
         def append(index, opcode, fields, raw, offset, length, boundary, status, span=None):
