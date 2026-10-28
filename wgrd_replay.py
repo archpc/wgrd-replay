@@ -269,9 +269,31 @@ def _decode_command(cursor, slot):
     # DRAGON (layout trust): these layouts were recovered from build 59638 only. A replay
     # from another build can split to the exact byte count and still carry different
     # field meanings. Exact consumption proves structure, not semantics (AGENTS.md 7).
-    #      __/\__
-    #     /  o  o \      "It parsed cleanly" is a structural claim.
-    #     \__  ^  _/     Read it as bytes, not as game actions.
+    #                                /\                     /\
+    #                               /  \                   /  \
+    #                              / |  \                 / |  \
+    #                             /  |\  \               /  |\  \
+    #                            /   | \  \             /   | \  \
+    #                           /    |  \  \           /    |  \  \
+    #                          /  _  |   \  \         /  _  |   \  \
+    #                         /.-' \_|____\  \_______/.-' \_|____\  \
+    #              /\  /\    /  \    \     \ /  \    \     \    \  \
+    #         ____/  \/  \__/    \    \____ V    \    \____ V    \  \
+    #     ___/    o         \     \     /\        \     /\        \  \
+    #   _/  _                \     \___/  \________\___/  \_______/   \__
+    #  /   / \________        /\          /\  /\  /\  /\              \  `-._
+    # /___/  v v v v  \______/  \________/  \/  \/  \/  \______________\      `-._
+    # \___\_^_^_^_^___/        \                                       \          `-._
+    #      \____________________\____  ____  ____  ____  ____  ____  ___\___         `-.
+    #                               ||    ||    ||    ||    ||    ||    ||  `-.__       `
+    #                               ||    ||    ||    ||    ||    ||    ||
+    #                               ||    ||    ||    ||    ||    ||    ||
+    #                               ||____||    ||____||    ||____||    ||
+    #                              /_|__       /_|__       /_|__       /_|__
+    #                             /_/_/       /_/_/       /_/_/       /_/_/
+    # "It parsed cleanly" is a structural claim.
+    # Read it as bytes, not as game actions.
+    # Dragon identification: inferred. The cow won. Further funding was denied.
     opcode = cursor.uint(1)
     field_status = "layout"
     if opcode == 0x07:
