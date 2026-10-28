@@ -11,7 +11,7 @@ not used here.
 from collections import Counter
 import math
 
-from wgrd_replay import CHUNK_HEADER_SIZE, OPCODE_CLASSES, ReplayFormatError
+from wgrd_replay import CHUNK_HEADER_SIZE, OPCODE_CLASSES, ReplayFormatError, json_safe as _json_safe
 
 BUILD = "59638"
 EXECUTION_EVIDENCE = [
@@ -19,17 +19,6 @@ EXECUTION_EVIDENCE = [
     "research/evidence/ev_a4e70aaf2f167f9309aa8f3fff82967ae4bcdb593b776ed5a5c9bfaae4979d12.json",
     "research/evidence/ev_fa646c3ab4e806adc03f0016a8fe2da0032d194b16aa74087f528aaadcab2d52.json",
 ]
-
-
-def _json_safe(value):
-    """JSON has no NaN/Infinity. Keep their presence explicit; raw bytes survive."""
-    if isinstance(value, float) and not math.isfinite(value):
-        return {"nonfinite": "NaN" if math.isnan(value) else ("+Infinity" if value > 0 else "-Infinity")}
-    if isinstance(value, list):
-        return [_json_safe(v) for v in value]
-    if isinstance(value, dict):
-        return {k: _json_safe(v) for k, v in value.items()}
-    return value
 
 
 def _interpretation(opcode, fields, matched, slot=None):

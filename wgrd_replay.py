@@ -254,15 +254,8 @@ def _read_u32_array(cursor):
             "items_u32": [int.from_bytes(raw[i:i + 4], "little") for i in range(0, len(raw), 4)]}
 
 
-def _f32_json(value):
-    """Strict JSON: non-finite floats use the wgrd_timeline._json_safe convention.
-
-    JSON has no NaN/Infinity tokens, so raw float32 values that are not finite are
-    written as explicit objects. The raw bytes are kept alongside, so nothing is lost.
-    """
-    if math.isfinite(value):
-        return value
-    return {"nonfinite": "NaN" if math.isnan(value) else ("+Infinity" if value > 0 else "-Infinity")}
+# Compatibility name for point-field JSON normalization.
+_f32_json = json_safe
 
 
 def _read_points(cursor):

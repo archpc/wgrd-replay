@@ -116,26 +116,32 @@ Verified from the code:
 
 ## 9. Testing and verification
 
-Run from the repo root. The commands below were run in this worktree; re-run after changes.
+Run from the repo root; [CONTRIBUTING.md](CONTRIBUTING.md) owns the full local/CI workflow.
 
 ```
+python3 -B scripts/fetch_public_fixture.py
 PYTHONDONTWRITEBYTECODE=1 python3 -B -m unittest discover -s tests -q
+python3 -B scripts/check_docs.py
+python3 -B scripts/check_preservation.py
 ```
 
-Report the actual run and skips, not a fixed expected total. The pinned public-unit snapshot test skips when its data is absent; other external corpus or executable tests can also skip when their artifacts are unavailable. The 2026-10-28 run had 139 tests and no skips with its artifacts available; see the current-build report for that historical result. A later run at commit 2bde168 (2026-10-28) executed 148 tests, OK, with no skips. Both figures are dated records; neither is the standing count.
+Report actual tests and skips, not a historical expected total. Missing private
+replay/executable artifacts skip explicitly; the pinned public fixture is required
+and absence or corruption fails. The portable preservation check pins historical
+manifests and archived copies, accepts only three reviewed script revisions, and
+protects the cow. See [the dated review](docs/DEVELOPMENT-REVIEW.md#repository-rationalization-2026-10-28).
 
-```
-python3 -B research/maintenance/check_links.py
-```
-
-Exits 1 for references it cannot resolve; path-like prose and intentionally external references can produce warnings. It does not modify files. The 2026-10-28 baseline had 32 warnings. At commit 2bde168 the same checker reported 31 missing references; the difference from the 32 in the experiment report has not been reconciled. Compare and classify findings rather than assuming each is a broken link.
+The historical `research/maintenance/check_links.py` diagnostic remains available;
+it treats path-like prose as files and can exit 1 for intentionally external or
+historical references. The CI checker validates explicit Markdown links instead.
+Old preservation verifiers remain unchanged for reproducing the original audits.
 
 Corpus tests skip when authentic samples are absent. Environment variables:
 
 - `WGRD_SAMPLES_DIR` — default `~/.hermes/artifacts/wgrd-replay/samples/raw`.
 - `WGRD_ARTIFACTS_DIR` — default `~/.hermes/artifacts/wgrd-replay`; used by cross-build corpus tests.
 - `WGRD_EXE_59638` — default `~/.hermes/artifacts/wgrd-replay/game/win64/Data/PC/59638/WarGame3.exe`.
-- `WGRD_UNIT_DATA` — path to a unit index or pinned public directory.
+- `WGRD_UNIT_DATA` — pinned public fixture directory for tests (the CLI separately accepts an index).
 
 A skip is not a pass. Report skip counts and reasons when reporting results.
 
@@ -181,7 +187,7 @@ python3 wgrd_replay.py SAMPLE --timeline [--unit-data research/unit-data/build59
 - Ground-truth validation now includes the bounded 131544 controlled recording and completed playback documented in `research/current-build/2026-10-28-controlled-experiment.md`; general gameplay execution and most field semantics remain unverified.
 - Field semantics for most opcodes are unconfirmed; `execution_outcome` is always `unknown`.
 - All verified layouts are specific to build 59638. Other builds are inferred.
-- The interior of 0x0D serializer bodies is opaque (boundary only).
+- The parser leaves 0x0D serializer bodies opaque; the timeline separately decodes supported production interiors.
 - The 0x0C consumer analysis is deferred; field meanings there are TENTATIVE or unresolved.
 - Entity attribution for 0x18 depends on per-replay key uniqueness and is not cross-replay identity.
 - **2026-10-28 correction:** `parse_header` now raises `ReplayFormatError` for non-object metadata roots or present non-object `game` values. The earlier `AttributeError` leak (reproduced with `[]`) is fixed; see `tests/test_header_metadata.py`. Missing `game` or `Version` remains accepted.
