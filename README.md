@@ -131,13 +131,24 @@ well-defended contribution boundary.
 
 ## Credits
 
+The repository owner directed and reviewed the work. AI models produced the
+research and code through [Hermes Agent](https://hermes-agent.nousresearch.com)
+and the Nous Portal.
+
+| Contributor | Work |
+|---|---|
+| **Claude Fable 5.1** · Anthropic | Technical lead for the 2026-10-26 build-59638 investigation: `0x0C` creator/helpers, fixed `0x02`/`0x13`/`0x18` layouts, and `0x18` reference keys; assessment, roadmap, review and integration |
+| **Claude Haiku 5.5** · Anthropic | Decoder changes, regression tests, coverage generation and implementation docs for those opcodes, including the `0x0C` timeline interpretation; isolated worktrees under lead review |
+
+Earlier container, framing, command, NDF and timeline investigations are recorded
+in [the investigation log](REPLAY-RESEARCH.md), [REA notes](REA-NOTES-59638.md)
+and [the session archive](research/chatgpt-session-2026-10-23/).
+The [research index](research/INDEX.md) connects findings to evidence, reproduction
+scripts and tests; not every historical finding has a standalone reproducer.
+
+**Tools:** rizin, Ghidra, REA MCP and Python's standard library.
+The [Sample1 battle report](research/reports/sample1/) was authored with
+Codex/ChatGPT's `build-report` skill on OpenAI's `data-app` runtime. Authored
+content and a self-contained HTML build are preserved; the runtime is external.
+
 - Maintainer: the ASCII cow in `wgrd_orders.py`.
-
-AI models produced the research and code in this repository, running on [Hermes Agent](https://hermes-agent.nousresearch.com) via the Nous Portal. The repository owner directed and reviewed the work.
-
-- Reverse engineering of build 59638 in the 2026-10-26 sessions (opcode 0x0C creator and helper readers, fixed-size creators for 0x02/0x13/0x18, the 0x18 registry-key cross-reference), assessment and roadmap, review and integration of delegated work: Claude Fable 5.1 (Anthropic), technical lead.
-- Decoder implementation, regression tests, coverage regeneration and implementation docs for opcodes 0x0C, 0x02, 0x13, 0x18 and the 0x0C timeline interpretation: Claude Haiku 5.5 (Anthropic), working in isolated git worktrees under the lead's review.
-- Earlier sessions (container, digest, framing, dispatcher, opcodes 04/07/08/09/0A/0D/0E/17, NDF bridge, timeline) are recorded in `REPLAY-RESEARCH.md`, `REA-NOTES-59638.md` and `research/chatgpt-session-2026-10-23/`.
-- Tooling: rizin, Ghidra, REA MCP, Python 3 standard library. The Sample1 battle-report surface (`research/reports/sample1/`) was authored on OpenAI's `data-app` report runtime (Codex/ChatGPT `build-report` skill); the runtime itself is not redistributed here, only the authored content and a self-contained HTML build.
-
-The 2026-10-26 findings (`research/CHANGEPRODUCTION-0C.md`, `research/FIXED-OPCODES-02-13-18.md`, `research/OP18-REFERENCE-KEYS.md`, `research/OP18-SUPPLY-TARGETS.md`) are each backed by a reproduction script and regression tests that exercise the claim against the artifacts named in the note. Earlier research is documented with evidence IDs and notes in `research/evidence/` and `REA-NOTES-59638.md`; not all of it has a standalone script.
