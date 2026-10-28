@@ -32,6 +32,8 @@ class _Payload:
         return count
 
     def section(self):
+        # Give each length-delimited scope its own cursor: a short child cannot
+        # borrow bytes from its sibling. Callers must finish each scope separately.
         header, size = self.uint(), self.uint()
         return header, _Payload(self.take(size))
 
@@ -160,8 +162,8 @@ def decode_change_production(fields, matched, slot):
     Status mirrors the timeline convention for layout-verified, semantics-open
     actions: 'partial' on the matching build, 'inferred' on other builds.
     """
-    # 0xC000001E + slot is the observed handle base (TIMELINE-SEMANTICS 08). The
-    # slot_consistent flag is a consistency check only, not a player identity.
+    # Observed handle = 0xC000001E + slot (research/TIMELINE-SEMANTICS.md, 08).
+    # slot_consistent checks that convention; it does not identify the player.
     player_id = fields['obj_04_u32']
     result = {'status': 'partial' if matched else 'inferred',
               'action': 'change_production_request',
