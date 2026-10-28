@@ -105,8 +105,9 @@ print(json.dumps(timeline, ensure_ascii=False, allow_nan=False))
 
 These describe current entry points, not a new versioning or API-stability promise.
 Catch `ReplayFormatError` from `wgrd_replay` for recognized format failures and
-`OSError` around your own file access. Non-object metadata can still
-raise `AttributeError`; see [known limitations](../README.md#known-limitations).
+`OSError` around your own file access. Non-object metadata roots and present
+non-object `game` values raise `ReplayFormatError`; missing `game` or `Version`
+remains accepted.
 
 Timeline export replaces non-finite numbers recursively with explicit markers
 such as `{"nonfinite": "NaN"}`. Parser dictionaries can contain raw non-finite
@@ -140,7 +141,7 @@ metadata and source paths; do not publish them without review.
 | Decoder exit 2 with `ReplayFormatError` | Recognized format or timeline failure; inspect the message and preserve the original input |
 | Decoder usage error, exit 2 | Check `--help`; `--unit-data` requires `--timeline` |
 | Missing-file traceback | Decoder file access is outside its format-error handler; check the path and permissions |
-| Metadata `AttributeError` | Known object-shape defect; preserve the input and report it without treating it as decoded |
+| Non-object metadata root or `game` value | Recognized format error; CLI exits 2 without a traceback |
 | SHA-224 mismatch | Input integrity check failed; investigate provenance before using the diagnostic override |
 | Corpus exit 1 | A file is unsupported/failed, or the baseline differs; inspect JSON rows and stderr |
 | Corpus exit 2 | Invalid invocation, empty directory walk, unreadable directory, or invalid/unreadable baseline |

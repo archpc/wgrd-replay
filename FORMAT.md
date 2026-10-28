@@ -57,10 +57,14 @@ objects hold fields such as `PlayerName`, `PlayerDeckContent` and
 not observed match duration. The first post-metadata chunk starts at `0x9A4`,
 `0x96B` and `0x2826` in Sample1, Sample2 and Sample3 respectively.
 
-> **Known defect:** a non-object JSON root or non-object `game` value can raise
-> `AttributeError` in `parse_header`, rather than `ReplayFormatError`. The parser
-> also accepts Python's non-standard NaN/Infinity JSON tokens. Neither behavior
-> is a format guarantee.
+> **Metadata validation:** the JSON root and any present `game` value must be
+> objects; otherwise `parse_header` raises `ReplayFormatError`. Missing `game`
+> or `Version` remains accepted, with `game_version` set to null. The parser
+> still accepts Python's non-standard NaN/Infinity tokens; that is not a format
+> guarantee.
+
+**2026-10-28 correction:** explicit object checks replace the former
+`AttributeError` leak. Regression coverage: `tests/test_header_metadata.py`.
 
 `parse_header` validates only the header and metadata. It does not verify the
 digest or walk the remaining chunks. See [usage and error boundaries](docs/USAGE.md).
