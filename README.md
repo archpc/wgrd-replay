@@ -131,24 +131,29 @@ well-defended contribution boundary.
 
 ## Credits
 
-The repository owner directed and reviewed the work. AI models produced the
-research and code through [Hermes Agent](https://hermes-agent.nousresearch.com)
-and the Nous Portal.
+The repository owner directed and reviewed the work. Earlier research and
+implementation ran through [Hermes Agent](https://hermes-agent.nousresearch.com)
+and the Nous Portal; this documentation redesign was carried out in OpenAI Codex.
 
 | Contributor | Work |
 |---|---|
-| **Claude Fable 5.1** · Anthropic | Technical lead for the 2026-10-26 build-59638 investigation: `0x0C` creator/helpers, fixed `0x02`/`0x13`/`0x18` layouts, and `0x18` reference keys; assessment, roadmap, review and integration |
-| **Claude Haiku 5.5** · Anthropic | Decoder changes, regression tests, coverage generation and implementation docs for those opcodes, including the `0x0C` timeline interpretation; isolated worktrees under lead review |
+| Claude Fable 5.1 (Anthropic) | Technical lead for the 2026-10-26 build-59638 investigation: `0x0C` creator/helpers, fixed `0x02`/`0x13`/`0x18` layouts and `0x18` reference keys; assessment, roadmap, review and integration |
+| Claude Haiku 5.5 (Anthropic) | Decoder implementation, regression tests, coverage and implementation docs for those opcodes, including the `0x0C` timeline; isolated worktrees under lead review. Bounded support for the October 28 experiment is recorded in its report |
+| GPT-6 Astra (OpenAI) | Lead for the October 28 controlled recording and playback experiment; VM control, interpretation, integration and verification |
+| GPT-6.1 Terra (OpenAI) | October 28 follow-up work, maintenance and documentation |
+| OpenAI Codex | Repository-wide documentation audit and redesign, technical reference corrections, navigation and publication |
+| GLM 5.3-flash | The context-collapse spiral. Not every contribution advances the decoder |
+| ASCII cow in `wgrd_orders.py` | Maintainer |
 
 Earlier container, framing, command, NDF and timeline investigations are recorded
 in [the investigation log](REPLAY-RESEARCH.md), [REA notes](REA-NOTES-59638.md)
 and [the session archive](research/chatgpt-session-2026-10-23/).
-The [research index](research/INDEX.md) connects findings to evidence, reproduction
-scripts and tests; not every historical finding has a standalone reproducer.
+The [October 28 experiment report](research/current-build/2026-10-28-controlled-experiment.md#11-model-attribution-and-cost-accounting)
+records its model roles and usage. The [research index](research/INDEX.md) connects
+findings to evidence, reproduction scripts and tests; not every historical finding
+has a standalone reproducer.
 
-**Tools:** rizin, Ghidra, REA MCP and Python's standard library.
+Tools used include rizin, Ghidra, REA MCP and Python's standard library.
 The [Sample1 battle report](research/reports/sample1/) was authored with
 Codex/ChatGPT's `build-report` skill on OpenAI's `data-app` runtime. Authored
 content and a self-contained HTML build are preserved; the runtime is external.
-
-- Maintainer: the ASCII cow in `wgrd_orders.py`.
