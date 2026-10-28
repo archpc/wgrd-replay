@@ -1,117 +1,133 @@
 # wgrd-replay
 
-Offline, stdlib-only decoder for Wargame: Red Dragon replay files (`.wargamerpl2`).
+**Read the replay. Keep the uncertainty.**
 
-The decoder reads Wargame: Red Dragon replays strictly. It checks the container, verifies the SHA-224 digest by default, walks the `star` / `pact` / `endt` frame stream, and splits command blocks. Whatever it cannot place stays as raw hex. Nothing is guessed or silently skipped.
+An offline, Python standard-library-only decoder and reverse-engineering reference
+for Wargame: Red Dragon `.wargamerpl2` files. It turns the game's binary recordings
+into inspectable command streams and evidence-qualified timelines, with raw bytes
+and source offsets available for checking the interpretation.
 
-Malformed input generally raises `ReplayFormatError`. A known defect in `parse_header()` can instead propagate `AttributeError` for non-object JSON metadata. See [Known limitations](#known-limitations).
+The interesting part is the boundary between what the bytes say and what the game
+does. This project documents that boundary rather than quietly stepping over it.
 
-## Quick start
+[Research & evidence](research/INDEX.md) · [Binary format](FORMAT.md) ·
+[Usage](docs/USAGE.md) · [Documentation map](docs/README.md)
 
-Run from the repository root with Python 3; no dependency installation or game
-installation is needed to decode a replay you already have. Replay files are
-external and are not included in this repository.
+## What it can do
+
+| Layer | Implemented behavior | What it establishes |
+|---|---|---|
+| Container | Check ESAV framing, declared size and SHA-224; retain unknown chunks | Internal consistency, not authenticity |
+| Commands | Split supported layouts with exact byte consumption; retain raw blocks and unresolved tails | Boundaries and fields, not gameplay meaning |
+| Timeline | Export ordered requests with source offsets, evidence and interpretation status | Recorded intent, not execution success |
+| Unit data | Optionally join a bundled build-59638 index or pinned public snapshot | Static type associations, not live unit identity |
+| Corpus | Inventory local replay collections and compare saved baselines | Sample-specific structural compatibility |
+
+## What is known
+
+| Evidence boundary | Current position |
+|---|---|
+| **Build 59638** | Executable-backed layouts and selected request interpretations; many field meanings remain unknown |
+| **Other builds** | Layouts and supported interpretations transfer by inference; unsupported meanings remain unknown |
+| **Controlled revision 131544** | Recording and completed playback, plus bounded UI corroboration of a fuel-toggle pair; no general semantic promotion |
+| **Still unresolved** | Frame duration, coordinate axes/units, slot-to-player identity, effective orders and combat outcomes |
+
+The controlled experiment used internal revision **131544** and Steam content build
+**15652829**. These are different identifiers. Read [the Oshkosh Incident](research/current-build/README.md)
+for the visual investigation, or [the experiment report](research/current-build/2026-10-28-controlled-experiment.md)
+for hashes, observations, reproduction and limits.
+
+> **A request is not a result.** `complete` describes byte consumption;
+> `verified` qualifies a particular interpretation. Neither means the truck arrived.
+
+Current coverage lives in [structural coverage](research/coverage.json) and
+[timeline coverage](research/timeline-coverage.json). The [provenance index](research/INDEX.md)
+separates the original three-sample baseline from later experiments.
+
+## Run it
+
+Clone the repository and run from its root with Python 3. No dependency installation
+or game installation is required to decode a replay you already have. Sample replay
+bytes and game executables are kept outside Git.
 
 ```sh
+git clone https://github.com/archpc/wgrd-replay.git
+cd wgrd-replay
 python3 -B wgrd_replay.py --help
 python3 -B wgrd_replay.py /path/to/match.wargamerpl2 --summary
 python3 -B wgrd_replay.py /path/to/match.wargamerpl2 --timeline > /path/to/private-timeline.json
 ```
 
-Replace the example paths with your replay and a fresh output filename. Output
-can contain player names and chat; keep it private. A summary reports structure;
-a timeline adds evidence-qualified action requests. Neither establishes gameplay
-outcomes or a frame-to-seconds conversion.
+Replace the paths with your replay and a fresh output filename. Output can contain
+player names and chat. `--summary` reports structure and metadata; `--timeline`
+adds ordered requests. Digest verification is on by default.
 
-| I want to… | Read |
+### Read one useful result
+
+From the repository root, this prints each interpreted request's frame, slot,
+action and confidence. It needs only a replay; unit enrichment is optional.
+
+```python
+from pathlib import Path
+from wgrd_replay import parse_replay
+from wgrd_timeline import build_timeline
+
+timeline = build_timeline(parse_replay(Path("match.wargamerpl2").read_bytes()))
+for event in timeline["events"]:
+    meaning = event["interpretation"]
+    if meaning["action"] is not None:
+        print(event["frame"], event["player_slot"],
+              meaning["action"], meaning["status"])
+```
+
+A `create_map_marker` row describes a marker request, not a unit location.
+Frame numbers are not seconds; slots are not established player identities.
+See [usage](docs/USAGE.md) for flags, JSON contracts, enrichment and corpus checks.
+
+## Follow the investigation
+
+| Question | Start here |
 |---|---|
-| Decode files, use the Python API, or diagnose an error | [Usage guide](docs/USAGE.md) |
-| Change code or docs and run the right checks | [Contributing guide](CONTRIBUTING.md) |
-| Understand the pipeline and status labels | [Architecture](docs/ARCHITECTURE.md) |
-| Inspect byte layouts and their evidence | [Format reference](FORMAT.md) and [research index](research/INDEX.md) |
-| Find current research priorities | [Next steps](NEXT-STEPS.md) |
+| How are bytes framed and commands split? | [Binary format](FORMAT.md) → [creator traces](research/COMMAND-LAYOUTS.md) |
+| Why does an opcode get an action name? | [Evidence conventions](docs/ARCHITECTURE.md#evidence-conventions) → [research index](research/INDEX.md) |
+| How do parsing, timelines and unit data fit together? | [Architecture](docs/ARCHITECTURE.md) |
+| What did recorded gameplay actually corroborate? | [Controlled experiment](research/current-build/2026-10-28-controlled-experiment.md) |
+| What should be investigated next? | [Current priorities](NEXT-STEPS.md) and [Phase 2 handoff](research/current-build/PHASE-2-HANDOFF.md) |
 
-## Current-build milestone (2026-10-28)
+The research trail includes executable addresses, hash-pinned artifacts, archived
+REA responses and reproduction scripts. [REA notes](REA-NOTES-59638.md) retain the
+static-analysis record; [the investigation log](REPLAY-RESEARCH.md) retains its
+chronology. Historical plans describe the work as it stood then, not today's API.
 
-A controlled offline replay from internal revision **131544** (Steam build **15652829**) was recorded, decoded, and played back to completion. Two newly acquired historical recordings (Versions 510061340 and 510064564) also passed structural and timeline checks. This is sample-specific compatibility, not a guarantee for every current-build replay.
+## Contribute
 
-The investigation, including the Windows GDI capture workaround, chronology, hashes, limits, and reproduction commands, is in [the controlled experiment report](research/current-build/2026-10-28-controlled-experiment.md). Browse the [Oshkosh Incident visual archive](research/current-build/README.md), the controlled-experiment archive, for curated screenshots and the complete versioned screenshot release. Replay bytes and private session data remain outside Git. General non-59638 semantics remain inferred and execution outcomes remain unknown.
+Start with [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, artifact
+requirements, testing and preservation rules. Research contributions need a
+falsifiable claim, identified builds and samples, evidence, and a reproduction
+command. Exact consumption is necessary. It is not a theory of warfare.
 
-Read-only corpus inventory and regression checks:
+```sh
+PYTHONDONTWRITEBYTECODE=1 python3 -B -m unittest discover -s tests -q
+```
 
-    python3 -B wgrd_corpus.py /path/to/replays > /path/to/private-inventory.json
-    python3 -B wgrd_corpus.py /path/to/replays --expect /path/to/private-inventory.json
-    python3 -B wgrd_corpus.py /path/to/replays --headers-only
-
-Reports can contain player metadata and absolute source paths. Keep them private. Exit 1 means a failed/unsupported file or baseline mismatch; exit 2 means invalid invocation or no files found. Header-only mode does not claim command compatibility.
-
-## Original three-sample baseline (historical checkpoint)
-
-The following counts and source limits describe the original corpus, not the expanded milestone above.
-
-- Container, digest, and frame framing: verified on all 3 samples.
-- Command splitting: 594/594 multi-command blocks split with exact count and EOF.
-- Command layouts: every non-empty block in the corpus is either `complete` (creator-backed layout) or `framed` (explicitly opaque 0x0D serializer envelope). Zero unresolved blocks. Layouts exist for opcodes 02, 04, 07, 08, 09, 0A, 0C, 0D (boundary only), 0E, 13, 17, 18; each is traced to its creator function in WarGame3.exe build 59638 (`REA-NOTES-59638.md`, `research/COMMAND-LAYOUTS.md`).
-- Command semantics: verified only for build 59638. Other builds are marked `inferred`. Field meanings for 0x0C, 0x13 and 0x18 are structural only; the timeline reports them with raw fields and explicit limitations.
-- Outcomes (kills, hits, scores, positions over time): not decoded. Not observed in the three available samples; whether other replays encode them is untested.
-- Source limit: all 3 samples come from one independent source (KoppelTAR, commit 9f77fa9). The two-source requirement is not met. See REPLAY-RESEARCH.md.
-
-## Usage
-
-    python3 wgrd_replay.py REPLAY.wargamerpl2 [--summary] [--include-empty] [--no-verify-digest]
-    python3 wgrd_replay.py REPLAY.wargamerpl2 --timeline [--summary] [--unit-data research/unit-data/build59638-v1.json.gz]
-
-Default output contains the header, metadata, and per-pact command decode. `--timeline` emits the ordered `wgrd_timeline/1` event list with source byte offsets. `--unit-data` adds offline unit-type names from the build 59638 index. Timeline output is strict JSON; non-finite float32 values are emitted as `{"nonfinite": "+Infinity"}` style markers. **2026-10-28 correction:** the default parser CLI still permits Python's non-standard NaN/Infinity JSON tokens. Use timeline output when strict JSON is required; see the [usage guide](docs/USAGE.md).
-
-## Tests
-
-    python3 -m unittest discover -s tests -q
-
-The 2026-10-28 local run executed 139 tests with no skips with its external artifacts available; this is a historical result, not the current test count. A later run at commit 2bde168 (2026-10-28) executed 148 tests, OK, with no skips. Cross-build tests use `WGRD_ARTIFACTS_DIR` and skip explicitly when external files are absent; altered files fail. **2026-10-28 clarification:** some older sample-backed tests fail with missing-file errors rather than skipping. See [test prerequisites](CONTRIBUTING.md#tests-and-external-artifacts) before interpreting a fresh-checkout run. Report actual results and skips.
-
-## Reproducing research findings
-
-The 2026-10-26 research notes under `research/` name their artifacts (build, SHA-256, addresses) and ship a standalone read-only script that re-derives the result and exits non-zero on mismatch:
-
-    python3 -B research/op0c_layout.py WarGame3.exe 'samples/raw/koppeltar-Sample*'
-    python3 -B research/op_fixed_layout.py WarGame3.exe 'samples/raw/koppeltar-Sample*'
-    python3 -B research/op18_reference_keys.py 'samples/raw/koppeltar-Sample*'
-    python3 -B research/coverage.py > research/coverage.json
-
-## Documentation map
-
-- `AGENTS.md`: operating guide for AI coding and reverse-engineering agents (reading order, evidence standards, verified commands, preservation rules).
-- `docs/ARCHITECTURE.md`: data flow, status vocabularies, canonical document per subsystem.
-- `FORMAT.md`: byte-level format spec. Each field is tagged VERIFIED, INFERRED, or UNKNOWN with evidence. Start here for the format.
-- `research/INDEX.md`: provenance index. Every current claim mapped to its original note, evidence record, reproduction script and tests, with a reproducibility status code.
-- [The ASCII Dragon Incident](research/DRAGON-INCIDENT.md): a cautionary tale about agent overengineering, uncertain dragons, and one victorious cow.
-- `NEXT-STEPS.md`: current priorities and detailed open items.
-- `REA-NOTES-59638.md`: executable analysis notes for build 59638 (addresses, evidence IDs). `REPLAY-RESEARCH.md`: investigation log.
-- `research/`: per-topic research notes, historical plans, reproduction scripts, generated coverage JSON, `research/evidence/` (REA records, disassembly excerpts), `research/chatgpt-session-2026-10-23/` (archived session), `research/maintenance/` (preservation manifests and verifiers, link checker), `research/session-records/`.
-- `samples/`: manifest and binary inventory. Replay files are not in Git (see `.gitignore`).
-
-## Layout
-
-- `wgrd_replay.py`: container, frame, and command decoder. Opcode table `OPCODE_CLASSES`.
-- `wgrd_entities.py`, `wgrd_orders.py`, `wgrd_production.py`, `wgrd_timeline.py`, `wgrd_unit_data.py`, `wgrd_unit_index.py`: entity, order, production, timeline, and unit-name layers.
-- `tests/`: unittest suite; corpus and executable tests skip when external artifacts are absent.
-
-## Next milestone
-
-The first controlled current-build recording and playback are complete. The next timing and movement work is described in [the Phase 2 handoff](research/current-build/PHASE-2-HANDOFF.md); it does not authorize VM operation. The controlled experiment report holds current evidence and limits; `research/GROUND-TRUTH-PREREQUISITES.md` remains a historical prerequisite record.
+The full suite needs external artifacts: some tests skip when they are absent,
+while older sample tests fail. Report the actual results and skip reasons.
+[AGENTS.md](AGENTS.md) specifies repository operating and evidence standards.
+[The ASCII Dragon Incident](research/DRAGON-INCIDENT.md) explains one unusually
+well-defended contribution boundary.
 
 ## Known limitations
 
-- `parse_header()` raises `AttributeError` instead of `ReplayFormatError` when the metadata JSON root, or its `game` value, is not an object. Reproduced on 2026-10-28 with a metadata root of `[]`. Not fixed. The fix belongs in a separate, tested change; the comment above the return in `parse_header` records the same defect.
-
-## Not included
-
-- Replay files and game binaries. They are kept outside Git because redistribution is unclear.
-- Any claim about gameplay outcomes. The decoder reads inputs and command structure only.
-
-## Format spec
-
-Read [FORMAT.md](FORMAT.md) for the container, chunk, frame, and `pact` layouts, opcode 0x08 detail, and the timeline output schema.
+- Most field semantics remain unconfirmed. Contextual orders require runtime
+  state, and execution outcomes remain unknown in exported interpretations.
+- Opcode `0x0D` bodies are opaque in the parser. The timeline separately decodes
+  supported production interiors; inspect its payload status and limitations.
+- `parse_header()` can raise `AttributeError` for non-object metadata roots or
+  non-object `game` values. This known defect needs a separate tested fix.
+- Timeline JSON normalizes non-finite floats to explicit objects. Default parser
+  JSON can still contain non-standard NaN/Infinity tokens.
+- Corpus coverage is bounded. Passing the recorded samples is not universal
+  replay compatibility. Replay and binary redistribution is not assumed lawful.
 
 ## Credits
 

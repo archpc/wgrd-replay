@@ -1,5 +1,7 @@
 # Decode and inspect a replay
 
+[Overview](../README.md) · [Documentation map](README.md) · [Format reference](../FORMAT.md)
+
 Run these commands from the repository root with Python 3. Substitute real paths;
 the examples do not download sample bytes. Use a fresh private output filename:
 shell redirection overwrites an existing destination before Python starts.
@@ -13,7 +15,8 @@ python3 -B wgrd_replay.py /path/to/match.wargamerpl2 --summary
 The summary retains header, metadata, statistics and unknown chunks, omitting the
 command list. SHA-224 is verified by default. A matching digest establishes
 internal integrity, not authenticity or a trusted source. File hashes in
-[the sample manifest](../samples/manifest.json) authenticate the research inputs.
+[the sample manifest](../samples/manifest.json) pin research input identity and
+provenance; they do not independently prove the recording genuine.
 
 ## Export requests in recorded order
 
@@ -31,6 +34,35 @@ Ordering is by replay frame, recorded pact slot order and serialized command
 order. Frames are not seconds; slots are not established player identities.
 The [architecture](ARCHITECTURE.md) defines the status vocabularies, while
 [FORMAT.md](../FORMAT.md) describes fields and offsets.
+
+### Inspect one event without mistaking it for an outcome
+
+This projection selects fields from Sample1's marker request (frame 131, slot 2);
+it is not a complete event object. Reproduce it with the Python API below, then
+select that frame and slot from `timeline["events"]`. Sample identity and hash:
+[original sample manifest](../samples/manifest.json); regression:
+`tests/test_wgrd_replay.py`.
+
+```json
+{
+  "frame": 131,
+  "player_slot": 2,
+  "opcode": 8,
+  "decode_status": "layout",
+  "layout_status": "matching_build",
+  "interpretation": {
+    "action": "create_map_marker",
+    "status": "verified",
+    "execution_outcome": "unknown"
+  }
+}
+```
+
+The layout is decoded and the marker-request interpretation is supported. No
+marker ID or successful creation follows from that status. For other builds,
+this supported interpretation becomes `inferred`.
+
+### Command-line options
 
 | Option | Effect |
 |---|---|
@@ -73,7 +105,7 @@ print(json.dumps(timeline, ensure_ascii=False, allow_nan=False))
 
 These describe current entry points, not a new versioning or API-stability promise.
 Catch `ReplayFormatError` from `wgrd_replay` for recognized format failures and
-`OSError` around your own file access. On `main`, non-object metadata can still
+`OSError` around your own file access. Non-object metadata can still
 raise `AttributeError`; see [known limitations](../README.md#known-limitations).
 
 Timeline export replaces non-finite numbers recursively with explicit markers
@@ -108,7 +140,7 @@ metadata and source paths; do not publish them without review.
 | Decoder exit 2 with `ReplayFormatError` | Recognized format or timeline failure; inspect the message and preserve the original input |
 | Decoder usage error, exit 2 | Check `--help`; `--unit-data` requires `--timeline` |
 | Missing-file traceback | Decoder file access is outside its format-error handler; check the path and permissions |
-| Metadata `AttributeError` on `main` | Known object-shape defect; preserve the input and report it without treating it as decoded |
+| Metadata `AttributeError` | Known object-shape defect; preserve the input and report it without treating it as decoded |
 | SHA-224 mismatch | Input integrity check failed; investigate provenance before using the diagnostic override |
 | Corpus exit 1 | A file is unsupported/failed, or the baseline differs; inspect JSON rows and stderr |
 | Corpus exit 2 | Invalid invocation, empty directory walk, unreadable directory, or invalid/unreadable baseline |
