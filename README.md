@@ -1,15 +1,12 @@
-# wgrd-replay
+# Wargame: Red Dragon Replay Decoder
 
-**Read the replay. Keep the uncertainty.**
+A reverse-engineering project and Python toolkit for decoding, inspecting, and analyzing *Wargame: Red Dragon* replay files (`.wargamerpl2`).
 
-Wargame: Red Dragon replays contain a stream of recorded commands. This project
-parses that stream into data you can inspect, keeping raw bytes and offsets so
-you can check the interpretation.
+The project documents the replay format and provides tools to extract recorded commands, reconstruct timelines, inspect entity references, and examine the underlying binary structures.
 
-The decoder runs offline with Python's standard library. You bring a
-`.wargamerpl2` replay; you don't need the game installed on the machine decoding it.
+Decoded records retain their original byte offsets and raw data, allowing interpretations to be checked against the source. Confirmed structures are distinguished from incomplete or experimental findings.
 
-A recorded request tells you what was requested, not necessarily what the game did.
+The decoder runs offline, uses only Python's standard library, and does not require a game installation.
 
 ## Start here
 
