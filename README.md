@@ -7,8 +7,36 @@ for Wargame: Red Dragon `.wargamerpl2` files. It turns the game's binary recordi
 into inspectable command streams and evidence-qualified timelines, with raw bytes
 and source offsets available for checking the interpretation.
 
-[Usage](docs/USAGE.md) · [Format](FORMAT.md) · [Architecture](docs/ARCHITECTURE.md) ·
-[Research archive](research/INDEX.md)
+## See a result
+
+After saving the [example script below](#read-one-useful-result) as `inspect_replay.py`
+and setting its replay path, run it from the repository root:
+
+```sh
+python3 inspect_replay.py
+```
+
+One line from a build-59638 sample looks like this:
+
+```text
+131 2 create_map_marker verified
+```
+
+The columns are replay frame, recorded player slot, interpreted action and
+confidence. This is one selected line from the script's output; other lines and
+all other timeline fields are omitted. The line itself has not been redacted.
+Sample identity is in the [manifest](samples/manifest.json); the replay bytes are
+not included.
+
+This records a requested action; it does not establish that the game executed it.
+Frames are not seconds, and slots are not established player identities.
+
+## Start here
+
+- [Inspect a replay](docs/USAGE.md): find a replay, run the decoder and read its output.
+- Research the format: start with the [architecture](docs/ARCHITECTURE.md),
+  [evidence conventions](docs/ARCHITECTURE.md#evidence-conventions) and
+  [research index](research/INDEX.md).
 
 ## What it can do
 
@@ -61,15 +89,17 @@ adds ordered requests. Digest verification is on by default.
 
 ### Read one useful result
 
-From the repository root, this prints each interpreted request's frame, slot,
-action and confidence. It needs only a replay; unit enrichment is optional.
+Save this as `inspect_replay.py` in the repository root. Replace
+`/path/to/match.wargamerpl2` with the path to your replay, then run
+`python3 inspect_replay.py` from the repository root. It prints each interpreted
+request's frame, slot, action and confidence. Unit enrichment is optional.
 
 ```python
 from pathlib import Path
 from wgrd_replay import parse_replay
 from wgrd_timeline import build_timeline
 
-timeline = build_timeline(parse_replay(Path("match.wargamerpl2").read_bytes()))
+timeline = build_timeline(parse_replay(Path("/path/to/match.wargamerpl2").read_bytes()))
 for event in timeline["events"]:
     meaning = event["interpretation"]
     if meaning["action"] is not None:
