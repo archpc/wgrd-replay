@@ -20,6 +20,8 @@ Evidence: [screenshot hashes and controlled command locations](current-build/202
 
 Next experiment: [Phase 2 handoff](current-build/PHASE-2-HANDOFF.md). It does not authorize VM operation.
 
+[Approach assessment (2026-10-29)](current-build/2026-10-29-approach-assessment.md): compares further command interpretation, static consumer modeling and engine emulation. Recommends gated, instrumented original playback (engine as oracle), starting with a probe of the guest's pinned 59638 executable. Assessment only; no execution, and priorities remain in NEXT-STEPS.md until adopted.
+
 Dated correction to the historical sections below: ground-truth work is no longer wholly absent, and the earlier acquisition/launch blockers in GROUND-TRUTH-PREREQUISITES.md are superseded for this experiment. Only the specific observed relationships in the new report are corroborated; this does not promote all historical or current-build semantics to verified. Prior notes and evidence are retained unchanged.
 
 Purpose: locate the original investigation, evidence, reproduction script and
