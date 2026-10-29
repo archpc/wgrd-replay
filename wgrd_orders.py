@@ -45,7 +45,7 @@ def _references(array, name):
     return [reference_components(raw[i:i+20].hex()) for i in range(0, len(raw), 20)]
 
 
-def decode_standard_order(fields, matched):
+def decode_standard_order(fields, matched, replay_version=None):
     """Classify a 0x07 request into an explicit kind or a contextual one.
 
     Reports what was requested. The effective kind per actor is a runtime result
@@ -90,6 +90,18 @@ def decode_standard_order(fields, matched):
             'order_selection': 'explicit_request' if known_request else ('runtime_dependent' if contextual else 'unknown'),
             'effective_order_kind': None,
             'dispatch_token_u32': token, 'dispatch_mode_u32': fields['obj_f4_u32'],
+            'queue_request': {
+                'raw_u8': options[4], 'policy': 'append' if options[4] else 'replace',
+                'status': 'verified' if str(replay_version) == '131544' else 'inferred',
+                'evidence_build': '131544',
+                'evidence': ['research/current-build/2026-10-29-offline-corpus.md#order-queue-option'],
+                'effective_queue_policy': None,
+                'limitations': [
+                    'Option +4 selects append/replace in the ordinary dispatch path, not dispatch mode.',
+                    'Stop and other specialized paths can bypass it; no effective queue or execution is reconstructed.',
+                    'Other replay versions inherit this meaning by layout, not a matching consumer trace.',
+                ],
+            },
             'actor_references': _references(fields['obj_04_array'], 'actor references'),
             'target_references': _references(fields['obj_60_array'], 'target references'),
             'reference_resolution': 'runtime_required',

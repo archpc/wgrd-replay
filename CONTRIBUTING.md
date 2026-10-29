@@ -55,6 +55,7 @@ fails. A green public CI run does not validate private samples.
 | `WGRD_ARTIFACTS_DIR` | Cross-build replays in [manifest](samples/cross-build-manifest.json) | `~/.hermes/artifacts/wgrd-replay` |
 | `WGRD_EXE_59638` | Historical executable for static checks | `~/.hermes/artifacts/wgrd-replay/game/win64/Data/PC/59638/WarGame3.exe` |
 | `WGRD_UNIT_DATA` | Required pinned public fixture directory | `work/public-units/wargame-data` |
+| `WGRD_CORPUS_DIR` | All 71 pinned archive replays in [offline corpus manifest](samples/offline-corpus-manifest.json) | Unset: private corpus tests skip; supplied missing/altered inputs fail |
 
 The CLI's `--unit-data` is separate: the committed build-59638 index allows offline
 enrichment without the public fixture. Run summary/timeline exports on an available

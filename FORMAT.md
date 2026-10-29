@@ -5,7 +5,10 @@
 Wire layouts implemented by `wgrd_replay.py`, with the timeline export described
 separately below. Executable-backed layouts concern **WarGame3.exe build 59638**,
 SHA-256 `1c7533eb5387a3e82db66595c782f23c20f5871250d6b6a24d630b9d074bda46`.
-Other replay builds use those layouts by inference.
+Other replay builds use those layouts by inference. Targeted revision-131544
+consumer traces now qualify the slot-ID policy, the `0x07` queue option and
+`0x13` service-membership requests separately; see the
+[offline corpus investigation](research/current-build/2026-10-29-offline-corpus.md).
 
 The original observations use the hash-pinned KoppelTAR Sample1/2/3 recordings
 (builds 59638 / 510117427 / 59638) in [the sample manifest](samples/manifest.json).
@@ -117,10 +120,10 @@ Unknown chunks are retained without being treated as commands.
 | Tag | Parser requirement | Original sample observation |
 |---|---|---|
 | `star` | At least 8 payload bytes; first `u32 LE` equals the next frame index; no already-open frame | L=8 in Samples1–2; Sample3 also has L=34/60; extra content unresolved |
-| `pact` | Inside an open frame; matching frame index; slots begin at 0 and appear consecutively | Slots per frame match `game.NbMaxPlayer` in the original samples; parser does not enforce that metadata equality |
+| `pact` | Inside an open frame; matching frame index; strictly increasing slot IDs, not necessarily zero-based or contiguous | Original samples are dense; archive 119 records only slot 1; no metadata-player mapping asserted |
 | `endt` | At least 4 payload bytes; first `u32 LE` equals the open frame index | L=12 with eight trailing zero bytes; parser does not require this exact length or zero tail |
 
-Frame indices start at zero with no gaps. The number of slots must stay constant
+Frame indices start at zero with no gaps. The ordered slot IDs must stay constant
 across frames, and EOF cannot leave a frame open. `star` and `endt` trailing bytes
 are not exposed in the parser result; the original file remains their source.
 
@@ -135,7 +138,7 @@ Offsets relative to the payload, after its 16-byte chunk header.
 | Relative offset | Bytes | Wire field | Parser requirement |
 |---|---:|---|---|
 | `+0x00` | 4 | `u32` frame index | Match the enclosing `star` |
-| `+0x04` | 4 | `u32` slot | Equal the number of slots already encountered in this frame |
+| `+0x04` | 4 | `u32` slot ID | Greater than the previous ID in this frame; roster repeats across frames |
 | `+0x08` | 4 | `u32` command count | Zero exactly when the block length is zero |
 | `+0x0C` | 2 | `u16` block length `B` | `14 + B` equals the payload length |
 | `+0x0E` | `B` | Command block | Decode the declared command count; retain original `block_hex` |
@@ -304,6 +307,23 @@ positional interpretation. `secondary_vector_hex`, dispatch token/mode and
 
 Classification, conditional fallback branches, addresses and limitations:
 [0x07 orders](research/OP07-ORDERS.md), [entity context](research/ENTITY-CONTEXT.md).
+
+`queue_request` interprets order-structure byte `+4`: zero requests replacement,
+nonzero requests append on the ordinary dispatch path. Its evidence build is
+131544, with a separate status (`verified` only for that literal replay Version,
+otherwise `inferred`). Stop and specialized handlers can bypass the option;
+`effective_queue_policy` stays null. Dispatch mode is not the queue flag. Bytes
+9–11 are skipped by the traced structure copy, but retained raw. See
+[the current-executable trace](research/current-build/2026-10-29-offline-corpus.md#order-queue-option).
+
+Opcode `0x13` now exports `player_synchro_service_request`: service index from
+`obj+4`, operation 0=`add_member` / 1=`remove_member` from `obj+8`, member value
+from `obj+c`. Unknown operations stay unnamed; raw parser fields are unchanged.
+The member/recorded-slot comparison does not establish player identity. Status
+is `partial` for Version 131544, `inferred` elsewhere; effective membership is
+null and execution unknown. Service purpose and callbacks remain unresolved,
+not a battle-start label. See
+[synchronization membership](research/current-build/2026-10-29-offline-corpus.md#synchronization-membership).
 
 ### 8.2 Replay-scoped reference catalog and conditional context rules
 

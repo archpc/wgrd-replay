@@ -1,0 +1,504 @@
+{
+  "schema": "wgrd_offline_corpus/1",
+  "source": "https://uu.getuploader.com/wargame_ee/",
+  "scope": "71 Red Dragon-attributed archive recordings; no replay bytes or player metadata",
+  "samples": [
+    {
+      "archive_id": 103,
+      "sha256": "f7c50a6fb0eb21aa9f8bbb618d1ec4a6bdece3c4da573e26ecabf3db2bd26df4",
+      "version": "240000007",
+      "commands": 2162,
+      "size": 4604896
+    },
+    {
+      "archive_id": 104,
+      "sha256": "3f601c31771ba48ee70c5aa72a594a7194c03716514e1d529d53333ae8d6521a",
+      "version": "240000007",
+      "commands": 4377,
+      "size": 4788274
+    },
+    {
+      "archive_id": 107,
+      "sha256": "fdfe8b75c7f12fb9f04b974bf72ee589e4332043e34a5e0a9973e036196c7ac0",
+      "version": "240000077",
+      "commands": 1743,
+      "size": 2136494
+    },
+    {
+      "archive_id": 108,
+      "sha256": "a3eb23f02d828b53f22628ae897edd4c0deb0eeea2919cb9594625fb3800b14c",
+      "version": "240000077",
+      "commands": 3267,
+      "size": 2656130
+    },
+    {
+      "archive_id": 109,
+      "sha256": "b91f293e3c0c2280fc8ce1bf4fdbe4ce31a06236fe9c13697809206bc07608bd",
+      "version": "430000217",
+      "commands": 1058,
+      "size": 1531071
+    },
+    {
+      "archive_id": 111,
+      "sha256": "d92a6d1c5c609a8d10fb45339fb0b48425a73b9dacc8c5e213e88acb7a292978",
+      "version": "430000217",
+      "commands": 938,
+      "size": 1135923
+    },
+    {
+      "archive_id": 112,
+      "sha256": "496831330daeea0b1e8b4f3aeecd868e0b540c3d444795b998011fb16974cbb7",
+      "version": "430000217",
+      "commands": 1239,
+      "size": 1491922
+    },
+    {
+      "archive_id": 114,
+      "sha256": "134039202783d123084d2b8d3c825db140f181ccc8286f74f4c2dbc2fecc3ec8",
+      "version": "430000239",
+      "commands": 698,
+      "size": 468256
+    },
+    {
+      "archive_id": 116,
+      "sha256": "2a9e124e33330e6ecfa82459c62ee0ba07eaf8bd38913aa02b469cb060d801b0",
+      "version": "430000239",
+      "commands": 149,
+      "size": 419935
+    },
+    {
+      "archive_id": 117,
+      "sha256": "a174df4add0898ce939d8f2823b17eac106edd5b645a27dbc38b43701d646704",
+      "version": "430000239",
+      "commands": 5283,
+      "size": 9592564
+    },
+    {
+      "archive_id": 118,
+      "sha256": "e4bfb28e4964ab72f3398a3f18abdb078d5ada202138b1470aff64010c952b40",
+      "version": "430000243",
+      "commands": 1324,
+      "size": 1545821
+    },
+    {
+      "archive_id": 119,
+      "sha256": "ae30734792126a0a94a2de363e9d68ff1b33265ed9534b12f87a69ccb6be94c9",
+      "version": "430000244",
+      "commands": 126,
+      "size": 343309
+    },
+    {
+      "archive_id": 120,
+      "sha256": "706fe4dfebe537a940802be92797e10548a21d2a5a94bfb4a6b42100e1f3d2c6",
+      "version": "430000244",
+      "commands": 8434,
+      "size": 7111714
+    },
+    {
+      "archive_id": 123,
+      "sha256": "a1807fe9f5479c703436e6129e4a308eddab6809020980fa325d3a7240a77ce7",
+      "version": "430000278",
+      "commands": 626,
+      "size": 612567
+    },
+    {
+      "archive_id": 124,
+      "sha256": "c0e39681c9d513ecdf38c967758588f591d7a44ca782c89c52d124c3c8247c8c",
+      "version": "430000278",
+      "commands": 432,
+      "size": 625656
+    },
+    {
+      "archive_id": 125,
+      "sha256": "a6d21b0c2f32c893e369b5bbbeb3c939a43547a53e4f0778724f381a552dfcd9",
+      "version": "430000319",
+      "commands": 3096,
+      "size": 4107474
+    },
+    {
+      "archive_id": 126,
+      "sha256": "be6179c69218b9f434a1fa516b719d67b88d20980cc68dc9a5a69abf6e8b9d9d",
+      "version": "430000319",
+      "commands": 1046,
+      "size": 1258089
+    },
+    {
+      "archive_id": 127,
+      "sha256": "89938e22e3234fae4b055a7cef66f6c3d6169db68e2d4fa8e3ca296afcf68f4b",
+      "version": "430000319",
+      "commands": 1466,
+      "size": 1698325
+    },
+    {
+      "archive_id": 128,
+      "sha256": "a743f2650ee962c62fb9542c86c0a919545a9c0c8cb0cd2c6d95ec4598790530",
+      "version": "430000345",
+      "commands": 5978,
+      "size": 6917667
+    },
+    {
+      "archive_id": 129,
+      "sha256": "33285ce6cc98155168209928b1b11f81543fcbdc1b343699ccc418c95dc0d8fa",
+      "version": "430000348",
+      "commands": 1445,
+      "size": 1514586
+    },
+    {
+      "archive_id": 130,
+      "sha256": "3d789f77a06861924fa632d9d4c1e426d43c712f822f33d9d44ef6c0acb2ed54",
+      "version": "430000352",
+      "commands": 1053,
+      "size": 1309316
+    },
+    {
+      "archive_id": 131,
+      "sha256": "d9e81c9524aeea3059eaeb9bfb1106ca609f52a755f59443462341f6208ecaa8",
+      "version": "430000352",
+      "commands": 1243,
+      "size": 1492957
+    },
+    {
+      "archive_id": 132,
+      "sha256": "7807c1759d967f5996aae7a7cae570f6bc221e1cd05b9cfe5791580f069697fc",
+      "version": "430000352",
+      "commands": 1423,
+      "size": 1344994
+    },
+    {
+      "archive_id": 134,
+      "sha256": "ae421c366b6e0a9ad7dc40a2dd9b33111d720e508abb2168dec80de3742e5031",
+      "version": "430000357",
+      "commands": 1415,
+      "size": 1526766
+    },
+    {
+      "archive_id": 135,
+      "sha256": "7848d5209adf987eb533b664747661ca10c220f0150ef5cee040bd20f6cab539",
+      "version": "430000366",
+      "commands": 2667,
+      "size": 3297570
+    },
+    {
+      "archive_id": 136,
+      "sha256": "217c411765a8a1d10a2e83e0d2a13a382d6aef1b2e12b98e0322172e00e50d00",
+      "version": "430000366",
+      "commands": 2629,
+      "size": 3271163
+    },
+    {
+      "archive_id": 137,
+      "sha256": "905815abb7eec134d49f7e0495acfdb58f7440b4341f5a78697a0a272e631f4a",
+      "version": "430000366",
+      "commands": 5873,
+      "size": 6366270
+    },
+    {
+      "archive_id": 140,
+      "sha256": "8efc3dbbfd01ddd44304bf2fe2eef6303186091f83d57a720f0109f0a78a6463",
+      "version": "430000564",
+      "commands": 92,
+      "size": 121717
+    },
+    {
+      "archive_id": 141,
+      "sha256": "888ff016aef6a6082ad04c450a5bd15bdfed4fa62ae22f777b372c7869939a8c",
+      "version": "430000564",
+      "commands": 1113,
+      "size": 900972
+    },
+    {
+      "archive_id": 142,
+      "sha256": "614bcad743a9e0c64b2877cb8985a04e6124920beea881c1bba4f7fb2900fc4b",
+      "version": "430000564",
+      "commands": 888,
+      "size": 1211685
+    },
+    {
+      "archive_id": 143,
+      "sha256": "a9954ccd911d1320707621d23d22480e90727e9291fbcde484e337d1664f5886",
+      "version": "430000564",
+      "commands": 1036,
+      "size": 1244856
+    },
+    {
+      "archive_id": 144,
+      "sha256": "dad0681506054d01de9d2d99a10066aee20d4aa80b4ac2a7de403a18bb23427f",
+      "version": "430000564",
+      "commands": 1207,
+      "size": 1238766
+    },
+    {
+      "archive_id": 145,
+      "sha256": "98ef94feb0255f64b38437a46c143008d73b115a99cf4c51396f3aeee20e546c",
+      "version": "430000564",
+      "commands": 1259,
+      "size": 1201492
+    },
+    {
+      "archive_id": 146,
+      "sha256": "a776da2d4c9f4e0837c3f9de93600f873820193d1ee13c4dba2a9790917b0441",
+      "version": "430000578",
+      "commands": 6093,
+      "size": 7261406
+    },
+    {
+      "archive_id": 148,
+      "sha256": "90cbe979097accaa9a6e62b5c1c28e312a8fdcf92cb7058d3e8e19384ea310b0",
+      "version": "430000585",
+      "commands": 1584,
+      "size": 1588190
+    },
+    {
+      "archive_id": 162,
+      "sha256": "c61dda86a7eed7b9a5cd58742a08917ddca9d8c02c88f9c65b5e40d49a65206f",
+      "version": "430000585",
+      "commands": 2644,
+      "size": 1342069
+    },
+    {
+      "archive_id": 163,
+      "sha256": "da605ae59d5c85a15e26808fe118e00edcdaf99432ebc80b67256fae55cd0c4c",
+      "version": "430000585",
+      "commands": 1173,
+      "size": 1065734
+    },
+    {
+      "archive_id": 164,
+      "sha256": "cf043a13ff1a91958265ce75ca179885f6dd887cad748645f64dddccf3a5096b",
+      "version": "430000585",
+      "commands": 250,
+      "size": 193999
+    },
+    {
+      "archive_id": 165,
+      "sha256": "76c915c4fc4a2d36d1cbc75e35ff37a60e3e84dc2aa298c93c2bd3f68943e687",
+      "version": "430000585",
+      "commands": 415,
+      "size": 269215
+    },
+    {
+      "archive_id": 166,
+      "sha256": "e2b888081e080bfcef13303feb76541418e4723a6cfabab727d709c4ea4e5040",
+      "version": "430000585",
+      "commands": 370,
+      "size": 400636
+    },
+    {
+      "archive_id": 167,
+      "sha256": "e82eaf718fb62c23dd5eb9ab2b19c8d84f3ffbfd473a466acff8486f4959537e",
+      "version": "430000585",
+      "commands": 1131,
+      "size": 1037296
+    },
+    {
+      "archive_id": 168,
+      "sha256": "ab77235df77a10ffa2eeddb3a38e3c44e1654bdc0fa219931848d621465bcbe4",
+      "version": "430000585",
+      "commands": 1232,
+      "size": 1108232
+    },
+    {
+      "archive_id": 177,
+      "sha256": "8db90b97b8a9c2a12202dc27004aab5f5cef19ae0104c4ac0e68d67b52a66c42",
+      "version": "430000610",
+      "commands": 1363,
+      "size": 1263324
+    },
+    {
+      "archive_id": 179,
+      "sha256": "152fb437a820109c550f89807c009b35ccf48fd6ec423dd6f4363b7332c3e219",
+      "version": "430000610",
+      "commands": 1219,
+      "size": 1255287
+    },
+    {
+      "archive_id": 180,
+      "sha256": "85a551017a3fbd1cc668d4aff47f4c1ff918380f9de09883a4ba36f1e2ae5129",
+      "version": "430000610",
+      "commands": 2206,
+      "size": 1345220
+    },
+    {
+      "archive_id": 181,
+      "sha256": "00bcd344eb258a421d82ea38ed6e89c3a1841171855cab09b8deb30402f2dc12",
+      "version": "430000610",
+      "commands": 615,
+      "size": 762795
+    },
+    {
+      "archive_id": 182,
+      "sha256": "7283dae78d7673573c84cb58e194dc8b79c243f52d5e20eecec07d47d2ef6f0d",
+      "version": "430000610",
+      "commands": 657,
+      "size": 698949
+    },
+    {
+      "archive_id": 183,
+      "sha256": "c1ae5c2c3075628e6d6b4104b99b419c4be6a63d9ab99d8576b3d37daadb2277",
+      "version": "430000610",
+      "commands": 984,
+      "size": 1268184
+    },
+    {
+      "archive_id": 184,
+      "sha256": "7ed8c6a3614c09c9418f713b41c04a9d745a64d823bac56d055f3d608dcd7572",
+      "version": "430000610",
+      "commands": 662,
+      "size": 613447
+    },
+    {
+      "archive_id": 185,
+      "sha256": "d17cf0163c8ea93b0f16ab4ce5d0d56ab80e973f309db6c9f6e3f34827199fc1",
+      "version": "430000610",
+      "commands": 984,
+      "size": 1268184
+    },
+    {
+      "archive_id": 187,
+      "sha256": "8632fd07bd4032a61ab8cda82cda8d78180459b6ce09675d8571531062ba8b32",
+      "version": "430000610",
+      "commands": 8499,
+      "size": 7177669
+    },
+    {
+      "archive_id": 188,
+      "sha256": "36f51cbb57d590a92e934854cfacb1d89884922f35551511da850480dc1585e1",
+      "version": "430000610",
+      "commands": 5934,
+      "size": 5699246
+    },
+    {
+      "archive_id": 189,
+      "sha256": "2d8bfc0d364cb774e84c01298c588e02b6db01b7dede8cc2f06f6da535c12781",
+      "version": "430000610",
+      "commands": 7151,
+      "size": 5961104
+    },
+    {
+      "archive_id": 190,
+      "sha256": "4a823c58bed075b125b049c189cf3da100e444420a60346cb5594964c3c2f3bf",
+      "version": "430000610",
+      "commands": 5880,
+      "size": 6359115
+    },
+    {
+      "archive_id": 191,
+      "sha256": "7632fb2f8ad4d9ca83ff665e448ccd0c7737970d47352cbf957933cde541e7b0",
+      "version": "430000610",
+      "commands": 5428,
+      "size": 2360805
+    },
+    {
+      "archive_id": 192,
+      "sha256": "fd38703f2daf91d911bb074426f78455d979b4645e8ff70de2bf349b706ab2e3",
+      "version": "430000610",
+      "commands": 425,
+      "size": 446758
+    },
+    {
+      "archive_id": 194,
+      "sha256": "b6831b8d0d8e9788580a4f9cfef39b9b3fcebe7f91a9bf3db05a8d824b8a22b1",
+      "version": "430000610",
+      "commands": 10170,
+      "size": 16474882
+    },
+    {
+      "archive_id": 195,
+      "sha256": "2f3ed2fadc7947f672ced4632fd9e3aa3c44ba731587abc4db1dec910a4146aa",
+      "version": "430000610",
+      "commands": 3643,
+      "size": 2461556
+    },
+    {
+      "archive_id": 198,
+      "sha256": "18549c1dd4cbb44f7c0e7fe7b44e1141bef58741c4f53a73251f5777cba79c2b",
+      "version": "430000610",
+      "commands": 2961,
+      "size": 1720973
+    },
+    {
+      "archive_id": 199,
+      "sha256": "9165b124666e943258b5b6c9eec0ae9e9e67d1dc210f14cd7b731e7916959183",
+      "version": "430000610",
+      "commands": 11892,
+      "size": 9225700
+    },
+    {
+      "archive_id": 200,
+      "sha256": "7e0c20cce6677d6f120cfb47ef96c797fd487bade596c6c555b0d8bf9144dadd",
+      "version": "430000610",
+      "commands": 2130,
+      "size": 1627713
+    },
+    {
+      "archive_id": 201,
+      "sha256": "ff1009b8688cfd05ebc3e42732420e66882f7749c6fa685d181a734010eaf1bf",
+      "version": "430000610",
+      "commands": 1538,
+      "size": 1007909
+    },
+    {
+      "archive_id": 204,
+      "sha256": "70c5f8228f4f9a6914ce47fccac79e4967d765eab3a023b86ffc4d933ccdd064",
+      "version": "430000633",
+      "commands": 788,
+      "size": 1103710
+    },
+    {
+      "archive_id": 205,
+      "sha256": "fc7905f9d4afe98b5ece7ccf4f587726fafb2df328ee78e0531f62fce48f6560",
+      "version": "430000633",
+      "commands": 666,
+      "size": 697419
+    },
+    {
+      "archive_id": 207,
+      "sha256": "3b1b26a4c95be2166ba519a4413a04089155914dd0f3d3c4a6e8d560582cbd64",
+      "version": "510019512",
+      "commands": 389,
+      "size": 342838
+    },
+    {
+      "archive_id": 208,
+      "sha256": "5165b9581d8026d9ffc2860d3467c9246f2f591dbd20e78ca77eae1b05a9c5ce",
+      "version": "510019512",
+      "commands": 855,
+      "size": 1047163
+    },
+    {
+      "archive_id": 213,
+      "sha256": "f9c4117e34810e99afb95b34a8322d0d6215381181449361c49f7d73c3fbf94e",
+      "version": "510027397",
+      "commands": 1111,
+      "size": 1369959
+    },
+    {
+      "archive_id": 215,
+      "sha256": "56be547e269079d7f2294232b7a3dda3006a66bd8de71044472388b304b19713",
+      "version": "510047860",
+      "commands": 12999,
+      "size": 12169104
+    },
+    {
+      "archive_id": 217,
+      "sha256": "62108356de9243d3966bb5366519729bf7e5268a13f88c155940b7953d3d1773",
+      "version": "510061340",
+      "commands": 21003,
+      "size": 20720193
+    },
+    {
+      "archive_id": 218,
+      "sha256": "93953b293e65a69434b2a70d4edbd6e1ca7daf6f0683c196542411615ccdd2fd",
+      "version": "510061340",
+      "commands": 2711,
+      "size": 1358077
+    },
+    {
+      "archive_id": 219,
+      "sha256": "7406065c11258bcc0e82663d229e4d4529c6da13e91ee5511673a580af389583",
+      "version": "510064564",
+      "commands": 12126,
+      "size": 10642223
+    }
+  ]
+}

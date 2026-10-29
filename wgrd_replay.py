@@ -439,7 +439,8 @@ def parse_replay(b, include_empty=False, verify_digest=True):
     Walk: header, then chunks. star opens a frame and its index must equal the running
     frame count (no gaps). Each pact is one slot's block: u32 frame, u32 slot,
     u32 count, u16 block length, then the block, all little-endian. Slots must appear
-    in order, and the slot count must be constant across frames. endt closes the
+    in strictly increasing order, with the same IDs in every frame; IDs need not
+    start at zero or be contiguous. These are decoder policies. endt closes the
     frame. Empty pacts (count 0) are counted in stats but omitted from commands
     unless include_empty is set. The SHA-224 check runs last, so structural
     errors are reported before digest errors.
@@ -451,7 +452,7 @@ def parse_replay(b, include_empty=False, verify_digest=True):
              "fully_decoded_nonempty_blocks": 0, "fully_split_multi_blocks": 0,
              "fully_split_nonempty_blocks": 0}
     commands, unknown = [], []
-    cur, slots = None, []
+    cur, slots, expected_slots = None, [], None
     for off, tag, p in iter_chunks(b, header["payload_offset"]):
         if tag == b"star":
             if cur is not None:
@@ -469,7 +470,7 @@ def parse_replay(b, include_empty=False, verify_digest=True):
             fi, slot, count, blen = struct.unpack_from("<IIIH", p, 0)
             if fi != cur:
                 raise ReplayFormatError("pact frame %d != current %d at 0x%x" % (fi, cur, off))
-            if slot != len(slots):
+            if slots and slot <= slots[-1]:
                 raise ReplayFormatError("pact slot %d out of order at 0x%x" % (slot, off))
             if 14 + blen != len(p):
                 raise ReplayFormatError("pact block length mismatch at 0x%x" % off)
@@ -509,8 +510,11 @@ def parse_replay(b, include_empty=False, verify_digest=True):
             cur = None
             if stats.get("slots_per_frame") is None:
                 stats["slots_per_frame"] = len(slots)
+                expected_slots = slots
             elif stats["slots_per_frame"] != len(slots):
                 raise ReplayFormatError("slot count changed at frame %d" % frames)
+            elif slots != expected_slots:
+                raise ReplayFormatError("slot IDs changed at frame %d" % (frames - 1))
         else:
             stats["unknown_chunks"] += 1
             unknown.append({"offset": off, "tag_hex": tag.hex(), "payload_hex": p.hex()})
