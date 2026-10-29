@@ -71,8 +71,10 @@ def _inspect(path, headers_only):
                 row["errors"].append({"stage": "digest", "reason": "SHA-224 mismatch"})
             return row
         stage = "container"
-        parsed = parse_replay(data)
-        records = parsed["commands"]
+        parsed = parse_replay(data, include_empty=True)
+        observed_slots = sorted({record["slot"] for record in parsed["commands"]})
+        # Count only nonempty blocks; keep every pact available to the timeline.
+        records = [record for record in parsed["commands"] if record["count"]]
         statuses, opcodes = Counter(), Counter()
         failures = []
         declared = decoded_count = 0
@@ -100,7 +102,7 @@ def _inspect(path, headers_only):
                                  "undecoded_commands": record["count"] - len(decoded["commands"])})
         row.update(frames=parsed["stats"]["frames"],
                    slots_per_frame=parsed["stats"].get("slots_per_frame"),
-                   observed_slots=list(range(parsed["stats"].get("slots_per_frame", 0))),
+                   observed_slots=observed_slots,
                    declared_commands=declared, decoded_commands=decoded_count,
                    decoded_opcodes=dict(sorted(opcodes.items())),
                    block_statuses=dict(sorted(statuses.items())),
