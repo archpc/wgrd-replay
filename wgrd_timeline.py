@@ -21,7 +21,31 @@ EXECUTION_EVIDENCE = [
 ]
 
 
-def _interpretation(opcode, fields, matched, slot=None):
+def _interpretation(opcode, fields, matched, slot=None, replay_version=None):
+    if opcode == 0x13 and fields is not None:
+        # Revision 131544: b2c220 -> b79760 -> b7b8a0. Requests affect
+        # a service's membership list, conditional on runtime state.
+        operation = fields['obj_08_u32']
+        member = fields['obj_0c_u32']
+        return {
+            'status': 'partial' if str(replay_version) == '131544' else 'inferred',
+            'action': 'player_synchro_service_request', 'evidence_build': '131544',
+            'execution_outcome': 'unknown',
+            'evidence': ['research/current-build/2026-10-29-offline-corpus.md#synchronization-membership'],
+            'parameters': {
+                'service_index_u32': fields['obj_04_u32'], 'operation_u32': operation,
+                'membership_operation': {0: 'add_member', 1: 'remove_member'}.get(operation),
+                'member_value_u32': member,
+                'member_matches_recorded_slot': member == slot if slot is not None else None,
+                'effective_membership': None,
+            },
+            'limitations': [
+                'The service must exist and be enabled; membership changes and callbacks are conditional.',
+                'Member equals pact slot in the measured corpus, not a proven metadata-player identity.',
+                'Service purpose and callback effects are unresolved; this is not a battle-start event.',
+                'Other replay versions inherit this meaning by layout, not a matching consumer trace.',
+            ],
+        }
     if opcode == 0x0c and fields is not None:
         from wgrd_production import decode_change_production
         return decode_change_production(fields, matched, slot)
@@ -68,7 +92,7 @@ def _interpretation(opcode, fields, matched, slot=None):
         result["limitations"] = ["ID scoped to resolved player marker manager; affected marker and success unknown."]
     else:
         from wgrd_orders import decode_standard_order
-        return decode_standard_order(fields, matched)
+        return decode_standard_order(fields, matched, replay_version)
     return result
 
 
@@ -118,7 +142,8 @@ def build_timeline(parsed, unit_data=None):
                 "source": {"chunk_offset": record["offset"], "block_offset": offset,
                            "file_offset": block_start + offset if offset is not None else None,
                            "length": length, "boundary_known": boundary},
-                "interpretation": _interpretation(opcode, fields, matched, record["slot"]),
+                "interpretation": _interpretation(opcode, fields, matched, record["slot"],
+                                                  parsed["header"]["game_version"]),
             }
             if span is not None:
                 event["source"]["unresolved_span"] = span

@@ -12,6 +12,16 @@ possible serializer. `opaque` is a structural label, not an interpretation statu
 No historical finding is promoted to general gameplay verification by the
 controlled experiment.
 
+## Current-executable offline corpus research (2026-10-29)
+
+[Report](current-build/2026-10-29-offline-corpus.md): 71 hash-pinned archive
+recordings; archive 119 slot-ID correction; revision-131544 Ghidra traces for
+order queue options and synchronization membership; larger production shapes.
+[Measurements](current-build/2026-10-29-corpus-summary.json),
+[native excerpts](current-build/2026-10-29-native-excerpts.json),
+[manifest](../samples/offline-corpus-manifest.json),
+[reproduction script](offline_corpus.py). No runtime or VM execution in this pass.
+
 ## Current-build experiment (2026-10-28)
 
 [Comprehensive controlled-experiment report](current-build/2026-10-28-controlled-experiment.md): Steam build 15652829, internal revision 131544, actual launched executable identity; black Parallels capture versus working guest GDI; portable C# input/capture helper and its history; offline Death Row recording and completed playback; sample-specific fuel-toggle corroboration; replay/battle time-base distinction; two additional historical recordings from one archive; regression runner and validation.

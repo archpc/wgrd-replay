@@ -62,9 +62,9 @@ class CrossBuildCorpus(unittest.TestCase):
         Two 0x18 events corroborate the observed Oshkosh Fuel OFF then ON toggles in this
         recording, not a general causal mapping. Tuple fields are RAW: obj_04_u32 is 3221225609 (0xC0000089,
         an opaque registry key), obj_08_u32 is raw value 2, and obj_0c_u8 carries the final-byte
-        values 0 then 1. None of these is a confirmed meaning. The loop below forbids promotion:
-        each event in this recording must be "inferred" or "unknown" and never
-        "verified"/"partial"; execution_outcome, when present, must stay "unknown".
+        values 0 then 1. These raw supply fields are not generally confirmed meanings.
+        Only 0x13 gains partial interpretation from the revision-131544 consumer;
+        other top-level statuses stay inferred/unknown and every outcome stays unknown.
         """
         parsed = self.check_sample("controlled-131544")
         timeline = build_timeline(parsed)
@@ -72,13 +72,18 @@ class CrossBuildCorpus(unittest.TestCase):
         self.assertEqual([(e["frame"], e["parameters"]["obj_04_u32"],
                            e["parameters"]["obj_08_u32"], e["parameters"]["obj_0c_u8"])
                           for e in toggles], [(1638, 3221225609, 2, 0), (1771, 3221225609, 2, 1)])
-        # ASCII WARNING: an interpretation promoted for a non-59638 replay is silent evidence
-        # inflation. This loop guards the controlled recording against it.
+        # ASCII WARNING: promotion needs matching executable evidence. Only the
+        # newly traced 0x13 consumer qualifies here; other interpretations retain their status.
         #   ,---.
         #   |o_o|  promoted to "verified"? -> this test must fail
         #   |_^_|
         for event in timeline["events"]:
-            self.assertIn(event["interpretation"]["status"], ("inferred", "unknown"))
+            if event['opcode'] == 0x13:
+                self.assertEqual(event['interpretation']['status'], 'partial')
+                self.assertEqual(event['interpretation']['evidence_build'], '131544')
+                self.assertEqual(event['interpretation']['parameters']['membership_operation'], 'add_member')
+            else:
+                self.assertIn(event["interpretation"]["status"], ("inferred", "unknown"))
             self.assertEqual(event["interpretation"].get("execution_outcome", "unknown"), "unknown")
         self.assertEqual(parsed["metadata"]["game"]["IsNetworkMode"], "0")
 
