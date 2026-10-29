@@ -9,7 +9,6 @@ import os
 from pathlib import Path
 import sys
 import threading
-import time
 from datetime import datetime, timezone
 
 
