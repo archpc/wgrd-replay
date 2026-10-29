@@ -2,9 +2,30 @@
 
 [Overview](../README.md) · [Documentation map](README.md) · [Format reference](../FORMAT.md)
 
-Run these commands from the repository root with Python 3. Substitute real paths;
-the examples do not download sample bytes. Use a fresh private output filename:
-shell redirection overwrites an existing destination before Python starts.
+Clone the repository and run these commands from its root with Python 3.13 or later.
+The decoder needs no installed game or third-party Python packages. The examples
+use your replay; they do not download sample bytes.
+
+```sh
+git clone https://github.com/archpc/wgrd-replay.git
+cd wgrd-replay
+python3 -B wgrd_replay.py --help
+```
+
+Use a fresh private output filename: shell redirection overwrites an existing
+destination before Python starts. Output can contain player names and chat.
+
+## Find a replay
+
+In one Windows 11 experiment, the game saved a `.wargamerpl2` file under the
+user's `Saved Games\EugenSystems\WarGame3` directory. See the
+[experiment's provenance](../research/current-build/2026-10-28-controlled-experiment.md#controlled-recording).
+Look in your Windows profile's Saved Games folder first; its location can differ
+if the folder is redirected. You can also search for `*.wargamerpl2`.
+
+Locations on macOS and Linux have not been verified by this project. Search for
+`*.wargamerpl2` or consult platform-specific game or Steam support for your setup.
+The game is not required on the machine running the decoder once you have a replay.
 
 ## Start with the summary
 

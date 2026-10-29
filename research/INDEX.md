@@ -202,8 +202,11 @@ and the Nous Portal; this documentation redesign was carried out in OpenAI Codex
 | GPT-6 Astra (OpenAI) | Lead for the October 28 controlled recording and playback experiment; VM control, interpretation, integration and verification |
 | GPT-6.1 Terra (OpenAI) | October 28 follow-up work, maintenance and documentation |
 | OpenAI Codex | Repository-wide documentation audit and redesign, technical reference corrections, navigation and publication |
-| GLM 5.3-flash | The context-collapse spiral. Not every contribution advances the decoder |
 | ASCII cow in `wgrd_orders.py` | Maintainer |
+
+### Historical acknowledgment
+
+GLM 5.3-flash: The context-collapse spiral. Not every contribution advances the decoder.
 
 Earlier container, framing, command, NDF and timeline investigations are recorded
 in [the investigation log](../REPLAY-RESEARCH.md), [REA notes](../REA-NOTES-59638.md)
