@@ -2,78 +2,45 @@
 
 **Read the replay. Keep the uncertainty.**
 
-An offline, Python standard-library-only decoder and reverse-engineering reference
-for Wargame: Red Dragon `.wargamerpl2` files. It turns the game's binary recordings
-into inspectable command streams and evidence-qualified timelines, with raw bytes
-and source offsets available for checking the interpretation.
+Wargame: Red Dragon replays contain a stream of recorded commands. This project
+parses that stream into data you can inspect, keeping raw bytes and offsets so
+you can check the interpretation.
 
-## See a result
+The decoder runs offline with Python's standard library. You bring a
+`.wargamerpl2` replay; you don't need the game installed on the machine decoding it.
 
-After saving the [example script below](#read-one-useful-result) as `inspect_replay.py`
-and setting its replay path, run it from the repository root:
+A recorded request tells you what was requested, not necessarily what the game did.
 
-```sh
-python3 inspect_replay.py
-```
+## Start here
 
-One line from a build-59638 sample looks like this:
+- **Inspect a replay:** [find a replay and use the CLI or Python API](docs/USAGE.md).
+- **Investigate the format:** [architecture and change guide](docs/ARCHITECTURE.md),
+  [format reference](FORMAT.md), and [research index](research/INDEX.md).
+
+## What comes out
+
+The [Python example](docs/USAGE.md#read-one-useful-result) prints interpreted
+requests as frame, recorded slot, action and status. One line from the historical
+build-59638 Sample1 replay is:
 
 ```text
 131 2 create_map_marker verified
 ```
 
-The columns are replay frame, recorded player slot, interpreted action and
-confidence. This is one selected line from the script's output; other lines and
-all other timeline fields are omitted. The line itself has not been redacted.
-Sample identity is in the [manifest](samples/manifest.json); the replay bytes are
-not included.
+This is one selected output line; other lines and the rest of the timeline fields
+are omitted. The line itself is not redacted. The [sample manifest](samples/manifest.json)
+identifies the input; replay bytes are not included in the repository.
 
-This records a requested action; it does not establish that the game executed it.
-Frames are not seconds, and slots are not established player identities.
-
-## Start here
-
-- [Inspect a replay](docs/USAGE.md): find a replay, run the decoder and read its output.
-- Research the format: start with the [architecture](docs/ARCHITECTURE.md),
-  [evidence conventions](docs/ARCHITECTURE.md#evidence-conventions) and
-  [research index](research/INDEX.md).
-
-## What it can do
-
-| Layer | Implemented behavior | What it establishes |
-|---|---|---|
-| Container | Check ESAV framing, declared size and SHA-224; retain unknown chunks | Internal consistency, not authenticity |
-| Commands | Split supported layouts with exact byte consumption; retain raw blocks and unresolved tails | Boundaries and fields, not gameplay meaning |
-| Timeline | Export ordered requests with source offsets, evidence and interpretation status | Recorded intent, not execution success |
-| Unit data | Optionally join a bundled build-59638 index or pinned public snapshot | Static type associations, not live unit identity |
-| Corpus | Inventory local replay collections and compare saved baselines | Sample-specific structural compatibility |
-
-## What is known
-
-| Evidence boundary | Current position |
-|---|---|
-| **Build 59638** | Executable-backed layouts and selected request interpretations; many field meanings remain unknown |
-| **Other builds** | Layouts and supported interpretations transfer by inference; unsupported meanings remain unknown |
-| **Controlled revision 131544** | Recording and completed playback, plus bounded UI corroboration of a fuel-toggle pair; no general semantic promotion |
-| **Still unresolved** | Frame duration, coordinate axes/units, slot-to-player identity, effective orders and combat outcomes |
-
-The controlled experiment used internal revision **131544** and Steam content build
-**15652829**. These are different identifiers. Read [the Oshkosh Incident](research/current-build/README.md)
-for the visual investigation, or [the experiment report](research/current-build/2026-10-28-controlled-experiment.md)
-for hashes, observations, reproduction and limits.
-
-> **A request is not a result.** `complete` describes byte consumption;
-> `verified` qualifies a particular interpretation. Neither means the truck arrived.
-
-Current coverage lives in [structural coverage](research/coverage.json) and
-[timeline coverage](research/timeline-coverage.json). The [provenance index](research/INDEX.md)
-separates the original three-sample baseline from later experiments.
+This is a request to create a marker, not proof that a marker was created.
+`verified` describes this interpretation on the matching evidence build, not an
+execution outcome. Frame-to-seconds conversion and slot-to-player identity remain
+unresolved. To reproduce the line, save and run the linked Python example with
+that sample; you can also try it with your own replay.
 
 ## Run it
 
-Clone the repository and run from its root with Python 3.13 or later (CI: 3.13, 3.14 and 3.15).
-No dependency installation or game installation is required to decode a replay you already have. Sample replay
-bytes and game executables are kept outside Git.
+Use Python 3.13 or later from the repository root. The decoder has no third-party
+runtime dependencies. CI tests Python 3.13, 3.14 and 3.15.
 
 ```sh
 git clone https://github.com/archpc/wgrd-replay.git
@@ -83,72 +50,84 @@ python3 -B wgrd_replay.py /path/to/match.wargamerpl2 --summary
 python3 -B wgrd_replay.py /path/to/match.wargamerpl2 --timeline > /path/to/private-timeline.json
 ```
 
-Replace the paths with your replay and a fresh output filename. Output can contain
-player names and chat. `--summary` reports structure and metadata; `--timeline`
-adds ordered requests. Digest verification is on by default.
+Replace the replay path and use a fresh output filename: shell redirection
+will overwrite an existing file. The summary reports structure and metadata;
+the timeline adds ordered requests. Output can contain player names and chat.
+The [usage guide](docs/USAGE.md#find-a-replay) covers finding a replay, and the
+[Python examples](docs/USAGE.md#use-the-python-api) show how to use the API.
+Sample replays and game executables are kept outside Git.
 
-### Read one useful result
+## How it works
 
-Save this as `inspect_replay.py` in the repository root. Replace
-`/path/to/match.wargamerpl2` with the path to your replay, then run
-`python3 inspect_replay.py` from the repository root. It prints each interpreted
-request's frame, slot, action and confidence. Unit enrichment is optional.
-
-```python
-from pathlib import Path
-from wgrd_replay import parse_replay
-from wgrd_timeline import build_timeline
-
-timeline = build_timeline(parse_replay(Path("/path/to/match.wargamerpl2").read_bytes()))
-for event in timeline["events"]:
-    meaning = event["interpretation"]
-    if meaning["action"] is not None:
-        print(event["frame"], event["player_slot"],
-              meaning["action"], meaning["status"])
+```text
+replay bytes → parser → ordered timeline
+                ↑              ↑
+       raw fields and     interpretation,
+       source offsets     evidence and status
 ```
 
-A `create_map_marker` row describes a marker request, not a unit location.
-Frame numbers are not seconds; slots are not established player identities.
-See [usage](docs/USAGE.md) for flags, JSON contracts, enrichment and corpus checks.
+- [`wgrd_replay.py`](wgrd_replay.py) parses the container, frames and supported
+  command layouts. It checks the SHA-224 digest by default; a matching digest
+  establishes internal consistency, not authenticity. Unknown data is retained.
+- [`wgrd_timeline.py`](wgrd_timeline.py) orders requests and attaches interpretations
+  and evidence. It does not simulate the match.
+- [`wgrd_orders.py`](wgrd_orders.py), [`wgrd_production.py`](wgrd_production.py)
+  and [`wgrd_entities.py`](wgrd_entities.py) interpret specific command families.
+  Static unit data can optionally enrich the timeline; it is not live unit identity.
+  The build-59638 index is not matching data for revision 131544.
+- [`wgrd_corpus.py`](wgrd_corpus.py) inventories replay collections and compares
+  saved reports.
 
-## Documentation
+The [architecture](docs/ARCHITECTURE.md) maps behavior to code and tests. The
+[usage guide](docs/USAGE.md) covers flags, output contracts and corpus checks.
 
-- [Usage](docs/USAGE.md): CLI flags, Python API, enrichment and corpus checks.
-- [Format reference](FORMAT.md): byte maps, layouts, semantics and uncertainties.
-- [Architecture](docs/ARCHITECTURE.md): implementation boundaries and output statuses.
-- [Research archive](research/INDEX.md): evidence, investigations and reproduction.
-- [Next steps](NEXT-STEPS.md): current priorities.
+## What we know, and what we don't
 
-## Contribute
+- The layouts and selected request interpretations are backed by executable
+  research on build 59638. Other builds use inferred layouts and supported
+  interpretations; unknown meanings stay unknown.
+- One controlled recording on internal revision 131544 was decoded and played
+  back. UI observations corroborated a fuel-toggle pair for that sample, not
+  general execution outcomes. Steam content build 15652829 is a different
+  identifier. See [the Oshkosh Incident](research/current-build/README.md) and
+  its [experiment report](research/current-build/2026-10-28-controlled-experiment.md).
+- Frame duration, coordinate axes and units, slot-to-player identity, effective
+  contextual orders and combat outcomes remain unresolved.
+- The parser frames `0x0D` bodies as opaque; the timeline separately interprets
+  supported production interiors. CLI JSON represents non-finite floats explicitly;
+  parser dictionaries can retain them.
+- Coverage is limited to the recorded samples, not a promise that every replay
+  works. Replay and binary redistribution is not assumed lawful.
 
-Start with the [change guide](docs/ARCHITECTURE.md#change-guide) to find the owning
-module and tests, then [CONTRIBUTING.md](CONTRIBUTING.md) for setup and checks. Research contributions need a
-falsifiable claim, identified builds and samples, evidence, and a reproduction
-command. Exact consumption is necessary. It is not a theory of warfare.
+`complete` means a block's declared commands and bytes were consumed. It does not
+mean the game executed them. For the details, see [format](FORMAT.md),
+[architecture](docs/ARCHITECTURE.md), [structural coverage](research/coverage.json)
+and [timeline coverage](research/timeline-coverage.json).
+
+## Work on it
+
+Start with the [change guide](docs/ARCHITECTURE.md#change-guide) to find the code
+and tests for your change. Routine fixes don't require reading the research archive.
+[CONTRIBUTING.md](CONTRIBUTING.md) covers setup and checks; [next steps](NEXT-STEPS.md)
+lists open investigations. For a new format claim, follow the
+[evidence conventions](docs/ARCHITECTURE.md#evidence-conventions) and
+[research index](research/INDEX.md). The usage guide explains what to include in
+a [bug report](docs/USAGE.md#diagnose-failures).
+
+The full test suite needs a hash-pinned public unit fixture. Fetch it first, then
+run the tests from the repository root:
 
 ```sh
+python3 -B scripts/fetch_public_fixture.py
 PYTHONDONTWRITEBYTECODE=1 python3 -B -m unittest discover -s tests -q
 ```
 
-Fetch the hash-pinned public unit fixture first with
-`python3 -B scripts/fetch_public_fixture.py`. Tests needing absent private artifacts
-report skips; present altered artifacts fail. Report actual results and skip reasons.
-[AGENTS.md](AGENTS.md) specifies repository operating and evidence standards.
-[The ASCII Dragon Incident](research/DRAGON-INCIDENT.md) explains one unusually
-well-defended contribution boundary.
+Tests requiring absent private artifacts report skips; present altered artifacts
+fail. See [CONTRIBUTING.md](CONTRIBUTING.md) for details and the remaining checks.
 
-## Known limitations
-
-- Most field semantics remain unconfirmed. Contextual orders require runtime
-  state, and execution outcomes remain unknown in exported interpretations.
-- Opcode `0x0D` bodies are opaque in the parser. The timeline separately decodes
-  supported production interiors; inspect its payload status and limitations.
-- CLI JSON normalizes non-finite floats to explicit objects. Parser dictionaries
-  can still contain non-finite floats.
-- Corpus coverage is bounded. Passing the recorded samples is not universal
-  replay compatibility. Replay and binary redistribution is not assumed lawful.
-
-## Credits
+## Credits and field notes
 
 The owner directed and reviewed the work. [Research credits](research/INDEX.md#project-credits)
-retain contributor roles, tools and historical session attribution.
+cover contributors, tools and the ASCII cow, who is a maintainer.
+[The ASCII Dragon Incident](research/DRAGON-INCIDENT.md) explains another
+well-defended corner of the project.
