@@ -22,6 +22,13 @@ order queue options and synchronization membership; larger production shapes.
 [manifest](../samples/offline-corpus-manifest.json),
 [reproduction script](offline_corpus.py). No runtime or VM execution in this pass.
 
+Follow-up [opcode 0x13 native trace](current-build/2026-10-29-op13-synchro-service.md):
+identifies `Eugen::IA::TNetworkActionPlayerSynchroServiceAction` dispatch into
+the `TPlayerSynchronizationService` singleton; item layout, membership add/remove
+mechanics, capacity growth, `ab1260`/`58da80` roles, and the token-filter
+membership feed. Class identities come from MSVC RTTI. Service-0 ownership,
+callback effects, and the queue consumer remain open; no decoder change proposed.
+
 ## Current-build experiment (2026-10-28)
 
 [Comprehensive controlled-experiment report](current-build/2026-10-28-controlled-experiment.md): Steam build 15652829, internal revision 131544, actual launched executable identity; black Parallels capture versus working guest GDI; portable C# input/capture helper and its history; offline Death Row recording and completed playback; sample-specific fuel-toggle corroboration; replay/battle time-base distinction; two additional historical recordings from one archive; regression runner and validation.
