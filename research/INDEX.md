@@ -12,6 +12,15 @@ possible serializer. `opaque` is a structural label, not an interpretation statu
 No historical finding is promoted to general gameplay verification by the
 controlled experiment.
 
+## Revision-131544 Frida and data-flow research (2026-10-29)
+
+[Two-trace observations](current-build/2026-10-29-frida-observations.md) document
+same-recording request/grouping correlation and separate queue-helper paths;
+actor identity and actual mutation remain unresolved. The [static data-flow map
+and proposed targeted experiment](current-build/2026-10-29-frida-dataflow.md)
+identify the missing runtime links. Raw traces and replay bytes remain private;
+the experiment is a proposal, not authorization to operate the VM.
+
 ## Current-executable offline corpus research (2026-10-29)
 
 [Report](current-build/2026-10-29-offline-corpus.md): 71 hash-pinned archive
