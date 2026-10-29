@@ -1,0 +1,130 @@
+{
+  "revision": "131544",
+  "sha256": "5eaa6d6168c9570ff9789bffb3b2cc16fd908be61263b12fcc1e8b2f09efc75d",
+  "module": "wargame3.exe",
+  "ghidra_base": "0x400000",
+  "hooks": [
+    {
+      "name": "network_packet_dispatch",
+      "va": "0xb3dbc0",
+      "args": 2,
+      "sample_every": 1,
+      "reads": []
+    },
+    {
+      "name": "order_request_wrapper",
+      "va": "0xb2be30",
+      "args": 2,
+      "sample_every": 1,
+      "reads": [
+        {"source": "ecx", "offset": 4, "size": 32},
+        {"source": "ecx", "offset": 96, "size": 32},
+        {"source": "ecx", "offset": 208, "size": 36}
+      ]
+    },
+    {
+      "name": "reference_resolution",
+      "va": "0xb2d210",
+      "args": 4,
+      "sample_every": 1,
+      "reads": [
+        {"source": "arg3", "offset": 0, "size": 20},
+        {"source": "arg3", "offset": 84, "size": 4},
+        {"source": "arg0", "offset": 44, "size": 8, "phase": "leave"},
+        {"source": "arg0", "offset": 44, "size": 4, "phase": "leave", "indirect": true},
+        {"source": "arg0", "offset": 44, "size": 36, "phase": "leave", "indirect": true, "second_indirect": true}
+      ]
+    },
+    {
+      "name": "handle_conversion",
+      "va": "0xb31410",
+      "args": 8,
+      "sample_every": 1,
+      "reads": [
+        {"source": "arg0", "offset": 0, "size": 8},
+        {"source": "arg0", "offset": 0, "size": 4, "indirect": true}
+      ]
+    },
+    {
+      "name": "order_group_dispatcher",
+      "va": "0xb31830",
+      "args": 8,
+      "sample_every": 1,
+      "reads": [
+        {"source": "arg0", "offset": 0, "size": 8},
+        {"source": "arg0", "offset": 0, "size": 4, "indirect": true},
+        {"source": "arg1", "offset": 0, "size": 8},
+        {"source": "arg4", "offset": 0, "size": 36}
+      ]
+    },
+    {
+      "name": "actor_order_grouping",
+      "va": "0xc96440",
+      "args": 8,
+      "sample_every": 1,
+      "reads": [
+        {"source": "arg0", "offset": 0, "size": 20},
+        {"source": "arg1", "offset": 0, "size": 8},
+        {"source": "arg0", "offset": 0, "size": 120, "phase": "leave"},
+        {"source": "arg0", "offset": 120, "size": 120, "phase": "leave"},
+        {"source": "arg0", "offset": 240, "size": 120, "phase": "leave"},
+        {"source": "arg0", "offset": 360, "size": 120, "phase": "leave"},
+        {"source": "arg0", "offset": 480, "size": 120, "phase": "leave"},
+        {"source": "arg0", "offset": 600, "size": 120, "phase": "leave"},
+        {"source": "arg0", "offset": 720, "size": 60, "phase": "leave"},
+        {"source": "arg0", "offset": 92, "size": 20, "phase": "leave", "indirect": true}
+      ]
+    },
+    {
+      "name": "order_prepare_candidate",
+      "va": "0xabc100",
+      "args": 2,
+      "sample_every": 1,
+      "reads": [
+        {"source": "ecx", "offset": 124, "size": 12, "phase": "both"},
+        {"source": "ecx", "offset": 160, "size": 8, "phase": "both"}
+      ]
+    },
+    {
+      "name": "queue_replace_candidate",
+      "va": "0xabb3b0",
+      "args": 3,
+      "sample_every": 1,
+      "reads": [
+        {"source": "arg0", "offset": 0, "size": 8},
+        {"source": "arg0", "offset": 0, "size": 4, "indirect": true},
+        {"source": "arg1", "offset": 0, "size": 4}
+      ]
+    },
+    {
+      "name": "queue_append_candidate",
+      "va": "0xb36d10",
+      "args": 3,
+      "sample_every": 1,
+      "reads": [
+        {"source": "arg0", "offset": 0, "size": 8},
+        {"source": "arg0", "offset": 0, "size": 4, "indirect": true},
+        {"source": "arg1", "offset": 0, "size": 4}
+      ]
+    },
+    {
+      "name": "queue_clear_candidate",
+      "va": "0xabb550",
+      "args": 1,
+      "sample_every": 1,
+      "reads": [
+        {"source": "arg0", "offset": 20, "size": 16, "phase": "both"}
+      ]
+    },
+    {
+      "name": "queue_append_inner_candidate",
+      "va": "0xac0d70",
+      "args": 1,
+      "sample_every": 1,
+      "reads": [
+        {"source": "ecx", "offset": 20, "size": 16, "phase": "both"},
+        {"source": "arg0", "offset": 0, "size": 4}
+      ]
+    }
+  ]
+}
