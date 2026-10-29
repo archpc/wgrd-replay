@@ -83,6 +83,29 @@ The layout is decoded and the marker-request interpretation is supported. No
 marker ID or successful creation follows from that status. For other builds,
 this supported interpretation becomes `inferred`.
 
+### Read one useful result
+
+Save this example as `inspect_replay.py` in the repository root. Replace
+`/path/to/match.wargamerpl2` with your replay's path, then run
+`python3 inspect_replay.py` from the repository root. It prints each interpreted
+request's frame, recorded slot, action and status. Unit enrichment is optional.
+
+```python
+from pathlib import Path
+from wgrd_replay import parse_replay
+from wgrd_timeline import build_timeline
+
+timeline = build_timeline(parse_replay(Path("/path/to/match.wargamerpl2").read_bytes()))
+for event in timeline["events"]:
+    meaning = event["interpretation"]
+    if meaning["action"] is not None:
+        print(event["frame"], event["player_slot"],
+              meaning["action"], meaning["status"])
+```
+
+An interpreted request does not establish an execution outcome. Frame-to-seconds
+conversion and slot-to-player identity remain unresolved.
+
 ### Command-line options
 
 | Option | Effect |
