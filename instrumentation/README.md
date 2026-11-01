@@ -1,5 +1,36 @@
 # WGRD Frida tracing
 
+## Experimental Gate 1/2 capture, not ready for playback
+
+`wgrd_frida.py --gate-replay REPLAY --output OUTPUT` selects a fixed revision-131544
+hook set and verifies the exact controlled replay SHA-256 before attaching. It
+uses the existing repository parser and timeline modules, which must be present
+beside the instrumentation directory. It refuses `--hook` subsets. This mode is
+fixture-tested only: **do not use it for a playback yet**. The complete actor
+identity-chain validator and queue allocation-lifetime witness are missing.
+An identical address or readable memory does not prove the same allocation.
+The emitted queue snapshot explicitly says `lifetime: unverified`.
+
+Root matching is scoped to the exact reference, request bytes and runtime actor
+count, with per-thread correlation. Other threads and unmatched roots do not
+emit events. Queue snapshots are retained on the parent replace call and read
+before the clear and at parent return; each read is bounded, counts over 32 fail
+closed, and storage is re-read after possible reallocation. Snapshot content
+comparison is conditional, not a Gate 1/2 result. The inspector can report
+content `pass`/`fail`/`inconclusive` only for that comparison; both complete gate
+results remain inconclusive without identity and lifetime validation. A completed
+trace is not evidence that the target process loaded the supplied replay.
+
+Run offline fixtures without game execution or Frida attachment:
+
+```text
+python3.14 -B -m unittest discover -s tests -p 'test_gate_request.py' -v
+python3.14 -B -m unittest discover -s tests -p 'test_frida_inspect.py' -v
+```
+
+Do not copy runtime data, raw traces or replay bytes into Git. Any future guest
+execution, Frida attachment or replay requires separate authorization.
+
 This optional research tool uses the Windows Frida Python API. It is separate
 from the standard-library replay decoder and does not add a decoder dependency.
 It attaches to an already-running process; it never launches the game. Frida
@@ -149,3 +180,57 @@ configuration, replay hash and source offset, timing, and limitations. Only map
 replay frame/slot/offset to a runtime request after a reproducible identity or
 content match. An order can resolve to multiple actors and each actor can receive
 a different order. A post-grouping call is not proof of execution or state change.
+
+## Damage-event publish capture (2026-11-01)
+
+`damage-publish-131544.json` selects two hooks against the same pinned executable
+(SHA-256 `5eaa6d61...f09efc75d`, Ghidra base `0x400000`). Evidence: REA/Ghidra
+12.1.4 read-only existing-project session on the hash-pinned image; addresses are
+Ghidra VAs valid only for that revision.
+
+- `take_damage_publish` `0x00c4cba0` — IA message publish helper. Thiscall: ECX is
+  a queue/container object; arg0 points to a caller-constructed message. It copies
+  seven words from arg0 (+4, +8, +0xc, +0x10, +0x14, +0x18, +0x1c) into a new
+  heap `TIAMessage` and appends it. The 32-byte read at arg0+0 is bounded raw
+  message data, INCLUDING the base `TIAMessage` vftable word; no field beyond the
+  vftables is claimed as decoded.
+- `damage_dispatch_entry` `0x00c95040` — damage-application loop. ECX-relative
+  owner object; iterates damage entries at owner+0x15c, stride 0x74, count at
+  owner+0x164. On damage and on kill it builds messages on its stack and calls
+  `0xc4cba0`. No reads are configured; the hook records call timing and nesting
+  only.
+
+Message identity, byte-aligned to observed constructor stores in `0xc95040`
+(evidence `ev_b4c8b9d2`, `ev_97203167`):
+
+- Base `Eugen::IA::TIAMessage` vftable at message+0 (`0x1998940` in .rdata).
+- `Eugen::IA::TIATakeDamageMessage` vftable at message+8 (`0x199bcc0`; RTTI COL
+  `0x1b93e54`, type descriptor `0x1ea4368`).
+- Publisher copies arg0+4 to the heap object's singleton-word slot and arg0+8,
+  +0xc, +0x10, +0x14, +0x18, +0x1c to consecutive heap fields. In the sender's
+  stack message, the observed stores are: +0x0c amount (float, written only when
+  the pre-computed value passes a >0 guard), +0x10 damage type (observed stores
+  1, 2, 3; meaning unverified), +0x14 target unit id, +0x18 shooter-side id
+  (defaults 0x17 when a lookup fails), +0x1c unverified. These are candidate
+  field positions from one call site; treat every field except the vftable words
+  as unknown until a runtime capture correlates values with visible game state.
+- Kill composition (separate message, not `TIATakeDamageMessage`) carries typed
+  tokens `Killed`, `DamagesType`, `Damages`, `Target`, `TargetTeamNumber`,
+  `ShooterTeamNumber`; token-constructor vftables `0x19998d4` (Killed),
+  `0x19998bc` (Target), `0x19998c8` (TargetTeamNumber), `0x19b5bb4`
+  (ShooterTeamNumber), `0x19b5bc0` (Damages), `0x19ae374` (DamagesType), built
+  at `0xc9535d`..`0xc954f9` and published through the same `0xc4cba0` chokepoint.
+  Its heap layout is NOT captured by the arg0+0..32 read and is unverified.
+
+Interpretation limits: ECX (the queue/container) is not dereferenced. Amount,
+type, and id fields are inferred from instruction-level stores at one call site
+in `0xc95040`; other publishers of `0xc4cba0` may write different message types
+(`TIAKillGameplayMessage` singleton accessor `0xad5320`, `TIATakeDamageMessage`
+accessor `0xad5940`). The vftable word at arg0+0 is the only reliable
+message-type discriminator in this capture; classify every event by that word
+before quoting any field.
+
+Run the same controller with `--config instrumentation/damage-publish-131544.json`
+instead of `--gate-replay`; no gate root is used. Expect sparse events in menus
+and bursts during combat. Unknown fields stay null; do not apply the
+`TIATakeDamageMessage` offsets to messages whose vftable word differs.
