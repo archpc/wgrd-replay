@@ -194,6 +194,30 @@ replay frame/slot/offset to a runtime request after a reproducible identity or
 content match. An order can resolve to multiple actors and each actor can receive
 a different order. A post-grouping call is not proof of execution or state change.
 
+## Retained-capture AAR export
+
+`aar_events.py` has explicit legacy and revision-131544 runtime profiles. The
+runtime profile verifies trace/index pins, pairs calls, joins captured descriptor
+GUID and token bytes, and emits `events.json`, `units.json`, `summary.json` and
+`chronology.md`. Existing outputs are never overwritten. Details and coverage:
+[runtime AAR evidence](../research/current-build/2026-11-02-runtime-aar.md).
+
+Example executed from an isolated staged-source export against the retained data:
+
+```sh
+EVIDENCE="$HOME/.hermes/artifacts/wgrd-replay/aar-20261102T050816Z"
+python3.14 -B instrumentation/aar_events.py \
+  "$EVIDENCE/wgrd-aar-combat-20261102-01.jsonl" --runtime \
+  --unit-index "$EVIDENCE/units/unit-index-131544.json" \
+  --out "$EVIDENCE/existing-evidence-aar-repro"
+```
+
+Put matching capture-era source/config copies in `capture-sources/` beside the
+trace for independent source-hash verification. Missing copies remain explicit;
+mismatched copies fail. The current working scripts are not substituted. Source
+roles, kill credit, movement and battle-clock mapping remain unproven where the
+retained evidence does not establish them.
+
 ## Scoped AAR capture candidate (2026-11-02)
 
 `aar-capture-131544-v2.json` is an offline-validated experiment configuration,

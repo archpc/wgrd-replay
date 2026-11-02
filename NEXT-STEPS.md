@@ -20,9 +20,12 @@ verified milestones are indexed in [research](research/INDEX.md):
 - Guarded Win32 input and read-only Frida counter/GameEnded observations work.
   A complete menu/browser/loading/replay cycle with state gates is not yet validated.
 
-Next: integrate the reviewed runtime AAR exporter, validate phase/clock mapping
-and the full replay cycle, corroborate combat-source semantics, and capture movement
-where supported. Raw evidence remains private, exported to the Mac and hash-verified
+Next: integrate the corrected state observer, validate phase/clock mapping and
+the full replay cycle only when a specific live experiment is ready, corroborate
+combat-source semantics, and capture movement where supported. The retained-capture
+structured AAR exporter is integrated; its current coverage and explicit unknowns
+are in [the runtime AAR note](research/current-build/2026-11-02-runtime-aar.md).
+Raw evidence remains private, exported to the Mac and hash-verified
 before any baseline restore. These status notes do not grant future VM authorization.
 
 ## Priorities

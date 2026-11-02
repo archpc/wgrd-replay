@@ -66,8 +66,9 @@ The wire company GUID differs from its member-unit GUID; neither is silently rew
 ## Damage-to-lifecycle chains
 
 All 28 impacts changed the expected accumulator: 25 suppression applications and
-three physical-damage applications. The new trace also reads maximum damage at
-module+`0x194`, rather than deriving it from a clamp.
+three physical-damage applications. The new trace reads module+`0x194` as 10.0
+and +`0x198` as 800.0 without assigning their semantics. The damage descriptor's
++`0x1c`, used by the native threshold predicate, is independently captured as 10.0.
 
 Each physical event below changes accumulated damage from 0 to the observed maximum
 10, is followed by a check on the same damage object, and that check parents exactly
