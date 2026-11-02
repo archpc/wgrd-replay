@@ -87,28 +87,66 @@ const NET = 0x21400000, LOADING = 0x21500000, MANAGER = 0x21600000;
 for (const base of [TS, PHASE, HEADER, NET, LOADING, MANAGER]) map(base, 0x1000);
 
 const hooks = [];
-const sandbox = {
-  rpc: {exports: {}},
-  Date,
-  Module: {getExportByName: () => new Pointer(0x76000000)},
-  Interceptor: {attach: (address, callbacks) => { hooks.push({address, callbacks}); return {detach() {}}; }},
-  Thread: {backtrace: () => [new Pointer(0x401000), new Pointer(0x402000)]},
-  Backtracer: {FUZZY: 'fuzzy'},
-  ptr: value => new Pointer(typeof value === 'string' ? Number(value) : value),
-  Process: {
-    pointerSize: 4,
-    arch: 'ia32',
-    getModuleByName: () => ({
+
+// Real resolver shape: kernel32 and KERNELBASE export different CreateFileW
+// addresses, and the unnamed module search lands on yet another address. A
+// regression that watches the wrong resolution point is therefore visible.
+function buildSandbox(opts, sink) {
+  opts = opts || {};
+  const localHooks = sink || [];
+  const modules = {
+    'wargame3.exe': {
       name: 'wargame3.exe', path: 'C:/fixture/wargame3.exe', base: new Pointer(0x400000),
       size: 0x2000000, readU16: () => 0x5a4d, readU32: () => 0
-    }),
-    getCurrentThreadId: () => 4242,
-    findRangeByAddress: p => (p ? rangeAt(p.n) : null)
-  },
-  Uint8Array, Number, parseInt, Math, Error, Buffer: undefined
-};
-vm.runInNewContext(fs.readFileSync(scriptPath, 'utf8'), sandbox);
-const api = sandbox.rpc.exports;
+    },
+    'kernel32.dll': {
+      name: 'kernel32.dll', base: new Pointer(0x76d00000),
+      getExportByName: name => {
+        if (name === 'CreateFileW') return new Pointer(0x76dc1c70);
+        throw new Error('unresolved export ' + name);
+      }
+    }
+  };
+  if (opts.kernelBase !== false) {
+    modules['KERNELBASE.dll'] = {
+      name: 'KERNELBASE.dll', base: new Pointer(0x77100000),
+      getExportByName: name => {
+        if (name === 'CreateFileW') return new Pointer(0x77141ce0);
+        throw new Error('unresolved export ' + name);
+      }
+    };
+  }
+  const scope = {
+    rpc: {exports: {}},
+    Date,
+    Module: {getExportByName: (mod, name) => {
+      if (name === 'CreateFileW') return new Pointer(0x76dc1c00);
+      throw new Error('unresolved export ' + name);
+    }},
+    Interceptor: {attach: (address, callbacks) => { localHooks.push({address, callbacks}); return {detach() {}}; }},
+    Thread: {backtrace: () => [new Pointer(0x401000), new Pointer(0x402000)]},
+    Backtracer: {FUZZY: 'fuzzy'},
+    ptr: value => new Pointer(typeof value === 'string' ? Number(value) : value),
+    Process: {
+      pointerSize: 4,
+      arch: 'ia32',
+      getModuleByName: name => {
+        if (!Object.prototype.hasOwnProperty.call(modules, name))
+          throw new Error('module not found: ' + name);
+        return modules[name];
+      },
+      getCurrentThreadId: () => 4242,
+      findRangeByAddress: p => (p ? rangeAt(p.n) : null)
+    },
+    Uint8Array, Number, parseInt, Math, Error, Buffer: undefined
+  };
+  vm.runInNewContext(fs.readFileSync(scriptPath, 'utf8'), scope);
+  return {api: scope.rpc.exports, hooks: localHooks, sandbox: scope};
+}
+
+const env = buildSandbox({}, hooks);
+const api = env.api;
+const sandbox = env.sandbox;
 
 function tsFixture({started = 1, asked = 0, ended = 0, phase = PHASE, header = HEADER,
                     net = NET, seconds = 1234.5, ticks = 4165, replay = 0, loading = 0} = {}) {
@@ -291,6 +329,30 @@ for (let i = 0; i < 40; i++)
   full(context(0x401234), new Pointer(0x50a00200), new Pointer(0x2000 + i), 1, 0, 3);
 full(context(0x401234), new Pointer(0x50a00200), new Pointer(0xffffffff), 1, 0, 3);
 scenarios.replay_watch_saturated = api.replayWatch();
+
+// Resolver selection: the live module exports differ, so the watched address
+// identifies which resolver the script actually chose.
+const preferred = buildSandbox({}, []);
+const preferredInstall = preferred.api.installReplayWatch({path: 'C:\\Replays\\match.wrpl'});
+scenarios.replay_watch_resolver_preferred = {
+  install: preferredInstall,
+  watch: preferred.api.replayWatch(),
+  attach_address: preferred.hooks.length ? preferred.hooks[0].address.toString() : null
+};
+assert.equal(preferredInstall.installed, true);
+assert.equal(preferredInstall.module, 'KERNELBASE.dll', 'KERNELBASE export is preferred');
+assert.equal(preferred.hooks[0].address.toString(), '0x77141ce0');
+
+const fallback = buildSandbox({kernelBase: false}, []);
+const fallbackInstall = fallback.api.installReplayWatch({path: 'C:\\Replays\\match.wrpl'});
+scenarios.replay_watch_resolver_fallback = {
+  install: fallbackInstall,
+  watch: fallback.api.replayWatch(),
+  attach_address: fallback.hooks.length ? fallback.hooks[0].address.toString() : null
+};
+assert.equal(fallbackInstall.installed, true);
+assert.equal(fallbackInstall.module, 'kernel32.dll', 'kernel32 remains the fallback');
+assert.equal(fallback.hooks[0].address.toString(), '0x76dc1c70');
 
 fs.writeFileSync(process.argv[3], JSON.stringify(scenarios));
 console.log('WGRD_STATE_SIM_OK');
@@ -590,6 +652,19 @@ class ReplayOpenWatch(unittest.TestCase):
         self.assertEqual(bounded["path_read_errors"], 2)
         self.assertNotIn("AAAA", json.dumps(bounded))
 
+    def test_resolver_prefers_kernelbase_export_over_unnamed_search(self):
+        record = SIM["replay_watch_resolver_preferred"]
+        self.assertEqual(record["attach_address"], "0x77141ce0",
+                         "KERNELBASE!CreateFileW is the live open path")
+        self.assertEqual(record["install"]["module"], "KERNELBASE.dll")
+        self.assertEqual(record["watch"]["resolver_module"], "KERNELBASE.dll")
+
+    def test_resolver_falls_back_to_kernel32_when_kernelbase_is_absent(self):
+        record = SIM["replay_watch_resolver_fallback"]
+        self.assertEqual(record["attach_address"], "0x76dc1c70")
+        self.assertEqual(record["install"]["module"], "kernel32.dll")
+        self.assertEqual(record["watch"]["resolver_module"], "kernel32.dll")
+
     def test_verified_requires_stable_content_and_a_valid_handle(self):
         watch = SIM["replay_watch"]
         digest = "ab" * 32
@@ -823,7 +898,8 @@ class ObserverBounds(unittest.TestCase):
         # The only permitted native observation is one CreateFileW open watch.
         self.assertEqual(state.SCRIPT.count("Interceptor.attach"), 1)
         self.assertIn("'CreateFileW'", state.SCRIPT)
-        self.assertNotIn("CreateFileA", state.SCRIPT, "CreateFileA is a candidate, not implemented")
+        self.assertNotRegex(state.SCRIPT, r'''["']CreateFileA["']''',
+                            "No ANSI API string literal may be implemented; comments may discuss it")
         self.assertNotIn("sync.call", state.SCRIPT)
 
     def test_mapping_edge_is_refused(self):

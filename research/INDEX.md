@@ -54,6 +54,16 @@ and disposable source projects remained hash-identical. Live MCP stayed idle and
 aligned; no shared-server upgrade or restart occurred. Upstream-current remains
 separate from this verified installed capability.
 
+## Exact replay-file witness
+
+The [KERNELBASE wide-string watch](current-build/2026-11-02-replay-file-witness.md)
+recorded two successful exact-path opens with the pinned replay's stable digest.
+The earlier KERNEL32 W and ANSI windows remain inconclusive. A same-playback
+native collector started afterward, with its initial interval explicitly
+uncovered. The completed trace reproduces 28 impacts and exports 356 position
+observations / 146 anchor changes, with separate GameEnded evidence and a
+hash-verified 57-file export. Shooter roles and calibrated movement remain open.
+
 ## Native position-anchor capture and V3 AAR
 
 The [V3 instrumentation experiment](current-build/2026-11-02-position-capture.md)

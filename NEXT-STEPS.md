@@ -31,8 +31,10 @@ verified milestones are indexed in [research](research/INDEX.md):
 
 - The [expanded state observer](research/current-build/2026-11-02-engine-state.md)
   is integrated with the reviewed fixes, preserving the original counter records and
-  rejecting unproved menu/loading/replay-active predicates. Native file-open
-  observation remains unverified. Live main-menu evidence disproved the former
+  rejecting unproved menu/loading/replay-active predicates. A new
+  [KERNELBASE file-open witness](research/current-build/2026-11-02-replay-file-witness.md)
+  identifies the replay bytes for that playback, not retroactively for old captures.
+  Live main-menu evidence disproved the former
   GameStarted-to-ingame inference; the predicate now stays unknown.
 - The [V3 position AAR](research/current-build/2026-11-02-position-aar.md) integrates
   the completed native capture: raw position anchors, capture-local type joins,
@@ -40,18 +42,17 @@ verified milestones are indexed in [research](research/INDEX.md):
   The complete guest evidence export is hash-verified; source-owner provenance
   remains a separate static research thread.
 
-The task-private ANSI watcher prototype is staged in the guest with matching
-host/guest hashes, but it has not been armed and no live file-open witness has
-been collected. The freshly launched game reached the Eugen login screen after the recovery/AutoSettings prompts
-were declined or cancelled; no configuration recovery or graphics benchmark was
-requested. No offline/skip control was detected. Pause the live probe for manual
-login: do not enter credentials, change the profile, or treat menu counters as
-login proof. The 13-file follow-up guest export is hash-verified on the Mac;
-no watcher is running. Revalidate process/UI identity and arm the bounded watcher
-before opening Profile/Replay after authorization is restored.
+Manual Eugen login resolved the prior authorization pause. Three bounded ANSI
+windows were inconclusive. The subsequent KERNELBASE!CreateFileW watch witnessed
+two successful exact-path opens with the expected stable replay digest. The
+closed 52-file export is hash-verified on the Mac. The subsequent bounded native
+capture completed with a clean summary/end and independent GameEnded observation.
+Its final 57-file export is verified. The same-playback AAR preserves the initial
+uncovered interval and exports 28 impacts, 356 position observations and 146
+raw anchor changes; no shooter/kill credit or calibrated movements are invented.
 
-Next: target the engine's imported CreateFileA path for an actual file-open witness,
-validate phase/clock mapping and
+Next: resolve source-role and kill attribution where new evidence supports it,
+preserve qualified coverage, validate phase/clock mapping and
 the full replay cycle only when a specific live experiment is ready, corroborate
 combat-source semantics, and capture movement where supported. The retained-capture
 structured AAR exporter is integrated; its current coverage and explicit unknowns

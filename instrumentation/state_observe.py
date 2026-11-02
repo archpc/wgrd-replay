@@ -258,15 +258,29 @@ rpc.exports.installReplayWatch = function (config) {
   if (watchInstalled || watch) return {installed: watchInstalled, error: watchError};
   const target = normPath(config.path);
   if (!target) return {installed: false, error: 'no exact target path supplied'};
-  watch = {target: target, backtrace: !!config.backtrace};
+  watch = {target: target, backtrace: !!config.backtrace, resolver_module: null};
   let address = null;
-  try { address = Module.getExportByName(null, 'CreateFileW'); }
-  catch (e) { watchError = 'CreateFileW export unavailable: ' + e; }
+  // Prefer the entry point that produced exact-path opens in the controlled
+  // replay load. KERNEL32 and KERNELBASE exports differed in that process;
+  // the game's direct CreateFileA import does not establish its transitive
+  // wide-string I/O route. Retain older resolution paths as guarded fallbacks.
+  try {
+    address = Process.getModuleByName('KERNELBASE.dll').getExportByName('CreateFileW');
+    watch.resolver_module = 'KERNELBASE.dll';
+  } catch (e) { watchError = 'KERNELBASE CreateFileW unavailable: ' + e; }
   if (!address) {
     try {
       address = Process.getModuleByName('kernel32.dll').getExportByName('CreateFileW');
+      watch.resolver_module = 'kernel32.dll';
       watchError = null;
     } catch (e) { watchError = watchError || ('kernel32 CreateFileW unavailable: ' + e); }
+  }
+  if (!address) {
+    try {
+      address = Module.getExportByName(null, 'CreateFileW');
+      watch.resolver_module = 'module-search';
+      watchError = null;
+    } catch (e) { watchError = watchError || ('CreateFileW export unavailable: ' + e); }
   }
   if (!address) return {installed: false, error: watchError};
   try {
@@ -301,14 +315,15 @@ rpc.exports.installReplayWatch = function (config) {
       }
     });
     watchInstalled = true;
-    return {installed: true, target: address.toString()};
+    return {installed: true, target: address.toString(), module: watch.resolver_module};
   } catch (e) {
     watchError = String(e);
     return {installed: false, error: watchError};
   }
 };
 rpc.exports.replayWatch = function () {
-  return {installed: watchInstalled, error: watchError, other_open_count: otherOpens,
+  return {installed: watchInstalled, error: watchError, resolver_module: watch ? watch.resolver_module : null,
+          other_open_count: otherOpens,
           path_read_errors: pathErrors, max_events: MAX_EVENTS, matching_open_attempts: matchingOpens,
           dropped_events: droppedEvents, invalid_handle_count: invalidHandles,
           truncated: droppedEvents > 0, events: watchEvents.slice()};
