@@ -28,7 +28,7 @@ better leverage:
   path results. `0x07` serializes none of them ([ENTITY-CONTEXT](../ENTITY-CONTEXT.md)).
 - **Replays are input streams.** `TNetworkEventSourceFromReplay` RTTI and the
   command-only framing are consistent with lockstep re-execution
-  ([REA notes](../../REA-NOTES-59638.md)). Positions, damage, destruction and resolved
+  ([REA notes](../REA-NOTES-59638.md)). Positions, damage, destruction and resolved
   orders cannot be decoded from the file. They can only be observed while a
   matching engine re-executes it.
 - **Execution is no longer the blocker.** Revision 131544 records and plays back in

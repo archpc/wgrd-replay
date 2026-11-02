@@ -1,32 +1,13 @@
 # WGRD Frida tracing
 
-## Experimental Gate 1/2 capture, not ready for playback
+Maintained workflow: capture with `wgrd_frida.py` and a hook configuration
+(current AAR: `aar-capture-131544-v3.json`), then export with `aar_events.py`
+([Retained-capture AAR export](#retained-capture-aar-export)).
 
-`wgrd_frida.py --gate-replay REPLAY --output OUTPUT` selects a fixed revision-131544
-hook set and verifies the exact controlled replay SHA-256 before attaching. It
-uses the existing repository parser and timeline modules, which must be present
-beside the instrumentation directory. It refuses `--hook` subsets. This mode is
-fixture-tested only: **do not use it for a playback yet**. The complete actor
-identity-chain validator and queue allocation-lifetime witness are missing.
-An identical address or readable memory does not prove the same allocation.
-The emitted queue snapshot explicitly says `lifetime: unverified`.
-
-Root matching is scoped to the exact reference, request bytes and runtime actor
-count, with per-thread correlation. Other threads and unmatched roots do not
-emit events. Queue snapshots are retained on the parent replace call and read
-before the clear and at parent return; each read is bounded, counts over 32 fail
-closed, and storage is re-read after possible reallocation. Snapshot content
-comparison is conditional, not a Gate 1/2 result. The inspector can report
-content `pass`/`fail`/`inconclusive` only for that comparison; both complete gate
-results remain inconclusive without identity and lifetime validation. A completed
-trace is not evidence that the target process loaded the supplied replay.
-
-Run offline fixtures without game execution or Frida attachment:
-
-```text
-python3.14 -B -m unittest discover -s tests -p 'test_gate_request.py' -v
-python3.14 -B -m unittest discover -s tests -p 'test_frida_inspect.py' -v
-```
+The unfinished Gate 1/2 queue-capture mode (`--gate-replay`) and its tests were
+never merged. They are preserved as WIP from the retired `frida-worktree`, in
+the private `retired-worktrees-20261102` artifact archive, and are not part of
+this tool.
 
 Do not copy runtime data, raw traces or replay bytes into Git. Any future guest
 execution, Frida attachment or replay requires separate authorization.

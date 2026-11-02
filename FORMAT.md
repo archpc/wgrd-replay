@@ -72,7 +72,7 @@ not observed match duration. The first post-metadata chunk starts at `0x9A4`,
 `parse_header` validates only the header and metadata. It does not verify the
 digest or walk the remaining chunks. See [usage and error boundaries](docs/USAGE.md).
 
-Evidence: [REA findings and parser comparison](REA-NOTES-59638.md), including
+Evidence: [REA findings and parser comparison](research/REA-NOTES-59638.md), including
 `FUN_010b9300`, `FUN_010b9790` and SHA-224 initialization at `FUN_016fd070`;
 [container provenance](research/INDEX.md#1-esav-container-and-integrity-validation).
 
@@ -109,7 +109,7 @@ Sample2, absolute offset `0x96B`:
 | `00 00 00 00` | BE field B | 0 |
 
 The next header is at `0x96B + 0x10 + 8 = 0x983`. Evidence:
-[REA framing analysis](REA-NOTES-59638.md), records `ev_fbeb6905…` and
+[REA framing analysis](research/REA-NOTES-59638.md), records `ev_fbeb6905…` and
 `ev_0d8a7293…`; regression: `tests/test_wgrd_replay.py`.
 
 ## 3. Frames

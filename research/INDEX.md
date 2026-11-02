@@ -1,6 +1,6 @@
 # Research index: provenance map for wgrd-replay
 
-[Project overview](../README.md) · [Documentation map](../docs/README.md) · [Format reference](../FORMAT.md) · [Evidence conventions](../docs/ARCHITECTURE.md#evidence-conventions)
+[Project overview](../README.md) · [Capabilities](../README.md#capabilities) · [Format reference](../FORMAT.md) · [Evidence conventions](../docs/ARCHITECTURE.md#evidence-conventions)
 
 **Reading the record (2026-10-28):** the subject tables retain milestone findings
 and their original evidence. For current implemented behavior, use the
@@ -337,7 +337,7 @@ and the Nous Portal; this documentation redesign was carried out in OpenAI Codex
 GLM 5.3-flash: The context-collapse spiral. Not every contribution advances the decoder.
 
 Earlier container, framing, command, NDF and timeline investigations are recorded
-in [the investigation log](../REPLAY-RESEARCH.md), [REA notes](../REA-NOTES-59638.md)
+in [the investigation log](REPLAY-RESEARCH-2026-10-23.md), [REA notes](REA-NOTES-59638.md)
 and [the session archive](chatgpt-session-2026-10-23/).
 The [October 28 experiment report](current-build/2026-10-28-controlled-experiment.md#11-model-attribution-and-cost-accounting)
 records its model roles and usage. The [research index](INDEX.md) connects

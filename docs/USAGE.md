@@ -1,6 +1,6 @@
 # Decode and inspect a replay
 
-[Overview](../README.md) · [Documentation map](README.md) · [Format reference](../FORMAT.md)
+[Overview](../README.md) · [Capabilities](../README.md#capabilities) · [Format reference](../FORMAT.md)
 
 Clone the repository and run these commands from its root with Python 3.13 or later.
 The decoder needs no installed game or third-party Python packages. The examples
