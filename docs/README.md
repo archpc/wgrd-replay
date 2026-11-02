@@ -26,4 +26,4 @@ evidence are indexed under [research](../research/INDEX.md); plans and session
 archives retain their original context. Later corrections do not erase them.
 
 For documentation maintenance decisions, see the dated
-[review record](DEVELOPMENT-REVIEW.md).
+[review record](../research/maintenance/2026-10-28-development-review.md).

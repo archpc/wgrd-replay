@@ -181,7 +181,7 @@ correction; an old note does not override the current code.
 The portable preservation check verifies archived source copies and the cow.
 Maintained code and notes use regression tests, normal review and Git history. Historical
 verifiers remain available for reproducing the original audits. The
-[maintenance review](DEVELOPMENT-REVIEW.md#repository-rationalization-2026-10-28)
+[maintenance review](../research/maintenance/2026-10-28-development-review.md#repository-rationalization-2026-10-28)
 explains the retired blanket freeze and current preservation boundaries.
 
 ## Evidence conventions

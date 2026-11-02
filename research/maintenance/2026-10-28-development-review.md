@@ -4,7 +4,7 @@ Dated 2026-10-28. Scope: improve navigation, runnable examples and contributor
 feedback without changing verified layouts or rewriting historical evidence.
 Repository observations refer to starting commit `7daa1c4` unless stated otherwise.
 This assessment is not a replacement research roadmap; use
-[NEXT-STEPS.md](../NEXT-STEPS.md) for investigation priorities.
+[NEXT-STEPS.md](../../NEXT-STEPS.md) for investigation priorities.
 
 ## Exemplars and application
 
@@ -28,7 +28,7 @@ projects should be copied. No third-party code was imported.
   a quick start and a task-to-document map without deleting the historical record.
 - API entry points, CLI error boundaries, corpus comparison semantics and
   artifact-dependent testing were scattered across code and notes. Added
-  [usage](USAGE.md) and [contributor](../CONTRIBUTING.md) guides linked from the README.
+  [usage](../../docs/USAGE.md) and [contributor](../../CONTRIBUTING.md) guides linked from the README.
 - The README's strict-JSON statement was broader than the implementation:
   `main` uses `allow_nan=not a.timeline`, while the timeline normalizes numbers.
   Added a dated correction; did not change serialization policy on `main`.
@@ -58,7 +58,7 @@ must not claim an unmerged executable fix is already available on `main`.
 ## Verification record
 
 Actual commands, results, known warnings and preservation limits are recorded in
-[the dated session report](../research/session-records/2026-10-28-documentation-dx.md).
+[the dated session report](../session-records/2026-10-28-documentation-dx.md).
 
 ## Repository-wide redesign — 2026-10-28
 
@@ -83,21 +83,21 @@ layout tables, and confidence language that collapsed structure, semantics and
 build transfer. The existing usage and contributor guides were worth keeping.
 
 The resulting hierarchy is deliberately small: README for orientation; a short
-[documentation map](README.md); [usage](USAGE.md) for tasks;
-[architecture](ARCHITECTURE.md) for implementation and the single evidence-reading
-guide; [FORMAT.md](../FORMAT.md) for wire/reference contracts; the existing
-[research index](../research/INDEX.md) for findings, scripts and source evidence.
+[documentation map](../../docs/README.md); [usage](../../docs/USAGE.md) for tasks;
+[architecture](../../docs/ARCHITECTURE.md) for implementation and the single evidence-reading
+guide; [FORMAT.md](../../FORMAT.md) for wire/reference contracts; the existing
+[research index](../INDEX.md) for findings, scripts and source evidence.
 No research files were moved. No second research guide or roadmap was added.
 
 | File | Substantive change |
 |---|---|
-| [README](../README.md) | Capabilities → evidence boundaries → run → inspect → investigate → contribute → limitations; research links at the top; credits retained verbatim |
-| [Format](../FORMAT.md) | Consistent byte notation, layout tables, annotated hex example, parser/observation boundaries, event field table and current production-layer explanation |
-| [Architecture](ARCHITECTURE.md) | Pipeline diagram, authoritative evidence conventions, build/status distinction and clickable canonical references |
-| [Usage](USAGE.md) | Authenticated event projection, precise provenance language and stable error descriptions |
-| [Contributing](../CONTRIBUTING.md) | Replace prior-assignment branch instructions with reusable guidance; connect research workflow to evidence conventions |
-| [Documentation map](README.md) | One short question-to-reference index, with research treated as a primary destination |
-| [Research index](../research/INDEX.md) | Dated current-behavior clarification above intact milestone tables; preserve original-corpus source limits |
+| [README](../../README.md) | Capabilities → evidence boundaries → run → inspect → investigate → contribute → limitations; research links at the top; credits retained verbatim |
+| [Format](../../FORMAT.md) | Consistent byte notation, layout tables, annotated hex example, parser/observation boundaries, event field table and current production-layer explanation |
+| [Architecture](../../docs/ARCHITECTURE.md) | Pipeline diagram, authoritative evidence conventions, build/status distinction and clickable canonical references |
+| [Usage](../../docs/USAGE.md) | Authenticated event projection, precise provenance language and stable error descriptions |
+| [Contributing](../../CONTRIBUTING.md) | Replace prior-assignment branch instructions with reusable guidance; connect research workflow to evidence conventions |
+| [Documentation map](../../docs/README.md) | One short question-to-reference index, with research treated as a primary destination |
+| [Research index](../INDEX.md) | Dated current-behavior clarification above intact milestone tables; preserve original-corpus source limits |
 | This review | Audit decisions, before/after examples, verification and deferred issues |
 
 ### Before → after: technical corrections
@@ -184,8 +184,8 @@ publication and broad maintenance discretion, preserving APIs, evidence and the 
   path. Keep the byte maps and research evidence. Shorten the normal reading path:
   README for entry points, FORMAT for wire layouts, architecture for invariants,
   CONTRIBUTING for checks. Move the previous full roadmap into
-  [a dated archive](../research/NEXT-STEPS-2026-10-28.md), with source identity;
-  move contributor attribution into the [research index](../research/INDEX.md#project-credits).
+  [a dated archive](../NEXT-STEPS-2026-10-28.md), with source identity;
+  move contributor attribution into the [research index](../INDEX.md#project-credits).
 - Use confirmed/inferred/unknown in new prose. Keep historical confidence nuances
   and all parser/timeline statuses; they answer different questions.
 - Check explicit Markdown links in CI, relative to their document. Drop the

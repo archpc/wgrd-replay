@@ -83,5 +83,5 @@ when adding corrections; no special hash-waiver process is required.
 
 Historical manifests/verifiers remain available as optional audit records, not
 CI requirements. They can report old script mismatches or absent private `work/`
-outputs. The [maintenance review](docs/DEVELOPMENT-REVIEW.md#repository-rationalization-2026-10-28)
+outputs. The [maintenance review](research/maintenance/2026-10-28-development-review.md#repository-rationalization-2026-10-28)
 records why the old blanket freeze was retired.
