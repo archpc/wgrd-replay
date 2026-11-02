@@ -5,6 +5,7 @@ const config = __CONFIG__;
 const target = Process.getModuleByName(config.module);
 const listeners = [];
 const counts = {};
+const filtered = {};
 const stacks = {};
 let nextCall = 1;
 let emitted = 0;
@@ -36,13 +37,13 @@ function emit(event) {
   return true;
 }
 
-function captureReads(hook, args, ecx, edx, phase) {
+function captureReads(hook, args, ecx, edx, phase, retval) {
   const snapshots = [];
   for (const read of hook.reads || []) {
     const configuredPhase = read.phase || 'enter';
     if (configuredPhase !== phase && configuredPhase !== 'both') continue;
     const pointer = read.source === 'ecx' ? ecx :
-      read.source === 'edx' ? edx : args[Number(read.source.slice(3))];
+      read.source === 'edx' ? edx : read.source === 'retval' ? retval : args[Number(read.source.slice(3))];
     const address = pointer.add(read.offset);
     let result, target = null;
     const chain = [];
@@ -95,13 +96,21 @@ rpc.exports = {
   install() {
     for (const hook of config.hooks) {
       counts[hook.name] = 0;
+      filtered[hook.name] = 0;
       listeners.push(Interceptor.attach(target.base.add(hook.rva), {
         onEnter(args) {
           const thread = this.threadId;
           this.traceThread = thread;
           this.traceSampled = false;
           this.traceFrame = null;
+          this.traceExcluded = false;
           try {
+            if (hook.within && !(stacks[thread] || []).some(frame =>
+                frame.sp.compare(this.context.esp) > 0 && hook.within.includes(frame.hook))) {
+              filtered[hook.name]++;
+              this.traceExcluded = true;
+              return;
+            }
             const stack = stacks[thread] || (stacks[thread] = []);
             let discarded = 0;
             // x86 stack grows down. Equal/higher ESP indicates a returned or
@@ -110,7 +119,7 @@ rpc.exports = {
               stack.pop(); discarded++; staleFrames++;
             }
             const parent = stack.length ? stack[stack.length - 1] : null;
-            const frame = {id: nextCall++, sp: this.context.esp, recorded: false};
+            const frame = {id: nextCall++, hook: hook.name, sp: this.context.esp, recorded: false};
             stack.push(frame);
             this.traceFrame = frame;
             const ordinal = ++counts[hook.name];
@@ -143,6 +152,7 @@ rpc.exports = {
           }
         },
         onLeave(retval) {
+          if (this.traceExcluded) return;
           try {
             const stack = stacks[this.traceThread] || [];
             const index = stack.indexOf(this.traceFrame);
@@ -155,7 +165,7 @@ rpc.exports = {
             if (this.traceSampled) emit({event: 'leave', hook: hook.name,
               call_id: this.traceFrame ? this.traceFrame.id : null, thread_id: this.traceThread,
               stack_match: valid, retval: retval.toString(),
-              reads: captureReads(hook, this.traceArgs, this.traceEcx, this.traceEdx, 'leave')});
+              reads: captureReads(hook, this.traceArgs, this.traceEcx, this.traceEdx, 'leave', retval)});
           } catch (error) {
             delete stacks[this.traceThread];
             callbackFailure('leave', hook.name, error, this.traceThread);
@@ -168,7 +178,7 @@ rpc.exports = {
   stop() {
     for (const listener of listeners) listener.detach();
     listeners.length = 0;
-    return {counts, emitted, suppressed, callback_errors: callbackErrors, stale_frames: staleFrames,
+    return {counts, filtered, emitted, suppressed, callback_errors: callbackErrors, stale_frames: staleFrames,
       stack_mismatches: stackMismatches, outstanding_threads: Object.keys(stacks).length};
   }
 };

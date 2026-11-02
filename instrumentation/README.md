@@ -107,7 +107,20 @@ and arguments are raw values. For x86 `thiscall`, ECX is commonly the object;
 verify the calling convention per function, not by configuration alone.
 
 Only use function entries and offsets supported by evidence from the exact
-executable revision. Python converts VA to RVA relative to `ghidra_base`; the
+executable revision. Optional `within: ["parent_hook"]` admits a hook only while
+one of those instrumented hooks is active on the same OS thread and its saved
+ESP is above the callee's ESP. Other invocations increment `summary.filtered`
+without emitting entry/return records. In standard (non-gate) capture mode,
+`summary.counts` counts admitted callbacks; `counts + filtered` recovers observed
+entries for scoped hooks. This is a
+bounded nesting filter, not proof of unit identity, lifetime or causality.
+
+A read may use `source: "retval"` only with `phase: "leave"`. It treats the raw
+return register as a pointer, records each bounded dereference, and retains failed
+reads explicitly. It does not validate the pointed-to type or a success boolean;
+for a byte-returning x86 function, unrelated upper EAX bits can remain nonzero.
+
+Python converts VA to RVA relative to `ghidra_base`; the
 script adds the RVA to the observed module base. It rejects an address outside
 the loaded image or mismatched entry bytes. Configuring a new function does not
 establish its calling convention, parameters, return meaning, or success.
@@ -180,6 +193,29 @@ configuration, replay hash and source offset, timing, and limitations. Only map
 replay frame/slot/offset to a runtime request after a reproducible identity or
 content match. An order can resolve to multiple actors and each actor can receive
 a different order. A post-grouping call is not proof of execution or state change.
+
+## Scoped AAR capture candidate (2026-11-02)
+
+`aar-capture-131544-v2.json` is an offline-validated experiment configuration,
+not yet an engine-validated capture. It retains the pinned image and impact,
+threshold and lifecycle targets, captures owner lookup return headers and the
+candidate descriptor at return-object+0x28, and captures clock getter calls only
+inside selected roots. `frame_apply_candidate` at `0xb2b310` records two raw
+arguments; the caller at `0xb3dccd` passes the decoded frame and command object.
+The relationship between a runtime counter and replay frame remains unresolved.
+
+The first expanded capture had 28 impact calls, 28 threshold checks and six
+owner/lifecycle calls, with no suppressed events or callback/stack errors. It did
+not capture the target descriptor bytes. V2 adds the missing read without tracing
+hundreds of thousands of unrelated owner/clock calls. An owner header's +0x04 is
+not treated as a descriptor pointer; that experimental read is replaced by the
++0x28 candidate, still requiring runtime/type validation.
+
+`test_frida_scope.py` and its Node callback simulation validate admission,
+thread/stack scoping, filtered counts and bounded return-value reads. The staged
+controller/hooks were separately exported and tested without the pre-existing
+uncommitted request-gate work, so this capture support does not depend on that
+unfinished work. Simulated hooks are mechanics tests, not live engine evidence.
 
 ## Damage-event publish capture (2026-11-01)
 
