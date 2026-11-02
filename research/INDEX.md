@@ -46,6 +46,15 @@ three freshly inspected visible VTT-323 table rows. This is count/type agreement
 not a replay-open log or a handle-to-row/killer join. Kill outcomes and source
 roles are not silently promoted.
 
+## Bounded position-capture candidate
+
+The [V3 instrumentation experiment](current-build/2026-11-02-position-capture.md)
+adds bounded tag-bit clearing and a final field offset for the static
+`owner+0xE4 → (pointer & FFFFFFFC)+0x30` position anchor. It is offline-tested,
+not live-calibrated. Sparse clock reads support brackets, not invented exact times.
+The [owner-interface correction](current-build/2026-11-02-live-unit-attribution.md#typed-interface-correction-owner0x60)
+rejects the earlier name/kill-record interpretation of owner+0x60.
+
 ## Build-131544 native unit data (2026-11-02)
 
 [Native descriptor extraction and exact GUID joins](current-build/2026-11-02-unit-data.md)
