@@ -116,6 +116,11 @@ Next bounded source-role work must use the corrected `+0x54` receiver dispatch
 and `0x74` entry layout, or find the actual entry population path. No broad
 whole-image absence claim, new runtime role, or source/killer upgrade is made.
 
+Follow-up: the [offline forensic gates](2026-11-02-forensic-offline-gates.md)
+identify a matching append/copy path and correct the handle-generation and
+frame-consumer assumptions. Its execution in the captured playback and its
+participant roles remain unproved.
+
 Private reproducibility records: `frame-index-observations.json`,
 `frame-hook-static-analysis.json`, and `native-hook-parent-validation.json` in
 `ansi-live-01/`. Original worker reports remain unchanged alongside the parent's

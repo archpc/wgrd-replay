@@ -7,6 +7,13 @@ Layout compatibility does not establish gameplay outcomes.
 
 ## Active original-engine AAR work
 
+The approved one-run forensic strategy requires offline frame, queue, lifetime
+and result analysis before boot. Bounded read-only/loss/throughput preflight and
+actual hook readiness must pass before playback.
+See the [verified offline gates](research/current-build/2026-11-02-forensic-offline-gates.md).
+Ghidra 12.1.4 is the structural authority; the verified indexed listing is only
+a byte-lookup aid. Do not regenerate listings or repeat per-address disassembly.
+
 Production source and documentation edits belong in the canonical checkout,
 `~/Code/wgrd-replay/`, on `feat/frida-wgrd-instrumentation`. The former artifact
 worktree is preserved on local branch `wip/frida-preserved-pre-canonical`; it is

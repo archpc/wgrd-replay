@@ -54,6 +54,13 @@ and disposable source projects remained hash-identical. Live MCP stayed idle and
 aligned; no shared-server upgrade or restart occurred. Upstream-current remains
 separate from this verified installed capability.
 
+## Forensic capture gates
+
+The [offline forensic gate findings](current-build/2026-11-02-forensic-offline-gates.md)
+record Ghidra-authoritative lookup verification, the receiver-local append path,
+bucket/slot lifetime boundaries and typed lifecycle publication. Frame timing,
+participant roles and capture preflight remain gated; no new playback is claimed.
+
 ## Exact replay-file witness
 
 The [native hook semantics check](current-build/2026-11-02-native-hook-semantics.md)
