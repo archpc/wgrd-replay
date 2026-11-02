@@ -21,6 +21,12 @@ The current
 separates counter motion from the independently named engine `GameEnded` flag.
 Runtime clock origin, live unit identities and causal kills remain unresolved.
 
+## Build-131544 native unit data (2026-11-02)
+
+[Native descriptor extraction and exact GUID joins](current-build/2026-11-02-unit-data.md)
+authenticates the retained 131544 archive and resolves the controlled replay types.
+These are static type/configuration joins, not live unit identities.
+
 ## Revision-131544 Frida and data-flow research (2026-10-29)
 
 [Two-trace observations](current-build/2026-10-29-frida-observations.md) document
