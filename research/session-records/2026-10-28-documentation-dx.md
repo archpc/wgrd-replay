@@ -9,7 +9,7 @@ on a separate review branch. The ASCII cow is protected: no edits anywhere in
 
 ## Changes and research
 
-The [development assessment](../../docs/DEVELOPMENT-REVIEW.md) records primary
+The [development assessment](../maintenance/2026-10-28-development-review.md) records primary
 sources, inspected functions, adopted practices and refactoring tradeoffs.
 The README gains a quick start and task-based navigation. New
 [usage](../../docs/USAGE.md) and [contributor](../../CONTRIBUTING.md) guides cover

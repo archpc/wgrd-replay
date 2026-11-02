@@ -1,104 +1,83 @@
-# Next steps
+# Current status and next steps
 
-The revision-131544 controlled recording and playback completed without a
-version-specific decoder change. See the [experiment report](research/current-build/2026-10-28-controlled-experiment.md)
-and [cross-build manifest](samples/cross-build-manifest.json) for the bounded results.
-Layout compatibility does not establish gameplay outcomes.
+Target: a complete, reproducible after-action report (AAR) for revision 131544
+(SHA-256 `5eaa6d61…f09efc75d`), produced by the original engine replaying a
+recording.
 
-## Active original-engine AAR work
+The replay file contains only inputs. The decoder (`wgrd_replay.py`) recovers
+the player's commands. Combat outcomes exist only when the engine re-executes
+them. Playback is deterministic at the observed boundary: two captures with
+different hook sets produced the same 28 impacts.
 
-The approved one-run forensic strategy requires offline frame, queue, lifetime
-and result analysis before boot. Bounded read-only/loss/throughput preflight and
-actual hook readiness must pass before playback.
-See the [verified offline gates](research/current-build/2026-11-02-forensic-offline-gates.md).
-Ghidra 12.1.4 is the structural authority; the verified indexed listing is only
-a byte-lookup aid. Do not regenerate listings or repeat per-address disassembly.
+## Canonical AAR workflow
 
-Production source and documentation edits belong in the canonical checkout,
-`~/Code/wgrd-replay/`, on `feat/frida-wgrd-instrumentation`. The former artifact
-worktree is preserved on local branch `wip/frida-preserved-pre-canonical`; it is
-not the active editing location. Migration retained its dirty diff and untracked
-files byte-for-byte and left the former CI branch intact. Local `main` was
-fast-forwarded to `origin/main`; stale remote-tracking references were pruned
-without deleting local branches, worktrees or evidence. Recheck live branch/ref
-state before publishing; no history rewrite or unrelated merge was performed.
+1. Run an authorized playback with `instrumentation/wgrd_frida.py`,
+   `hooks.js` and `aar-capture-131544-v3.json` (see
+   [instrumentation](instrumentation/README.md)).
+2. Run `instrumentation/aar_events.py` (one exporter) on the hash-pinned trace
+   to get events, units, destruction chains and chronology.
+3. Use `wgrd_replay.py --timeline` on the same replay for the player's commands.
 
-Revision-131544 AAR work is in progress on the Frida feature branch. Current
-verified milestones are indexed in [research](research/INDEX.md):
+Ghidra 12.1.4, through the canonical REA CLI on a disposable project copy, is
+the structural authority. The recipe is in the
+[causal chain note](research/current-build/2026-11-02-causal-chain.md).
 
-- Native 131544 descriptor extraction and exact configured-type joins work.
-- Engine deterministic ticks/seconds have original Lua binding names and a
-  verified computation path. Replay-frame and battle-clock origins remain open.
-- Live owner/type snapshots resolve the impacted VTT-323 instances and two
-  Merkava source candidates. Three damage-threshold/lifecycle chains are distinct
-  from three end-cleanup calls. Source-role semantics and corroborated killer
-  attribution remain open.
-- Guarded Win32 input and read-only Frida counter/GameEnded observations work.
-  A complete menu/browser/loading/replay cycle with state gates is not yet validated.
+## Causal chain coverage
 
-- The [expanded state observer](research/current-build/2026-11-02-engine-state.md)
-  is integrated with the reviewed fixes, preserving the original counter records and
-  rejecting unproved menu/loading/replay-active predicates. A new
-  [KERNELBASE file-open witness](research/current-build/2026-11-02-replay-file-witness.md)
-  identifies the replay bytes for that playback, not retroactively for old captures.
-  Live main-menu evidence disproved the former
-  GameStarted-to-ingame inference; the predicate now stays unknown.
-- The [V3 position AAR](research/current-build/2026-11-02-position-aar.md) integrates
-  the completed native capture: raw position anchors, capture-local type joins,
-  clock brackets and value transitions, with no invented movement/arrival semantics.
-  The complete guest evidence export is hash-verified; source-owner provenance
-  remains a separate static research thread.
+| Link | Status | Evidence |
+|---|---|---|
+| Impact record → queued damage entry (producer) | static | [causal chain](research/current-build/2026-11-02-causal-chain.md) |
+| Entry → apply: source, target, amount, mode | observed + static | [runtime AAR](research/current-build/2026-11-02-runtime-aar.md) |
+| Source owner = engine-credited attacker (XP credit) | static | causal chain §2 |
+| Target/source unit types | observed + static index join | [unit data](research/current-build/2026-11-02-unit-data.md) |
+| Threshold → `Killed` composition and owner destroy | observed (AL, nested destroy) + static | causal chain §3 |
+| `TIAKillGameplayMessage` | lifecycle only, not kill credit | causal chain §4 |
+| Kill table / kill points (debrief) | **open**: data source not located | type/count corroboration only |
+| Weapon identity | **open**: impact record layout not captured | — |
+| Team numbers in `Killed` message | **open**: not captured | — |
+| Movement / tactical events | **open**: position anchors are raw, uncalibrated | [position AAR](research/current-build/2026-11-02-position-aar.md) |
 
-Manual Eugen login resolved the prior authorization pause. Three bounded ANSI
-windows were inconclusive. The subsequent KERNELBASE!CreateFileW watch witnessed
-two successful exact-path opens with the expected stable replay digest. The
-closed 52-file export is hash-verified on the Mac. The subsequent bounded native
-capture completed with a clean summary/end and independent GameEnded observation.
-Its final 57-file export is verified. The same-playback AAR preserves the initial
-uncovered interval and exports 28 impacts, 356 position observations and 146
-raw anchor changes; no shooter/kill credit or calibrated movements are invented.
-The [two unresolved descriptor tracks](research/current-build/2026-11-02-fob-descriptor-identity.md)
-now have separate native FOB building classifications. Their member-unit joins
-remain unresolved because the name token is shared; ownership is not inferred.
+## Clock hypotheses (tested, not proven)
 
-Next: resolve source-role and kill attribution where new evidence supports it,
-using the [corrected native layout](research/current-build/2026-11-02-native-hook-semantics.md)
-(`TModernWarfareDamageModule` slot `+0x54`, entry stride `0x74`). The keyed
-registration hook does not provide a simulation-frame clock.
-Preserve qualified coverage, validate phase/clock mapping and
-the full replay cycle only when a specific live experiment is ready, corroborate
-combat-source semantics, and capture movement where supported. The retained-capture
-structured AAR exporter is integrated; its current coverage and explicit unknowns
-are in [the runtime AAR note](research/current-build/2026-11-02-runtime-aar.md).
-Raw evidence remains private, exported to the Mac and hash-verified
-before any baseline restore. These status notes do not grant future VM authorization.
+`tests/test_aar_clock_hypotheses.py` checks these against pinned evidence. Any
+new replay with known UI times should be added to its `DISPLAYED` table.
 
-## Priorities
+- **H1:** one replay frame is a 0.2 s deterministic tick. The impact clock equals
+  0.2 × the engine counter, and the counter stays within the file's frame range.
+  The controlled replay's 1784 frames give 356.8 s against a UI total of 5:55.
+  The exporter emits `replay_frame_hypothesis` with this status.
+- **H2:** battle time starts at the opcode-0x13 frame. It matches two displayed
+  battle durations (4:11 and 2:24) and one mid-battle UI point (replay 4:29 =
+  battle 0:58).
+- **H3:** the replay actor `0xC0000066` is the parent group of runtime owners
+  `0xC0000067` and `0xC0000068`. This rests on key adjacency and shared GUID
+  parts only. Untested.
 
-1. **Timing and movement validation.** Follow the [Phase 2 handoff](research/current-build/PHASE-2-HANDOFF.md)
-   for independent recordings, clock anchors and observed movement. Frame duration,
-   coordinate mapping and arrival remain unresolved. The handoff does not authorize
-   VM operation or game launch.
-2. **Make recorded requests useful.** Filters, reference history and request
-   summaries can build on the existing timeline without reconstructing simulation
-   state. Preserve contextual kind 39, unknown execution outcomes and replay-scoped
-   identities.
-3. **Resolve targeted format questions.** Trace the `0x0C` consumer before naming
-   the enum/float-like fields; investigate `0x0A` purchase correlation, `0x0B`,
-   marker types 0/1/2 and marker IDs. Use the [research index](research/INDEX.md)
-   to avoid repeating completed traces.
-4. **Broaden independent validation.** Obtain independent, authenticated samples
-   and identify the matching Sample2 executable. Keep cross-build layout inference
-   separate from executable-backed semantics.
+## Next authorized capture (delta from v3)
 
-## Open constraints
+Add `0xcf8490` entry (impact record, 128 bytes at arg 0). Add `0xc52de0` only
+`within` the apply hook, replacing the 1-in-997 sample. Add reads of the
+`0xc954f9` composition inputs (`[ebp+0x73]`, `[ebp-0x38]`). Drop
+`frame_apply_candidate`, the order/reference hooks and the clock sampler.
+Locate the debrief kill-stats provider statically first. Do not write the
+config or exporter profile before the run is authorized.
 
-Retain the strict container acceptance policy until evidence justifies changing
-it. The digest origin/fatality in the game, slot-to-player identity, extended
-`star` payloads and remaining field meanings are still unknown. Static NDF types
-cannot establish ownership, live member identity, effective orders or outcomes.
+## Other priorities
 
-Current counts and reproduction scripts are linked from [architecture](docs/ARCHITECTURE.md#4-generated-files-and-their-scripts).
-The full earlier roadmap, negative results and milestone details remain in the
-[dated priorities archive](research/NEXT-STEPS-2026-10-28.md). Those historical
-blockers and test totals are not current requirements.
+1. Request usefulness: filters, reference history and request summaries on the
+   existing timeline. Keep contextual kind 39 and unknown execution outcomes.
+2. Targeted format questions: the `0x0C` consumer, `0x0A`/`0x0B` and marker
+   fields. Check the [research index](research/INDEX.md) first.
+3. Independent validation: more authenticated samples, and the Sample2
+   executable.
+
+## Constraints
+
+- Strict container acceptance stays until evidence justifies a change.
+- Unknown: digest origin, slot-to-player identity and extended `star` payloads.
+- Static NDF types do not establish ownership or outcomes.
+- This file grants no VM authorization.
+
+Current counts and scripts: [architecture](docs/ARCHITECTURE.md#4-generated-files-and-their-scripts).
+Earlier narratives: Git history and the
+[2026-10-28 archive](research/NEXT-STEPS-2026-10-28.md).

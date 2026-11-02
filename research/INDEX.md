@@ -12,6 +12,18 @@ possible serializer. `opaque` is a structural label, not an interpretation statu
 No historical finding is promoted to general gameplay verification by the
 controlled experiment.
 
+## Start here: revision-131544 AAR (current)
+
+[NEXT-STEPS.md](../NEXT-STEPS.md) holds the current causal-chain coverage,
+the clock hypotheses and the open blockers. Current notes:
+[causal chain](current-build/2026-11-02-causal-chain.md) (producer, source
+credit, kill messages), [runtime AAR](current-build/2026-11-02-runtime-aar.md),
+[unit data](current-build/2026-11-02-unit-data.md) and
+[position AAR](current-build/2026-11-02-position-aar.md). Sections below are
+dated milestone records. Where they conflict with the causal-chain note,
+that note supersedes them: source roles are now statically engine-credited,
+and `TIAKillGameplayMessage` is lifecycle-only.
+
 ## Revision-131544 AAR clock research (2026-11-02)
 
 [Clock computation and capture targets](current-build/2026-11-02-aar-clock.md)
@@ -36,7 +48,9 @@ The [reviewed runtime AAR exporter](current-build/2026-11-02-runtime-aar.md)
 produces structured events, event-involved unit histories and a chronological
 report from the authenticated retained trace and native unit index. Source roles
 remain provisional; destruction calls are not silently promoted to credited kills.
-The original 28-event legacy exporter and original artifacts are preserved.
+The original 28-event legacy exporter was retired from the maintained tool. It
+reproduces byte-for-byte from commit `71c4f8e` (recipe in
+[instrumentation](../instrumentation/README.md)); original artifacts are preserved.
 
 ## Cross-capture and kill-table corroboration
 

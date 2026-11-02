@@ -3,6 +3,12 @@
 Date: 2026-11-02. Build 131544. Status: one capture reanalysed read-only; the
 export is additive and keeps the legacy 28-event exporter byte-compatible.
 
+> **Superseded in part (2026-11-02, [causal chain](2026-11-02-causal-chain.md)).**
+> The exporter now labels source owners `engine_credited_damage_source` on
+> static XP-credit and producer evidence. The legacy profile is retired from
+> the maintained exporter and reproducible from commit `71c4f8e`. The
+> observations below are unchanged.
+
 ## Sources and pins
 
 | Input | Identity |
