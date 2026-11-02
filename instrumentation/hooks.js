@@ -54,18 +54,46 @@ function captureReads(hook, args, ecx, edx, phase, retval) {
     } else if (read.indirect) {
       let cursor = address;
       const depth = read.second_indirect ? 2 : 1;
+      const masked = read.indirect_mask !== undefined || read.indirect_offset !== undefined;
+      const maskValue = read.indirect_mask === undefined ? null :
+        (typeof read.indirect_mask === 'number' ? read.indirect_mask : parseInt(String(read.indirect_mask), 16));
+      const offsetValue = read.indirect_offset === undefined ? 0 : read.indirect_offset;
+      const meta = {raw_pointer: null, applied_mask: null, target_offset: 0, final_target: null};
       try {
         for (let i = 0; i < depth; i++) {
           const slot = hexBytes(cursor, Process.pointerSize);
           if (!slot.ok) { result = {ok: false, reason: 'pointer slot not readable'}; break; }
           cursor = cursor.readPointer();
           chain.push(cursor.toString());
+          if (masked && cursor.isNull()) { result = {ok: false, reason: 'masked target is null'}; break; }
         }
         if (result === undefined) {
-          target = cursor.toString();
-          result = hexBytes(cursor, read.size);
+          if (masked) {
+            meta.raw_pointer = cursor.toString();
+            if (maskValue !== null) {
+              meta.applied_mask = '0x' + (maskValue >>> 0).toString(16).padStart(8, '0');
+              cursor = cursor.and(maskValue);
+            }
+            meta.target_offset = offsetValue;
+            if (cursor.isNull()) {
+              result = {ok: false, reason: 'masked target is null'};
+            } else {
+              const final = cursor.add(offsetValue);
+              if (final.compare(cursor) < 0) result = {ok: false, reason: 'target offset overflow'};
+              else { cursor = final; meta.final_target = cursor.toString(); }
+            }
+          }
+          if (result === undefined) {
+            target = cursor.toString();
+            result = hexBytes(cursor, read.size);
+          }
         }
       } catch (error) { result = {ok: false, reason: String(error)}; }
+      snapshots.push({source: read.source, phase, offset: read.offset, size: read.size,
+        address: address.toString(), indirect: true, chain, target, result,
+        ...(masked ? {raw_pointer: meta.raw_pointer, applied_mask: meta.applied_mask,
+          target_offset: meta.target_offset, final_target: meta.final_target} : {})});
+      continue;
     } else result = hexBytes(address, read.size);
     snapshots.push({source: read.source, phase, offset: read.offset, size: read.size,
       address: address.toString(), indirect: !!read.indirect, chain, target, result});

@@ -107,6 +107,17 @@ def validate_config(config):
             if (not isinstance(read.get("second_indirect", False), bool) or
                     read.get("second_indirect", False) and not read.get("indirect", False)):
                 raise ValueError("invalid second pointer dereference")
+            if ("indirect_mask" in read or "indirect_offset" in read) and not read.get("indirect", False):
+                raise ValueError("indirect_mask/indirect_offset require an indirect read")
+            if "indirect_mask" in read:
+                mask = read["indirect_mask"]
+                if (not isinstance(mask, str) or
+                        not re.fullmatch(r"(?:0[xX])?[0-9a-fA-F]{1,8}", mask) or int(mask, 16) > 0xFFFFFFFF):
+                    raise ValueError("indirect_mask must be a 32-bit hexadecimal string")
+            if "indirect_offset" in read:
+                offset = read["indirect_offset"]
+                if isinstance(offset, bool) or not isinstance(offset, int) or not 0 <= offset <= 0x1000:
+                    raise ValueError("indirect_offset must be an integer 0..0x1000")
             if read.get("phase", "enter") not in {"enter", "leave", "both"}:
                 raise ValueError("invalid read phase")
             valid_sources = {"ecx", "edx", *[f"arg{i}" for i in range(hook.get("args", 0))]}

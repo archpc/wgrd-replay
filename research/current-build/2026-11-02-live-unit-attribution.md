@@ -97,6 +97,31 @@ The pointer relationship is verified; its semantic role as shooter/weapon source
 still requires the independent caller/queue provenance investigation. Source candidates
 are not published as verified killers yet.
 
+## Typed interface correction: owner+`0x60`
+
+A bounded follow-up checked the capture's 17 non-null source headers and the
+original PE. Owner+`0x60` is always vptr `0x01994500`. Its MSVC complete-object
+locator is `0x01b87d40`, with **COL.offset** `0x60` and type-descriptor name
+`.?AVsipTUniteGamePlay@@`. The primary vptr is `0x0199440c`. This identifies a
+secondary interface subobject, not an inline callsign or per-unit name key.
+
+At `0xc9c073..0xc9c084`, the code null-checks the resolved record+`0x08` owner,
+adds `0x60` and passes that address to `0xa94b90`. The helper constructs a tagged
+interface parameter (observed tag `0xc`); its parameter packing does not establish
+an independently scored kill record. Earlier private "kill/name payload builder"
+wording was too strong. Source-role attribution remains provisional.
+
+`TKillablePtr` in adjacent RTTI concerns pointer/object lifetime; its name alone
+is not evidence of combat death. The opaque dword at +`0x70` is not assigned a
+float or pointer meaning. +`0x20` is not the only varying header field: +`0x04`
+and +`0x1c` also differ across these owners. The already verified descriptor
+GUID/name-token joins above are not replaced by incidental printable byte fragments.
+
+Private receipts: `name-key-probe.md/json` and
+`name-key-lead-verification.json` under `aar-20261102T050816Z/`. The lead check
+matched 39 quoted instruction spans and independently decoded COL.offset; stronger
+negative claims about all possible name recovery are not adopted.
+
 ## Clock and remaining uncertainty
 
 The timestamps above are direct return-time reads of damage-module+`0x1ec`.

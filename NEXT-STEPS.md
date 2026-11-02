@@ -7,6 +7,22 @@ Layout compatibility does not establish gameplay outcomes.
 
 ## Active original-engine AAR work
 
+The approved one-run forensic strategy requires offline frame, queue, lifetime
+and result analysis before boot. Bounded read-only/loss/throughput preflight and
+actual hook readiness must pass before playback.
+See the [verified offline gates](research/current-build/2026-11-02-forensic-offline-gates.md).
+Ghidra 12.1.4 is the structural authority; the verified indexed listing is only
+a byte-lookup aid. Do not regenerate listings or repeat per-address disassembly.
+
+Production source and documentation edits belong in the canonical checkout,
+`~/Code/wgrd-replay/`, on `feat/frida-wgrd-instrumentation`. The former artifact
+worktree is preserved on local branch `wip/frida-preserved-pre-canonical`; it is
+not the active editing location. Migration retained its dirty diff and untracked
+files byte-for-byte and left the former CI branch intact. Local `main` was
+fast-forwarded to `origin/main`; stale remote-tracking references were pruned
+without deleting local branches, worktrees or evidence. Recheck live branch/ref
+state before publishing; no history rewrite or unrelated merge was performed.
+
 Revision-131544 AAR work is in progress on the Frida feature branch. Current
 verified milestones are indexed in [research](research/INDEX.md):
 
@@ -20,7 +36,36 @@ verified milestones are indexed in [research](research/INDEX.md):
 - Guarded Win32 input and read-only Frida counter/GameEnded observations work.
   A complete menu/browser/loading/replay cycle with state gates is not yet validated.
 
-Next: integrate the corrected state observer, validate phase/clock mapping and
+- The [expanded state observer](research/current-build/2026-11-02-engine-state.md)
+  is integrated with the reviewed fixes, preserving the original counter records and
+  rejecting unproved menu/loading/replay-active predicates. A new
+  [KERNELBASE file-open witness](research/current-build/2026-11-02-replay-file-witness.md)
+  identifies the replay bytes for that playback, not retroactively for old captures.
+  Live main-menu evidence disproved the former
+  GameStarted-to-ingame inference; the predicate now stays unknown.
+- The [V3 position AAR](research/current-build/2026-11-02-position-aar.md) integrates
+  the completed native capture: raw position anchors, capture-local type joins,
+  clock brackets and value transitions, with no invented movement/arrival semantics.
+  The complete guest evidence export is hash-verified; source-owner provenance
+  remains a separate static research thread.
+
+Manual Eugen login resolved the prior authorization pause. Three bounded ANSI
+windows were inconclusive. The subsequent KERNELBASE!CreateFileW watch witnessed
+two successful exact-path opens with the expected stable replay digest. The
+closed 52-file export is hash-verified on the Mac. The subsequent bounded native
+capture completed with a clean summary/end and independent GameEnded observation.
+Its final 57-file export is verified. The same-playback AAR preserves the initial
+uncovered interval and exports 28 impacts, 356 position observations and 146
+raw anchor changes; no shooter/kill credit or calibrated movements are invented.
+The [two unresolved descriptor tracks](research/current-build/2026-11-02-fob-descriptor-identity.md)
+now have separate native FOB building classifications. Their member-unit joins
+remain unresolved because the name token is shared; ownership is not inferred.
+
+Next: resolve source-role and kill attribution where new evidence supports it,
+using the [corrected native layout](research/current-build/2026-11-02-native-hook-semantics.md)
+(`TModernWarfareDamageModule` slot `+0x54`, entry stride `0x74`). The keyed
+registration hook does not provide a simulation-frame clock.
+Preserve qualified coverage, validate phase/clock mapping and
 the full replay cycle only when a specific live experiment is ready, corroborate
 combat-source semantics, and capture movement where supported. The retained-capture
 structured AAR exporter is integrated; its current coverage and explicit unknowns

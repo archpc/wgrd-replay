@@ -13,6 +13,7 @@ without creating output files. Output files are exclusively created.
 """
 
 import argparse
+import bisect
 import datetime
 import hashlib
 import json
@@ -955,6 +956,191 @@ RUNTIME_CAPTURE_SOURCE_PINS = {
     "wgrd_frida.py": "3d3cb50212f0731367203cfbb6eb62d7ada9a37f2e5130002ff842987164c0bc",
 }
 
+# ---------------------------------------------------------------------------
+# Additive V3 profile: ten hooks, masked descriptor and tagged anchor reads.
+#
+# The V3 capture keeps every earlier hook and adds a phase candidate plus a
+# tagged anchor read (mask 0xfffffffc, +0x30) on the owner lookup (leave) and
+# owner destroy (enter) hooks. The legacy and runtime profiles above are
+# unchanged: this profile only widens header validation and adds position
+# observations with bounded clock brackets. Nothing here promotes an anchor
+# to metres, a visual centre, a movement intent or a game-time source.
+# ---------------------------------------------------------------------------
+
+RUNTIME_V3_SCHEMA = "wgrd-aar-runtime-v3/1"
+RUNTIME_V3_POSITIONS_SCHEMA = "wgrd-aar-runtime-positions/1"
+RUNTIME_V3_TRACE_SHA256 = "d6a03dc0ca4c4e7400928eb89ce9b05f19739f7e7ca75ca0dffae50bda0d11ec"
+RUNTIME_V3_INDEX_SHA256 = RUNTIME_INDEX_SHA256
+RUNTIME_V3_POSITION_MASK = "fffffffc"
+RUNTIME_V3_POSITION_OFFSET = 48
+
+RUNTIME_V3_HOOK_SPECS = {
+    "impact_apply_candidate": {
+        "va": "0xc9f910", "args": 5, "sample_every": 1,
+        "reads": (("ecx", 0, 16, "enter", False),
+                  ("ecx", 400, 96, "both", False),
+                  ("ecx", 4, 128, "enter", True),
+                  ("arg1", 0, 128, "enter", False),
+                  ("arg2", 0, 128, "enter", False)),
+        "masks": {},
+    },
+    "destruction_check_candidate": {
+        "va": "0xc9bf20", "args": 1, "sample_every": 1,
+        "reads": (("ecx", 0, 16, "enter", False),
+                  ("ecx", 400, 96, "both", False)),
+        "masks": {},
+    },
+    "owner_destroy_candidate": {
+        "va": "0xa75c70", "args": 1, "sample_every": 1,
+        "reads": (("ecx", 0, 128, "both", False),
+                  ("ecx", 40, 128, "enter", True),
+                  ("ecx", 228, 12, "enter", True)),
+        "masks": {("ecx", 228): (RUNTIME_V3_POSITION_MASK, RUNTIME_V3_POSITION_OFFSET)},
+    },
+    "clock_sample_candidate": {
+        "va": "0xaaedf0", "args": 0, "sample_every": 997,
+        "reads": (("ecx", 208, 4, "enter", False),),
+        "masks": {},
+    },
+    "order_request_wrapper": {
+        "va": "0xb2be30", "args": 2, "sample_every": 1,
+        "reads": (("ecx", 4, 20, "enter", False),
+                  ("ecx", 88, 4, "enter", False),
+                  ("ecx", 208, 36, "enter", False)),
+        "masks": {},
+    },
+    "reference_remap": {
+        "va": "0xae4830", "args": 1, "sample_every": 1,
+        "reads": (("arg0", 0, 4, "enter", False),
+                  ("retval", 0, 4, "leave", False)),
+        "masks": {},
+    },
+    "reference_lookup": {
+        "va": "0xae48d0", "args": 2, "sample_every": 1,
+        "reads": (("retval", 0, 128, "leave", False),
+                  ("retval", 40, 128, "leave", True)),
+        "masks": {},
+    },
+    "owner_lookup_candidate": {
+        "va": "0xc52de0", "args": 0, "sample_every": 997,
+        "reads": (("ecx", 8, 4, "enter", False),
+                  ("retval", 0, 128, "leave", False),
+                  ("retval", 40, 128, "leave", True),
+                  ("retval", 228, 12, "leave", True)),
+        "masks": {("retval", 228): (RUNTIME_V3_POSITION_MASK, RUNTIME_V3_POSITION_OFFSET)},
+    },
+    "frame_apply_candidate": {
+        "va": "0xb2b310", "args": 2, "sample_every": 1,
+        "reads": (),
+        "masks": {},
+    },
+    "phase_change_candidate": {
+        "va": "0xab4780", "args": 1, "sample_every": 1,
+        "reads": (("ecx", 208, 4, "both", False),
+                  ("ecx", 56, 16, "both", True),
+                  ("ecx", 32, 4, "both", False)),
+        "masks": {},
+    },
+}
+
+# Capture-era source copies retained under <artifact root>/capture-sources.
+RUNTIME_V3_CAPTURE_CONFIG = {
+    "file": "aar-capture-131544-v3.json",
+    "sha256": "e02901924b5465b0ab58a29cce1c537d45139d2054333d950aeed265e3a3eefd",
+}
+RUNTIME_V3_CAPTURE_SOURCE_PINS = {
+    "wgrd_frida.py": "8c32f864bf75f8345077ad44958216362a8429cf6a3d2944745bee806f81e821",
+    "hooks.js": "751960dd2ef863b6af50035d5ec51ad73f6c808877c24cb204f51091abdd8d19",
+}
+
+RUNTIME_PROFILE_V2 = {
+    "name": "runtime",
+    "schema": RUNTIME_SCHEMA,
+    "capture_config_pin": RUNTIME_CAPTURE_CONFIG,
+    "capture_source_pins": RUNTIME_CAPTURE_SOURCE_PINS,
+    "hooks": RUNTIME_HOOK_SPECS,
+    "impact": RUNTIME_IMPACT_HOOK,
+    "check": RUNTIME_CHECK_HOOK,
+    "destroy": RUNTIME_DESTROY_HOOK,
+    "clock": RUNTIME_CLOCK_HOOK,
+    "lookup": RUNTIME_LOOKUP_HOOK,
+    "phase": None,
+    "frame": None,
+    "position_hooks": {},
+    "extra_limitations": (),
+}
+
+RUNTIME_PROFILE_V3 = {
+    "name": "runtime-v3",
+    "schema": RUNTIME_V3_SCHEMA,
+    "capture_config_pin": RUNTIME_V3_CAPTURE_CONFIG,
+    "capture_source_pins": RUNTIME_V3_CAPTURE_SOURCE_PINS,
+    "hooks": RUNTIME_V3_HOOK_SPECS,
+    "impact": "impact_apply_candidate",
+    "check": "destruction_check_candidate",
+    "destroy": "owner_destroy_candidate",
+    "clock": "clock_sample_candidate",
+    "lookup": "owner_lookup_candidate",
+    "phase": "phase_change_candidate",
+    "frame": "frame_apply_candidate",
+    "position_hooks": {
+        # (source, offset, size) blocks read in the named phase of that hook.
+        "owner_lookup_candidate": {"phase": "leave", "owner_source": "retval",
+                                   "header": 0, "anchor": 228,
+                                   "descriptor": 40},
+        "owner_destroy_candidate": {"phase": "enter", "owner_source": "ecx",
+                                    "header": 0, "anchor": 228,
+                                    "descriptor": 40},
+    },
+    "extra_limitations": (
+        "Position anchors are raw tagged-pointer reads; coordinates are unmapped "
+        "raw float32 triples, not metres, world units or a visual centre.",
+        "Position times are only bracketed by adjacent clock-enter samples inside "
+        "one clock epoch; no interpolation, wall-clock or game time is derived.",
+        "frame_apply_candidate invocations are counted as unmapped calls; the "
+        "argument count is not a frame index and no frame is inferred.",
+        "phase_change_candidate is recorded as a raw unmapped observation; its "
+        "argument does not establish a battle phase or epoch.",
+    ),
+}
+
+
+def _norm_mask(value):
+    return value.lower().replace("0x", "")
+
+
+def _rt_profile(name):
+    profiles = {profile["name"]: profile for profile in
+                (RUNTIME_PROFILE_V2, RUNTIME_PROFILE_V3)}
+    _require(name in profiles, "unknown profile %r" % name)
+    return profiles[name]
+
+
+def _rt_detect_profile(rows):
+    """Select a profile only from the exact, known hook-name sets."""
+    starts = [row for row in rows if row.get("event") == "start"]
+    _require(len(starts) == 1, "expected exactly one start record, found %d" % len(starts))
+    hooks = starts[0].get("hooks")
+    _require(isinstance(hooks, list), "start record has no hooks")
+    names = {hook.get("name") for hook in hooks}
+    for profile in (RUNTIME_PROFILE_V2, RUNTIME_PROFILE_V3):
+        if names == set(profile["hooks"]):
+            return profile
+    raise AarTraceError("unknown hook profile: %s"
+                        % ", ".join(sorted(str(name) for name in names)))
+
+
+def _rt_require_complete(rows):
+    """A completed capture is required before any export can be written."""
+    names = [row.get("event") for row in rows]
+    required = ("start", "identity_verified", "hooks_installed", "summary",
+                "detached", "end")
+    missing = [name for name in required if name not in names]
+    _require(not missing,
+             "incomplete capture: missing %s; a completed capture (summary, "
+             "detached and end records) is required before export"
+             % ", ".join(missing))
+
 
 def _rt_read_record(record, source, offset, size, phase, where):
     matches = [read for read in record.get("reads") or []
@@ -992,8 +1178,9 @@ def _rt_f32(data, offset, where):
     return struct.unpack_from("<f", data, offset)[0]
 
 
-def _rt_records(rows):
-    grouped = {name: {"enter": [], "leave": []} for name in RUNTIME_HOOK_SPECS}
+def _rt_records(rows, profile=None):
+    profile = profile or RUNTIME_PROFILE_V2
+    grouped = {name: {"enter": [], "leave": []} for name in profile["hooks"]}
     for line_number, row in enumerate(rows, 1):
         hook = row.get("hook")
         event = row.get("event")
@@ -1002,8 +1189,9 @@ def _rt_records(rows):
     return grouped
 
 
-def _rt_pairs(grouped, name):
-    spec = RUNTIME_HOOK_SPECS[name]
+def _rt_pairs(grouped, name, profile=None):
+    profile = profile or RUNTIME_PROFILE_V2
+    spec = profile["hooks"][name]
     enters = {}
     leaves = {}
     for line_number, record in grouped[name]["enter"]:
@@ -1041,7 +1229,9 @@ def _rt_pairs(grouped, name):
     return pairs
 
 
-def _rt_validate_header(rows):
+def _rt_validate_header(rows, profile=None):
+    profile = profile or RUNTIME_PROFILE_V2
+    hook_specs = profile["hooks"]
     start = _single(rows, "start")
     identity = _single(rows, "identity_verified")
     _single(rows, "hooks_installed")
@@ -1057,9 +1247,9 @@ def _rt_validate_header(rows):
     seen = {}
     for hook in hooks:
         name = hook.get("name")
-        _require(name in RUNTIME_HOOK_SPECS, "unexpected hook %r" % name)
+        _require(name in hook_specs, "unexpected hook %r" % name)
         _require(name not in seen, "duplicate hook %r" % name)
-        spec = RUNTIME_HOOK_SPECS[name]
+        spec = hook_specs[name]
         _require(hook.get("va") == spec["va"], "%s hook address mismatch" % name)
         _require(hook.get("args") == spec["args"], "%s argument count mismatch" % name)
         _require(hook.get("sample_every") == spec["sample_every"],
@@ -1068,8 +1258,22 @@ def _rt_validate_header(rows):
                   read.get("phase"), bool(read.get("indirect", False)))
                  for read in hook.get("reads") or []}
         _require(shape == set(spec["reads"]), "%s read shape mismatch" % name)
+        masks = spec.get("masks") or {}
+        for read in hook.get("reads") or []:
+            key = (read.get("source"), read.get("offset"))
+            expected = masks.get(key)
+            actual = read.get("indirect_mask")
+            actual_offset = read.get("indirect_offset")
+            if expected is None:
+                _require(actual is None and actual_offset is None,
+                         "%s unexpected indirect mask at %r" % (name, key))
+            else:
+                _require(isinstance(actual, str) and _norm_mask(actual) == expected[0],
+                         "%s indirect mask mismatch at %r" % (name, key))
+                _require(actual_offset == expected[1],
+                         "%s indirect offset mismatch at %r" % (name, key))
         seen[name] = hook
-    _require(set(seen) == set(RUNTIME_HOOK_SPECS), "runtime hook set mismatch")
+    _require(set(seen) == set(hook_specs), "runtime hook set mismatch")
 
     module = identity.get("module") or {}
     _require(module.get("name", "").lower() == "wargame3.exe", "identity module name mismatch")
@@ -1080,19 +1284,23 @@ def _rt_validate_header(rows):
     entries = {}
     for entry in module.get("entries") or []:
         entries[entry.get("name")] = entry
-    _require(set(entries) == set(RUNTIME_HOOK_SPECS), "identity hook set mismatch")
-    for name, spec in RUNTIME_HOOK_SPECS.items():
+    _require(set(entries) == set(hook_specs), "identity hook set mismatch")
+    for name, spec in hook_specs.items():
         _require(entries[name].get("address") == spec["va"],
                  "identity address mismatch for %s" % name)
         _require(entries[name].get("executable") is True,
                  "identity address not executable for %s" % name)
 
     for key in ("suppressed", "callback_errors", "stale_frames", "stack_mismatches",
-                "outstanding_threads", "gate_read_failures", "gate_ambiguities",
-                "gate_suspended_threads"):
+                "outstanding_threads"):
         _require(summary.get(key) == 0, "summary failure:%s=%r" % (key, summary.get(key)))
+    for key in ("gate_read_failures", "gate_ambiguities", "gate_suspended_threads"):
+        # The V3 capture summary omits the gate counters; when present they
+        # must be zero, and the V2 profile continues to require them.
+        if key in summary or profile["name"] == "runtime":
+            _require(summary.get(key) == 0, "summary failure:%s=%r" % (key, summary.get(key)))
     counts = summary.get("counts")
-    _require(isinstance(counts, dict) and set(counts) == set(RUNTIME_HOOK_SPECS),
+    _require(isinstance(counts, dict) and set(counts) == set(hook_specs),
              "summary hook counts mismatch")
     _require(detached.get("reason") == "application-requested",
              "unexpected detach reason:%r" % detached.get("reason"))
@@ -1103,12 +1311,13 @@ def _rt_validate_header(rows):
     return start, summary
 
 
-def _rt_check_counts(summary, pairs_by_hook):
+def _rt_check_counts(summary, pairs_by_hook, profile=None):
+    profile = profile or RUNTIME_PROFILE_V2
     counts = summary["counts"]
     total_enters = 0
     for name, pairs in pairs_by_hook.items():
         total_enters += len(pairs)
-        stride = RUNTIME_HOOK_SPECS[name]["sample_every"]
+        stride = profile["hooks"][name]["sample_every"]
         total = counts[name]
         if stride == 1:
             _require(total == len(pairs), "%s count %d != paired %d"
@@ -1356,18 +1565,371 @@ def _rt_join_pointer(bucket, index, address):
     return _rt_descriptor_join(index, item["guid_hex"], item["token_hex"])
 
 
-def _rt_extract(rows, source_name, source_sha256, line_count, index, index_name,
-                index_sha256):
-    start, summary = _rt_validate_header(rows)
-    grouped = _rt_records(rows)
-    pairs_by_hook = {name: _rt_pairs(grouped, name) for name in RUNTIME_HOOK_SPECS}
-    emitted = _rt_check_counts(summary, pairs_by_hook)
+def _rt_chain(read, where):
+    chain = read.get("chain")
+    _require(isinstance(chain, list), "missing indirect chain at %s" % where)
+    values = []
+    for value in chain:
+        try:
+            values.append(int(value, 16))
+        except (TypeError, ValueError):
+            raise AarTraceError("bad indirect chain at %s" % where) from None
+    return values
 
-    impacts = pairs_by_hook[RUNTIME_IMPACT_HOOK]
-    checks = pairs_by_hook[RUNTIME_CHECK_HOOK]
-    destroys = pairs_by_hook[RUNTIME_DESTROY_HOOK]
-    lookups = pairs_by_hook[RUNTIME_LOOKUP_HOOK]
-    clocks = pairs_by_hook[RUNTIME_CLOCK_HOOK]
+
+def _rt_anchor_read(record, source, offset, size, phase, where, mask, mask_offset):
+    """Read one tagged anchor block; a failed read is reported, never invented."""
+    read = _rt_read_record(record, source, offset, size, phase, where)
+    result = read.get("result") or {}
+    if result.get("ok") is not True:
+        return {"status": "position_read_failed", "reason": result.get("reason"),
+                "raw_hex": None, "sha256": None, "xyz": None,
+                "raw_pointer": None, "target": None, "size": size}
+    _require(read.get("indirect") is True, "anchor read is not indirect at %s" % where)
+    data = _rt_bytes(read, where, False)
+    _require(len(data) == 12, "anchor read is not 12 bytes at %s" % where)
+    raw_pointer = read.get("raw_pointer")
+    _require(isinstance(raw_pointer, str), "anchor read has no raw pointer at %s" % where)
+    pointer = _address(raw_pointer, where + ":raw_pointer")
+    applied = read.get("applied_mask")
+    _require(isinstance(applied, str) and _norm_mask(applied) == mask,
+             "anchor mask mismatch at %s" % where)
+    _require(read.get("target_offset") == mask_offset,
+             "anchor target offset mismatch at %s" % where)
+    _require(_rt_chain(read, where) == [pointer], "anchor chain mismatch at %s" % where)
+    target = (pointer & int(mask, 16)) + mask_offset
+    _require(read.get("final_target") == "0x%08x" % target,
+             "anchor final target mismatch at %s" % where)
+    _require(read.get("target") == "0x%08x" % target,
+             "anchor target mismatch at %s" % where)
+    xyz = list(struct.unpack_from("<3f", data, 0))
+    _require(all(math.isfinite(value) for value in xyz),
+             "non-finite position at %s" % where)
+    return {"status": "read_ok", "raw_hex": data.hex(),
+            "sha256": hashlib.sha256(data).hexdigest(), "xyz": xyz,
+            "raw_pointer": "0x%08x" % pointer, "target": "0x%08x" % target,
+            "size": size}
+
+
+def _rt_configured_descriptor(index, guid_hex, token_hex):
+    """Annotate a native descriptor, never a member-unit or ownership join."""
+    result = {"status": "not_checked", "source_node": None, "ndf_class": None,
+              "debug_name": None, "token_unique": None, "confidence": "none"}
+    if index is None:
+        return result
+    if guid_hex is None or token_hex is None:
+        result["status"] = "descriptor_bytes_unreadable"
+        return result
+    units = index["unit_types"]
+    hits = [(node, unit) for node, unit in units.items()
+            if unit.get("descriptor_guid_hex") == guid_hex]
+    result["token_unique"] = sum(unit.get("name_token") == token_hex
+                                 for unit in units.values()) == 1
+    if len(hits) != 1:
+        result["status"] = "guid_not_unique" if hits else "guid_not_in_index"
+        return result
+    node, unit = hits[0]
+    if unit.get("name_token") != token_hex:
+        result["status"] = "token_mismatch"
+        return result
+    entry = index["descriptors"].get(guid_hex, {})
+    if entry.get("source_nodes") != [node]:
+        result["status"] = "descriptor_source_disagreement"
+        return result
+    result.update({"status": "unique_guid_compatible_token", "source_node": node,
+                   "ndf_class": unit.get("ndf_class"), "debug_name": unit.get("debug_name"),
+                   "confidence": "static_descriptor_identity_only"})
+    return result
+
+
+def _rt_position_observations(rows, profile, index):
+    """Descriptor-resolved position anchors, one per successful anchor read."""
+    observations = []
+    read_failures = 0
+    for line, row in enumerate(rows, 1):
+        hook = row.get("hook")
+        spec = profile["position_hooks"].get(hook)
+        if spec is None or row.get("event") != spec["phase"]:
+            continue
+        phase = spec["phase"]
+        source = spec["owner_source"]
+        where = "position:%s:%d" % (hook, line)
+        header = _rt_bytes(_rt_read_record(row, source, spec["header"], 128, phase, where),
+                           where, False)
+        handle = _rt_u32(header, 0x20, where)
+        descriptor_pointer = _rt_u32(header, 0x28, where)
+        _require(descriptor_pointer != 0, "null descriptor pointer at %s" % where)
+        owner = _address(row.get(source), where + ":owner")
+
+        descriptor_read = _rt_read_record(row, source, spec["descriptor"], 128, phase, where)
+        _require(descriptor_read.get("indirect") is True,
+                 "descriptor read is not indirect at %s" % where)
+        _require(_rt_chain(descriptor_read, where) == [descriptor_pointer],
+                 "descriptor chain does not resolve +0x28 at %s" % where)
+        descriptor = _rt_bytes(descriptor_read, where, allow_failure=True)
+        if descriptor is None:
+            guid_hex = token_hex = None
+            join = {"guid_hex": None, "name_token_hex": None, "unit_type_id": None,
+                    "debug_name": None, "ndf_class": None, "candidate_path": None,
+                    "status": "descriptor_bytes_unreadable", "confidence": "none"}
+        else:
+            guid_hex = descriptor[0x0c:0x1c].hex()
+            token_hex = descriptor[0x60:0x68].hex()
+            join = (_rt_descriptor_join(index, guid_hex, token_hex)
+                    if index is not None else
+                    {"guid_hex": guid_hex, "name_token_hex": token_hex,
+                     "unit_type_id": None, "debug_name": None, "ndf_class": None,
+                     "candidate_path": None, "status": "index_not_loaded",
+                     "confidence": "none"})
+
+        mask, mask_offset = profile["hooks"][hook]["masks"][(source, spec["anchor"])]
+        anchor = _rt_anchor_read(row, source, spec["anchor"], 12, phase, where,
+                                 mask, mask_offset)
+        if anchor["status"] != "read_ok":
+            read_failures += 1
+        owner_hex = "0x%08x" % owner
+        descriptor_hex = "0x%08x" % descriptor_pointer
+        observations.append({
+            "index": len(observations) + 1,
+            "hook": hook,
+            "phase": phase,
+            "line": line,
+            "identity": {
+                "key": "h%d|%s|%s" % (handle, owner_hex, descriptor_hex),
+                "handle_u32": handle,
+                "owner_object": owner_hex,
+                "descriptor_pointer": descriptor_hex,
+                "descriptor_guid_hex": guid_hex,
+                "descriptor_name_token_hex": token_hex,
+                "descriptor_join": join,
+                "configured_descriptor": _rt_configured_descriptor(index, guid_hex, token_hex),
+                "basis": ("same-capture handle string plus owner object plus "
+                          "descriptor pointer; never merged across mismatches"),
+            },
+            "anchor": anchor,
+            "time": None,
+        })
+    return observations, read_failures
+
+
+def _rt_clock_epochs(clock_samples):
+    """Maximal runs of one receiver with a non-decreasing counter."""
+    epochs = []
+    for sample in clock_samples:
+        if (epochs and sample["container"] == epochs[-1]["receiver"]
+                and sample["counter"] >= epochs[-1]["last_counter"]):
+            epochs[-1]["samples"].append(sample)
+            epochs[-1]["last_counter"] = sample["counter"]
+            epochs[-1]["last_line"] = sample["enter_line"]
+        else:
+            epochs.append({"index": len(epochs), "receiver": sample["container"],
+                           "first_counter": sample["counter"],
+                           "last_counter": sample["counter"],
+                           "first_line": sample["enter_line"],
+                           "last_line": sample["enter_line"],
+                           "samples": [sample]})
+    return epochs
+
+
+def _rt_apply_clock_brackets(observations, clock_samples):
+    """Bracket each position by adjacent same-epoch clock enter samples."""
+    epochs = _rt_clock_epochs(clock_samples)
+    ordered = []
+    for epoch in epochs:
+        for sample in epoch["samples"]:
+            ordered.append((sample["enter_line"], epoch["index"], sample))
+    ordered.sort(key=lambda item: item[0])
+    lines = [item[0] for item in ordered]
+    for observation in observations:
+        position = bisect.bisect_left(lines, observation["line"])
+        lower = ordered[position - 1] if position > 0 else None
+        upper = ordered[position] if position < len(ordered) else None
+        bracket = {
+            "bracketed": False, "epoch": None, "lower": None, "upper": None,
+            "counter_span": None,
+            "basis": "adjacent clock_sample_candidate enter records",
+            "note": ("Bounded only by the two adjacent clock samples that share one "
+                     "clock epoch; no interpolation, wall-clock or game-time "
+                     "conversion is performed."),
+        }
+        if lower is not None and upper is not None and lower[1] == upper[1]:
+            bracket.update({
+                "bracketed": True,
+                "epoch": lower[1],
+                "lower": {"line": lower[0], "counter": lower[2]["counter"],
+                          "receiver": lower[2]["container"]},
+                "upper": {"line": upper[0], "counter": upper[2]["counter"],
+                          "receiver": upper[2]["container"]},
+                "counter_span": upper[2]["counter"] - lower[2]["counter"],
+            })
+        elif lower is not None and upper is not None:
+            bracket["reason"] = "adjacent_clock_samples_span_an_epoch_change"
+        else:
+            bracket["reason"] = "no_clock_sample_on_one_side"
+        observation["time"] = {
+            "clock_epoch": bracket["epoch"],
+            "bracket": bracket,
+            "counter_ticks": None,
+            "frame": None,
+            "simulation_time": None,
+            "game_time": None,
+            "battle_time": None,
+            "basis": ("clock counters only; the anchor value has no captured time "
+                      "base of its own"),
+        }
+    return epochs
+
+
+def _rt_position_tracks(observations):
+    tracks = {}
+    for observation in observations:
+        tracks.setdefault(observation["identity"]["key"], []).append(observation)
+    return tracks
+
+
+def _rt_position_changes(observations):
+    """Explicit anchor-value transitions per exact identity track."""
+    changes = []
+    for key in sorted(_rt_position_tracks(observations)):
+        track = sorted(_rt_position_tracks(observations)[key],
+                       key=lambda item: item["line"])
+        for previous, current in zip(track, track[1:]):
+            before, after = previous["anchor"], current["anchor"]
+            if before["status"] != "read_ok" or after["status"] != "read_ok":
+                continue
+            from_ref = {"line": previous["line"], "index": previous["index"],
+                        "hook": previous["hook"], "phase": previous["phase"]}
+            to_ref = {"line": current["line"], "index": current["index"],
+                      "hook": current["hook"], "phase": current["phase"]}
+            if before["target"] != after["target"]:
+                changes.append({
+                    "kind": "position_anchor_rebound",
+                    "identity_key": key,
+                    "from": from_ref,
+                    "to": to_ref,
+                    "anchor_before": before["target"],
+                    "anchor_after": after["target"],
+                    "comparable": False,
+                    "reason": ("the tagged anchor target changed for one identity; "
+                               "the two reads are not compared as one position"),
+                })
+                continue
+            if before["raw_hex"] == after["raw_hex"]:
+                continue
+            delta = [after_value - before_value
+                     for before_value, after_value in zip(before["xyz"], after["xyz"])]
+            earlier = previous["time"]["bracket"]
+            later = current["time"]["bracket"]
+            interval = {
+                "bracketed": False, "epoch": None, "lower": None, "upper": None,
+                "counter_span": None,
+                "basis": "outer clock bounds of both position observations",
+                "note": "The value changed between two samples, not necessarily near the later sample.",
+            }
+            if (earlier["bracketed"] and later["bracketed"]
+                    and earlier["epoch"] == later["epoch"]):
+                interval.update({
+                    "bracketed": True, "epoch": earlier["epoch"],
+                    "lower": dict(earlier["lower"]), "upper": dict(later["upper"]),
+                    "counter_span": later["upper"]["counter"] - earlier["lower"]["counter"],
+                })
+            else:
+                interval["reason"] = "missing_endpoint_bound_or_clock_epoch_change"
+            changes.append({
+                "kind": "position_anchor_changed",
+                "identity_key": key,
+                "from": from_ref,
+                "to": to_ref,
+                "raw_before_hex": before["raw_hex"],
+                "raw_after_hex": after["raw_hex"],
+                "raw_before_sha256": before["sha256"],
+                "raw_after_sha256": after["sha256"],
+                "xyz_before": before["xyz"],
+                "xyz_after": after["xyz"],
+                "delta_raw_f32": delta,
+                "displacement_raw_f32": math.sqrt(sum(value * value for value in delta)),
+                "units": "unknown_unmapped_raw_f32",
+                "comparable": True,
+                "time": {"bracket": interval},
+                "not_derived": ["metres", "speed", "heading", "movement intent",
+                                "arrival", "replay frame", "game time"],
+            })
+    return changes
+
+
+def _rt_position_identity(observations):
+    """Report identity reuse instead of merging it away."""
+    tracks = _rt_position_tracks(observations)
+    fields = {"handle": {}, "owner_object": {}, "descriptor_pointer": {},
+              "anchor_pointer": {}}
+    for observation in observations:
+        identity = observation["identity"]
+        fields["handle"].setdefault(identity["handle_u32"], set()).add(identity["key"])
+        fields["owner_object"].setdefault(identity["owner_object"], set()).add(identity["key"])
+        fields["descriptor_pointer"].setdefault(
+            identity["descriptor_pointer"], set()).add(identity["key"])
+        anchor = observation["anchor"]
+        if anchor["status"] == "read_ok":
+            fields["anchor_pointer"].setdefault(
+                anchor["raw_pointer"], set()).add(identity["key"])
+    conflicts = []
+    # A descriptor describes a unit type, so several units legitimately share
+    # one descriptor pointer; only an identity field that must be unique is a
+    # conflict. Descriptor sharing is reported separately below.
+    for field in ("handle", "owner_object", "anchor_pointer"):
+        for value, keys in sorted(fields[field].items(), key=lambda item: str(item[0])):
+            if len(keys) > 1:
+                conflicts.append({"field": field, "value": str(value),
+                                  "identity_keys": sorted(keys),
+                                  "status": "kept_separate_not_merged"})
+    shared_descriptors = sorted(
+        (value, sorted(keys)) for value, keys in fields["descriptor_pointer"].items()
+        if len(keys) > 1)
+    joined = {}
+    for observation in observations:
+        status = observation["identity"]["descriptor_join"].get("status")
+        joined[status] = joined.get(status, 0) + 1
+    changed_tracks = 0
+    for track in tracks.values():
+        values = [item["anchor"]["raw_hex"] for item in track
+                  if item["anchor"]["status"] == "read_ok"]
+        if len(set(values)) > 1:
+            changed_tracks += 1
+    bounded = sum(1 for observation in observations
+                  if observation["time"]["bracket"]["bracketed"])
+    return {
+        "key": "handle_u32 + owner_object + descriptor_pointer",
+        "observations": len(observations),
+        "tracks": len(tracks),
+        "tracks_with_single_observation": sum(1 for track in tracks.values()
+                                              if len(track) == 1),
+        "tracks_with_changed_bytes": changed_tracks,
+        "bracketed_observations": bounded,
+        "unbracketed_observations": len(observations) - bounded,
+        "descriptor_join_status": joined,
+        "shared_descriptor_pointers": len(shared_descriptors),
+        "conflicts": conflicts,
+        "note": ("Records that share one field but not the whole identity key stay "
+                 "in separate tracks; shared anchor pointers are reported as reuse, "
+                 "never merged. Descriptor pointers are shared by design between "
+                 "units of one type and are not treated as an identity conflict."),
+    }
+
+
+def _rt_extract(rows, source_name, source_sha256, line_count, index, index_name,
+                index_sha256, profile=None):
+    _rt_require_complete(rows)
+    profile = profile or _rt_detect_profile(rows)
+    start, summary = _rt_validate_header(rows, profile)
+    grouped = _rt_records(rows, profile)
+    pairs_by_hook = {name: _rt_pairs(grouped, name, profile) for name in profile["hooks"]}
+    emitted = _rt_check_counts(summary, pairs_by_hook, profile)
+
+    impacts = pairs_by_hook[profile["impact"]]
+    checks = pairs_by_hook[profile["check"]]
+    destroys = pairs_by_hook[profile["destroy"]]
+    lookups = pairs_by_hook[profile["lookup"]]
+    clocks = pairs_by_hook[profile["clock"]]
     _require(len(impacts) > 0, "no runtime impacts")
     _require([item[0] for item in impacts] == list(range(1, len(impacts) + 1)),
              "impact ordinals are not contiguous")
@@ -1795,10 +2357,22 @@ def _rt_extract(rows, source_name, source_sha256, line_count, index, index_name,
             },
         })
 
+    position_observations = []
+    position_read_failures = 0
+    position_epochs = []
+    position_changes = []
+    position_identity = None
+    if profile["position_hooks"]:
+        position_observations, position_read_failures = _rt_position_observations(
+            rows, profile, index)
+        position_epochs = _rt_apply_clock_brackets(position_observations, clock_samples)
+        position_changes = _rt_position_changes(position_observations)
+        position_identity = _rt_position_identity(position_observations)
+
     clock_first = clock_samples[0] if clock_samples else None
     clock_last = clock_samples[-1] if clock_samples else None
     manifest = {
-        "schema": RUNTIME_SCHEMA,
+        "schema": profile["schema"],
         "status": "runtime_observed_with_static_unit_type_join",
         "source": {
             "trace": source_name,
@@ -1822,11 +2396,14 @@ def _rt_extract(rows, source_name, source_sha256, line_count, index, index_name,
             "limitations": index.get("limitations"),
         },
         "provenance": {
-            "capture_config_pin": RUNTIME_CAPTURE_CONFIG,
-            "capture_source_pins": RUNTIME_CAPTURE_SOURCE_PINS,
+            "capture_config_pin": profile["capture_config_pin"],
+            "capture_source_pins": profile["capture_source_pins"],
             "capture_source_status": "not checked by in-memory extraction",
-            "trace_embedded_hooks": "start/identity records were matched to the expected "
-                                    "eight hook shapes and executable addresses",
+            "trace_embedded_hooks": (
+                "start/identity records were matched to the expected eight hook shapes and executable addresses"
+                if profile["name"] == "runtime" else
+                "start/identity records were matched to the expected %d hook shapes and executable addresses"
+                % len(profile["hooks"])),
         },
         "integrity": {
             "records": line_count,
@@ -1837,7 +2414,7 @@ def _rt_extract(rows, source_name, source_sha256, line_count, index, index_name,
                 "sample_every": spec["sample_every"],
                 "paired": len(pairs_by_hook[name]),
                 "invocations": summary["counts"][name],
-            } for name, spec in RUNTIME_HOOK_SPECS.items()},
+            } for name, spec in profile["hooks"].items()},
             "impact_enters": len(impacts),
             "impact_leaves": len(impacts),
             "destruction_checks": len(checks),
@@ -1942,6 +2519,90 @@ def _rt_extract(rows, source_name, source_sha256, line_count, index, index_name,
             "Order-wrapper records are counted but not interpreted here.",
         ],
     }
+    if profile["position_hooks"]:
+        manifest["profile"] = {
+            "name": profile["name"],
+            "hooks": len(profile["hooks"]),
+            "position_hooks": sorted(profile["position_hooks"]),
+            "position_mask": "0x" + RUNTIME_V3_POSITION_MASK,
+            "position_indirect_offset": RUNTIME_V3_POSITION_OFFSET,
+            "selection": ("explicit runtime-v3 profile or an exact known ten-hook "
+                          "start-record set; arbitrary hook sets are rejected"),
+        }
+        manifest["integrity"].update({
+            "position_observations": len(position_observations),
+            "position_read_failures": position_read_failures,
+            "position_descriptor_read_failures": sum(
+                item["identity"]["descriptor_join"].get("status") == "descriptor_bytes_unreadable"
+                for item in position_observations),
+            "gate_counter_status": (
+                "reported_counters_validated_zero" if any(
+                    key in summary for key in ("gate_read_failures", "gate_ambiguities",
+                                                "gate_suspended_threads")) else
+                "not_reported_by_pinned_v3_source; no_gate_zero_claim"),
+            "position_identity_tracks": len(_rt_position_tracks(position_observations)),
+            "position_anchor_changes": len(position_changes),
+            "clock_epochs": len(position_epochs),
+            "position_identity_conflicts": len(position_identity["conflicts"]),
+        })
+        manifest["position_observations"] = position_observations
+        manifest["position_identity"] = position_identity
+        manifest["position_anchor_changes"] = position_changes
+        manifest["clock_epochs"] = [{
+            "index": epoch["index"],
+            "receiver": epoch["receiver"],
+            "first_counter": epoch["first_counter"],
+            "last_counter": epoch["last_counter"],
+            "first_line": epoch["first_line"],
+            "last_line": epoch["last_line"],
+            "samples": len(epoch["samples"]),
+            "basis": ("one receiver with a non-decreasing observed counter; a "
+                      "receiver change or counter decrease starts a new run and is "
+                      "not interpreted as a game epoch"),
+        } for epoch in position_epochs]
+        unmapped = {"note": ("Captured hooks that are counted and exported raw but "
+                             "not assigned semantics.")}
+        if profile["frame"] in pairs_by_hook:
+            frames = pairs_by_hook[profile["frame"]]
+            unmapped["frame_apply"] = {
+                "hook": profile["frame"],
+                "pairs": len(frames),
+                "invocations": summary["counts"].get(profile["frame"]),
+                "first_arguments": [enter.get("args") for _, _, enter, _, _ in frames[:3]],
+                "frame_index": None,
+                "basis": ("the invocation count and arguments are captured raw; the "
+                          "count is not a frame index and no replay frame is inferred"),
+            }
+        if profile["phase"] in pairs_by_hook:
+            phases = []
+            for ordinal, enter_line, enter, leave_line, leave in pairs_by_hook[profile["phase"]]:
+                reads = {}
+                for read in enter.get("reads") or []:
+                    reads[str(read.get("offset"))] = {
+                        "enter_hex": (read.get("result") or {}).get("hex"),
+                        "leave_hex": next(
+                            ((other.get("result") or {}).get("hex")
+                             for other in leave.get("reads") or []
+                             if other.get("offset") == read.get("offset")), None),
+                    }
+                phases.append({
+                    "ordinal": ordinal,
+                    "enter_line": enter_line,
+                    "leave_line": leave_line,
+                    "argument_raw": (enter.get("args") or [None])[0],
+                    "reads": reads,
+                    "semantics": None,
+                })
+            unmapped["phase_change"] = {
+                "hook": profile["phase"],
+                "pairs": len(phases),
+                "records": phases,
+                "basis": ("the argument and reads are captured raw; no battle phase, "
+                          "epoch or transition semantics are asserted"),
+            }
+        manifest["unmapped_observations"] = unmapped
+        manifest["limitations"] = list(manifest["limitations"]) + list(
+            profile["extra_limitations"])
     return manifest
 
 
@@ -2044,20 +2705,29 @@ def _rt_unit_histories(events, lookup_by_handle, lookup_samples, descriptor_buck
 
 
 def extract_runtime(rows, source_name, source_sha256, line_count, index,
-                    index_name, index_sha256):
-    """Recompute the runtime manifest from parsed rows and a parsed index."""
+                    index_name, index_sha256, profile=None):
+    """Recompute the runtime manifest from parsed rows and a parsed index.
+
+    ``profile`` may be ``None`` (autodetect from the exact known hook set), a
+    profile name such as ``"runtime"``/``"runtime-v3"``, or a profile mapping.
+    """
+    if isinstance(profile, str):
+        profile = _rt_profile(profile)
     return _rt_extract(rows, source_name, source_sha256, line_count, index,
-                       index_name, index_sha256)
+                       index_name, index_sha256, profile)
 
 
-def _rt_verify_capture_sources(directory):
+def _rt_verify_capture_sources(directory, profile=None):
     """Authenticate the three retained capture files; never substitute current code."""
-    pins = dict(RUNTIME_CAPTURE_SOURCE_PINS)
-    pins[RUNTIME_CAPTURE_CONFIG["file"]] = RUNTIME_CAPTURE_CONFIG["sha256"]
+    profile = profile or RUNTIME_PROFILE_V2
+    pins = dict(profile["capture_source_pins"])
+    pins[profile["capture_config_pin"]["file"]] = profile["capture_config_pin"]["sha256"]
     records = []
     for name, expected in pins.items():
         path = Path(directory) / name
         actual = hashlib.sha256(path.read_bytes()).hexdigest() if path.exists() else None
+        if profile["name"] == "runtime-v3":
+            _require(actual is not None, "capture source missing: %s" % name)
         _require(actual is None or actual == expected,
                  "capture source sha256 mismatch: %s" % name)
         records.append({"name": name, "expected_sha256": expected,
@@ -2067,11 +2737,17 @@ def _rt_verify_capture_sources(directory):
 
 def extract_runtime_file(trace_path, index_path,
                          expect_trace_sha256=RUNTIME_TRACE_SHA256,
-                         expect_index_sha256=RUNTIME_INDEX_SHA256):
+                         expect_index_sha256=RUNTIME_INDEX_SHA256,
+                         profile=None):
     rows, name, digest, line_count = load_trace(trace_path, expect_trace_sha256)
     index, index_sha256, index_name = _rt_load_index(index_path, expect_index_sha256)
-    manifest = _rt_extract(rows, name, digest, line_count, index, index_name, index_sha256)
-    records = _rt_verify_capture_sources(Path(trace_path).parent / "capture-sources")
+    if isinstance(profile, str):
+        profile = _rt_profile(profile)
+    manifest = _rt_extract(rows, name, digest, line_count, index, index_name,
+                           index_sha256, profile)
+    resolved = profile or _rt_detect_profile(rows)
+    records = _rt_verify_capture_sources(Path(trace_path).parent / "capture-sources",
+                                         resolved)
     manifest["provenance"]["capture_source_verification"] = records
     manifest["provenance"]["capture_source_status"] = (
         "all capture-era source/config hashes matched retained copies"
@@ -2102,6 +2778,106 @@ def _rt_event_line(event):
                event["observed_delta"], check["al_u8"], check["retval_raw"],
                destruction_text, target, source_text,
                "%.6f" % event["time"]["deterministic_time_seconds"]))
+
+
+def _rt_position_lines(manifest):
+    observations = manifest["position_observations"]
+    changes = manifest["position_anchor_changes"]
+    identity = manifest["position_identity"]
+    lines = [
+        "",
+        "## Position observations (raw tagged anchors)",
+        "",
+        "Each row reads the 12-byte block addressed by the tagged pointer at "
+        "`[owner+0x%x]`, masked with `0x%s` and offset by `+0x%x`, from the same "
+        "object whose `+0x20` handle and `+0x28` descriptor pointer are recorded."
+        % (228, RUNTIME_V3_POSITION_MASK, RUNTIME_V3_POSITION_OFFSET),
+        "The three coordinates are unmapped raw float32 values, not metres, world "
+        "units or a visual centre, and the anchor object's own semantics are "
+        "unproven.",
+        "",
+        "Identity is the same-capture triple `handle_u32 + owner_object + "
+        "descriptor_pointer`: %d observations in %d tracks (%d single-observation "
+        "tracks). %d observations are bracketed by adjacent clock-enter samples in "
+        "one clock epoch and %d are not; identity conflicts: %d."
+        % (identity["observations"], identity["tracks"],
+           identity["tracks_with_single_observation"],
+           identity["bracketed_observations"], identity["unbracketed_observations"],
+           len(identity["conflicts"])),
+        "",
+        "| track | handle | owner | descriptor | unit | obs | changed |",
+        "|---|---:|---|---|---|---:|---:|",
+    ]
+    tracks = {}
+    for observation in observations:
+        tracks.setdefault(observation["identity"]["key"], []).append(observation)
+    for key in sorted(tracks):
+        track = tracks[key]
+        first = track[0]["identity"]
+        versions = {item["anchor"]["raw_hex"] for item in track
+                    if item["anchor"]["status"] == "read_ok"}
+        join = first["descriptor_join"]
+        lines.append("| `%s` | %d | `%s` | `%s` | %s | %d | %s |" % (
+            key, first["handle_u32"], first["owner_object"],
+            first["descriptor_pointer"],
+            (join.get("debug_name") or "UNRESOLVED") +
+            ("" if join.get("status") == "2_of_2_exact_guid_and_token"
+             else " (`%s`)" % join.get("status")),
+            len(track), "yes" if len(versions) > 1 else "no"))
+    lines.extend(["", "### Observation list", ""])
+    for observation in observations:
+        anchor = observation["anchor"]
+        bracket = observation["time"]["bracket"]
+        if anchor["status"] == "read_ok":
+            values = "(%s)" % ", ".join("%.6g" % value for value in anchor["xyz"])
+            detail = "raw `%s` sha256 `%s`" % (anchor["raw_hex"],
+                                               anchor["sha256"][:16])
+        else:
+            values = "-"
+            detail = "position read failed: %s" % (anchor.get("reason") or "unknown")
+        if bracket["bracketed"]:
+            time_text = "bracket [%d..%d] L%d-L%d (%d ticks)" % (
+                bracket["lower"]["counter"], bracket["upper"]["counter"],
+                bracket["lower"]["line"], bracket["upper"]["line"],
+                bracket["counter_span"])
+        else:
+            time_text = "unbracketed (%s)" % bracket.get("reason", "unknown")
+        lines.append("- pos %d L%d %s %s handle %d h=%s %s | %s | %s" % (
+            observation["index"], observation["line"], observation["hook"],
+            observation["phase"], observation["identity"]["handle_u32"],
+            observation["identity"]["owner_object"], values, detail, time_text))
+    lines.extend([
+        "",
+        "### Position anchor changes (raw value transitions, not movements)",
+        "",
+        "Each row compares two reads of one identity track with the same anchor "
+        "target. %d explicit changes were observed. A change is a raw value "
+        "difference only: no displacement in metres, speed, heading, path, "
+        "movement intent, arrival, frame or game time is derived." % len(changes),
+        "",
+    ])
+    for index, change in enumerate(changes, 1):
+        if change["kind"] != "position_anchor_changed":
+            lines.append("- change %d **%s** `%s` L%d -> L%d (not comparable)"
+                         % (index, change["kind"], change["identity_key"],
+                            change["from"]["line"], change["to"]["line"]))
+            continue
+        bracket = change["time"]["bracket"]
+        if bracket["bracketed"]:
+            time_text = "bracket [%d..%d] L%d-L%d" % (
+                bracket["lower"]["counter"], bracket["upper"]["counter"],
+                bracket["lower"]["line"], bracket["upper"]["line"])
+        else:
+            time_text = "unbracketed"
+        lines.append(
+            "- change %d `%s` L%d -> L%d | d=(%s) raw | |d|=%g raw | %s | "
+            "sha `%s` -> `%s`"
+            % (index, change["identity_key"], change["from"]["line"],
+               change["to"]["line"],
+               ", ".join("%.6g" % value for value in change["delta_raw_f32"]),
+               change["displacement_raw_f32"], time_text,
+               change["raw_before_sha256"][:16], change["raw_after_sha256"][:16]))
+    return lines
 
 
 def render_runtime_chronology(manifest):
@@ -2224,6 +3000,8 @@ def render_runtime_chronology(manifest):
                      % (item["ordinal"], item["call_id"], item["operand_handle_u32"],
                         item["retval_raw"], item["argument_raw"],
                         item["enter_line"], item["leave_line"]))
+    if "position_observations" in manifest:
+        lines.extend(_rt_position_lines(manifest))
     lines.extend([
         "",
         "## Deterministic clock",
@@ -2286,6 +3064,17 @@ def write_runtime_outputs(manifest, out_dir):
                                     if key != "events"}),
         "chronology.md": render_runtime_chronology(manifest),
     }
+    if "position_observations" in manifest:
+        payloads["positions.json"] = _json_text({
+            "schema": RUNTIME_V3_POSITIONS_SCHEMA,
+            "source": manifest["source"],
+            "profile": manifest.get("profile"),
+            "clock_epochs": manifest["clock_epochs"],
+            "position_identity": manifest["position_identity"],
+            "observations": manifest["position_observations"],
+            "anchor_changes": manifest["position_anchor_changes"],
+            "limitations": manifest["limitations"],
+        })
     targets = [out_dir / name for name in payloads]
     existing = [str(path) for path in targets if path.exists()]
     _require(not existing, "refusing to overwrite existing output: %s" % ", ".join(existing))
@@ -2306,7 +3095,8 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("trace", help="path to the raw damage JSONL trace")
     parser.add_argument("--out", required=True, help="events output directory")
-    parser.add_argument("--profile", choices=("legacy", "runtime"), default="legacy",
+    parser.add_argument("--profile", choices=("legacy", "runtime", "runtime-v3"),
+                        default="legacy",
                         help="trace profile (default: legacy pinned combat trace)")
     parser.add_argument("--runtime", action="store_true",
                         help="alias for --profile runtime")
@@ -2319,18 +3109,29 @@ def main(argv=None):
     parser.add_argument("--expect-classified-sha256", default=None,
                         help="required classified SHA-256 when --classified is used")
     args = parser.parse_args(argv)
-    runtime = args.runtime or args.profile == "runtime"
+    runtime = args.runtime or args.profile in ("runtime", "runtime-v3")
     try:
         if runtime:
             _require(args.unit_index is not None,
                      "--runtime/--profile runtime requires --unit-index")
             _require(args.classified is None,
                      "--classified is a legacy-profile option")
-            expect_trace = (args.expect_sha256 if args.expect_sha256 is not None
-                            else RUNTIME_TRACE_SHA256)
+            selected = "runtime-v3" if args.profile == "runtime-v3" else "runtime"
+            expect_trace = args.expect_sha256
+            if expect_trace is None:
+                expect_trace = (RUNTIME_V3_TRACE_SHA256 if selected == "runtime-v3"
+                                else RUNTIME_TRACE_SHA256)
             manifest = extract_runtime_file(args.trace, args.unit_index, expect_trace,
-                                            args.expect_unit_index_sha256)
+                                            args.expect_unit_index_sha256, selected)
             targets = write_runtime_outputs(manifest, args.out)
+            if "position_observations" in manifest:
+                print("wrote %d runtime impacts, %d units, %d lifecycle destructions, "
+                      "%d position observations, %d anchor changes to %s"
+                      % (len(manifest["events"]), len(manifest["units"]),
+                         len(manifest["damage_lifecycle_observations"]),
+                         len(manifest["position_observations"]),
+                         len(manifest["position_anchor_changes"]), targets[0].parent))
+                return 0
             print("wrote %d runtime impacts, %d units, %d lifecycle destructions to %s"
                   % (len(manifest["events"]), len(manifest["units"]),
                      len(manifest["damage_lifecycle_observations"]), targets[0].parent))

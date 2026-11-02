@@ -19,6 +19,12 @@ records the build-matched counter-to-float path and damage-module timestamp stor
 The current
 [guarded Win32 input and read-only state observer](current-build/2026-11-02-state-observer.md)
 separates counter motion from the independently named engine `GameEnded` flag.
+The [bounded multi-field observer](current-build/2026-11-02-engine-state.md)
+adds exact speed-factor reads, fail-closed predicates and an optional native
+replay-open watch. Its mechanics are tested; the expanded guest capture remains
+unverified. Raw candidate fields and caller fingerprints do not authenticate UI
+screens or replay-active state.
+
 The [live owner/type bridge and damage lifecycle](current-build/2026-11-02-live-unit-attribution.md)
 now resolves the impacted types and separates three threshold-parented lifecycle
 calls from three cleanup calls. Clock origins, wire-member mapping, source-role
@@ -31,6 +37,60 @@ produces structured events, event-involved unit histories and a chronological
 report from the authenticated retained trace and native unit index. Source roles
 remain provisional; destruction calls are not silently promoted to credited kills.
 The original 28-event legacy exporter and original artifacts are preserved.
+
+## Cross-capture and kill-table corroboration
+
+The [bounded corroboration note](current-build/2026-11-02-kill-corroboration.md)
+records 252 exact scalar comparisons across the old/new 28-event sequences and
+three freshly inspected visible VTT-323 table rows. This is count/type agreement,
+not a replay-open log or a handle-to-row/killer join. Kill outcomes and source
+roles are not silently promoted.
+
+## Ghidra reuse readiness
+
+The [task-owned canonical CLI smoke](current-build/2026-11-02-ghidra-reuse.md)
+returned `0xaaedf0` from an existing-project private copy in 6153 ms. Both original
+and disposable source projects remained hash-identical. Live MCP stayed idle and
+aligned; no shared-server upgrade or restart occurred. Upstream-current remains
+separate from this verified installed capability.
+
+## Forensic capture gates
+
+The [offline forensic gate findings](current-build/2026-11-02-forensic-offline-gates.md)
+record Ghidra-authoritative lookup verification, the receiver-local append path,
+bucket/slot lifetime boundaries and typed lifecycle publication. Frame timing,
+participant roles and capture preflight remain gated; no new playback is claimed.
+
+## Exact replay-file witness
+
+The [native hook semantics check](current-build/2026-11-02-native-hook-semantics.md)
+identifies `0xb2b310` as keyed registration, not a demonstrated simulation-frame
+apply. It also corrects the damage-module dispatch slot to `+0x54` and entry
+stride to `0x74`; the upstream source-record writer remains unresolved.
+
+The [KERNELBASE wide-string watch](current-build/2026-11-02-replay-file-witness.md)
+recorded two successful exact-path opens with the pinned replay's stable digest.
+The earlier KERNEL32 W and ANSI windows remain inconclusive. A same-playback
+native collector started afterward, with its initial interval explicitly
+uncovered. The completed trace reproduces 28 impacts and exports 356 position
+observations / 146 anchor changes, with separate GameEnded evidence and a
+hash-verified 57-file export. Shooter roles and calibrated movement remain open.
+
+## Native position-anchor capture and V3 AAR
+
+The [configured-descriptor annotation](current-build/2026-11-02-fob-descriptor-identity.md)
+identifies the two previously unlabelled descriptor tracks as native FOB building
+descriptors. Their shared token still fails the strict member-unit join; V3
+reports the static class separately without claiming ownership or deployment.
+
+The [V3 instrumentation experiment](current-build/2026-11-02-position-capture.md)
+was exercised by the original engine. The [reviewed V3 AAR](current-build/2026-11-02-position-aar.md)
+contains 371 raw position observations in 71 capture-local identity tracks and
+153 anchor-value transitions. Coordinates remain unmapped; transitions are not
+claimed as movements or arrivals. Time intervals span both endpoint observations.
+The 55-file guest export was independently hash-verified on the Mac.
+The [owner-interface correction](current-build/2026-11-02-live-unit-attribution.md#typed-interface-correction-owner0x60)
+rejects the earlier name/kill-record interpretation of owner+0x60.
 
 ## Build-131544 native unit data (2026-11-02)
 
