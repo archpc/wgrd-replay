@@ -66,6 +66,11 @@ hash-verified 57-file export. Shooter roles and calibrated movement remain open.
 
 ## Native position-anchor capture and V3 AAR
 
+The [configured-descriptor annotation](current-build/2026-11-02-fob-descriptor-identity.md)
+identifies the two previously unlabelled descriptor tracks as native FOB building
+descriptors. Their shared token still fails the strict member-unit join; V3
+reports the static class separately without claiming ownership or deployment.
+
 The [V3 instrumentation experiment](current-build/2026-11-02-position-capture.md)
 was exercised by the original engine. The [reviewed V3 AAR](current-build/2026-11-02-position-aar.md)
 contains 371 raw position observations in 71 capture-local identity tracks and

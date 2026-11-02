@@ -1061,6 +1061,78 @@ class RuntimeV3ProfileTests(unittest.TestCase):
                                        "--out", str(output)]), 2)
 
 
+class ConfiguredDescriptorIdentity(unittest.TestCase):
+    def fixture(self):
+        guid = "000000000500000001000000e8030000"
+        token = "4c06010000000000"
+        index = {
+            "descriptors": {guid: {"source_nodes": ["20843"], "candidates": []}},
+            "unit_types": {
+                "20843": {"source_node": "20843", "descriptor_guid_hex": guid,
+                          "name_token": token, "ndf_class": "TUniteDescriptor",
+                          "debug_name": "Building_FOB_ISR"},
+                "other": {"source_node": "other", "descriptor_guid_hex": "11" * 16,
+                          "name_token": token},
+            },
+        }
+        row = _v3_lookup(4, 0x2200, 0x3000, 0x4000, _v3_xyz(1, 2, 3))
+        descriptor = bytearray(128)
+        descriptor[0x0c:0x1c] = bytes.fromhex(guid)
+        descriptor[0x60:0x68] = bytes.fromhex(token)
+        row["reads"][1]["result"]["hex"] = descriptor.hex()
+        return row, index
+
+    def test_shared_token_configured_class_does_not_relax_member_join(self):
+        row, index = self.fixture()
+        observations, _ = aar._rt_position_observations([row], aar.RUNTIME_PROFILE_V3, index)
+        identity = observations[0]["identity"]
+        configured = identity.get("configured_descriptor", {})
+        self.assertEqual(configured.get("debug_name"), "Building_FOB_ISR")
+        self.assertEqual(configured["ndf_class"], "TUniteDescriptor")
+        self.assertEqual(configured["source_node"], "20843")
+        self.assertFalse(configured["token_unique"])
+        self.assertEqual(configured["status"], "unique_guid_compatible_token")
+        self.assertEqual(identity["descriptor_join"]["status"], "ambiguous_or_missing_candidates")
+        self.assertIsNone(identity["descriptor_join"]["unit_type_id"])
+
+
+    def test_configured_class_rejects_mismatched_token(self):
+        row, index = self.fixture()
+        data = bytearray.fromhex(row["reads"][1]["result"]["hex"])
+        data[0x60:0x68] = bytes.fromhex("aa" * 8)
+        row["reads"][1]["result"]["hex"] = data.hex()
+        observations, _ = aar._rt_position_observations([row], aar.RUNTIME_PROFILE_V3, index)
+        configured = observations[0]["identity"]["configured_descriptor"]
+        self.assertEqual(configured["status"], "token_mismatch")
+        self.assertIsNone(configured["ndf_class"])
+        self.assertIsNone(configured["debug_name"])
+
+    def test_configured_class_rejects_nonunique_guid(self):
+        row, index = self.fixture()
+        index["unit_types"]["other"]["descriptor_guid_hex"] = (
+            index["unit_types"]["20843"]["descriptor_guid_hex"])
+        observations, _ = aar._rt_position_observations([row], aar.RUNTIME_PROFILE_V3, index)
+        configured = observations[0]["identity"]["configured_descriptor"]
+        self.assertEqual(configured["status"], "guid_not_unique")
+        self.assertIsNone(configured["source_node"])
+
+    def test_configured_class_rejects_disagreeing_source_node(self):
+        row, index = self.fixture()
+        next(iter(index["descriptors"].values()))["source_nodes"] = ["other"]
+        observations, _ = aar._rt_position_observations([row], aar.RUNTIME_PROFILE_V3, index)
+        configured = observations[0]["identity"]["configured_descriptor"]
+        self.assertEqual(configured["status"], "descriptor_source_disagreement")
+        self.assertIsNone(configured["debug_name"])
+
+    def test_configured_class_does_not_invent_unreadable_descriptor(self):
+        row, index = self.fixture()
+        row["reads"][1]["result"] = {"ok": False, "reason": "unreadable"}
+        observations, _ = aar._rt_position_observations([row], aar.RUNTIME_PROFILE_V3, index)
+        configured = observations[0]["identity"]["configured_descriptor"]
+        self.assertEqual(configured["status"], "descriptor_bytes_unreadable")
+        self.assertIsNone(configured["debug_name"])
+
+
 class PositionTransitionTiming(unittest.TestCase):
     def test_v3_source_authentication_requires_all_retained_files(self):
         with tempfile.TemporaryDirectory() as directory:

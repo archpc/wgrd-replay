@@ -50,6 +50,9 @@ capture completed with a clean summary/end and independent GameEnded observation
 Its final 57-file export is verified. The same-playback AAR preserves the initial
 uncovered interval and exports 28 impacts, 356 position observations and 146
 raw anchor changes; no shooter/kill credit or calibrated movements are invented.
+The [two unresolved descriptor tracks](research/current-build/2026-11-02-fob-descriptor-identity.md)
+now have separate native FOB building classifications. Their member-unit joins
+remain unresolved because the name token is shared; ownership is not inferred.
 
 Next: resolve source-role and kill attribution where new evidence supports it,
 preserve qualified coverage, validate phase/clock mapping and

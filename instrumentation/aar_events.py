@@ -1611,6 +1611,37 @@ def _rt_anchor_read(record, source, offset, size, phase, where, mask, mask_offse
             "size": size}
 
 
+def _rt_configured_descriptor(index, guid_hex, token_hex):
+    """Annotate a native descriptor, never a member-unit or ownership join."""
+    result = {"status": "not_checked", "source_node": None, "ndf_class": None,
+              "debug_name": None, "token_unique": None, "confidence": "none"}
+    if index is None:
+        return result
+    if guid_hex is None or token_hex is None:
+        result["status"] = "descriptor_bytes_unreadable"
+        return result
+    units = index["unit_types"]
+    hits = [(node, unit) for node, unit in units.items()
+            if unit.get("descriptor_guid_hex") == guid_hex]
+    result["token_unique"] = sum(unit.get("name_token") == token_hex
+                                 for unit in units.values()) == 1
+    if len(hits) != 1:
+        result["status"] = "guid_not_unique" if hits else "guid_not_in_index"
+        return result
+    node, unit = hits[0]
+    if unit.get("name_token") != token_hex:
+        result["status"] = "token_mismatch"
+        return result
+    entry = index["descriptors"].get(guid_hex, {})
+    if entry.get("source_nodes") != [node]:
+        result["status"] = "descriptor_source_disagreement"
+        return result
+    result.update({"status": "unique_guid_compatible_token", "source_node": node,
+                   "ndf_class": unit.get("ndf_class"), "debug_name": unit.get("debug_name"),
+                   "confidence": "static_descriptor_identity_only"})
+    return result
+
+
 def _rt_position_observations(rows, profile, index):
     """Descriptor-resolved position anchors, one per successful anchor read."""
     observations = []
@@ -1671,6 +1702,7 @@ def _rt_position_observations(rows, profile, index):
                 "descriptor_guid_hex": guid_hex,
                 "descriptor_name_token_hex": token_hex,
                 "descriptor_join": join,
+                "configured_descriptor": _rt_configured_descriptor(index, guid_hex, token_hex),
                 "basis": ("same-capture handle string plus owner object plus "
                           "descriptor pointer; never merged across mismatches"),
             },
