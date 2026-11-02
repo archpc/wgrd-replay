@@ -83,7 +83,7 @@ layout tables, and confidence language that collapsed structure, semantics and
 build transfer. The existing usage and contributor guides were worth keeping.
 
 The resulting hierarchy is deliberately small: README for orientation; a short
-[documentation map](../../docs/README.md); [usage](../../docs/USAGE.md) for tasks;
+[documentation map](../../README.md#capabilities) (merged into the README on 2026-11-02); [usage](../../docs/USAGE.md) for tasks;
 [architecture](../../docs/ARCHITECTURE.md) for implementation and the single evidence-reading
 guide; [FORMAT.md](../../FORMAT.md) for wire/reference contracts; the existing
 [research index](../INDEX.md) for findings, scripts and source evidence.
@@ -96,7 +96,7 @@ No research files were moved. No second research guide or roadmap was added.
 | [Architecture](../../docs/ARCHITECTURE.md) | Pipeline diagram, authoritative evidence conventions, build/status distinction and clickable canonical references |
 | [Usage](../../docs/USAGE.md) | Authenticated event projection, precise provenance language and stable error descriptions |
 | [Contributing](../../CONTRIBUTING.md) | Replace prior-assignment branch instructions with reusable guidance; connect research workflow to evidence conventions |
-| [Documentation map](../../docs/README.md) | One short question-to-reference index, with research treated as a primary destination |
+| Documentation map (merged into [README](../../README.md#capabilities) on 2026-11-02) | One short question-to-reference index, with research treated as a primary destination |
 | [Research index](../INDEX.md) | Dated current-behavior clarification above intact milestone tables; preserve original-corpus source limits |
 | This review | Audit decisions, before/after examples, verification and deferred issues |
 

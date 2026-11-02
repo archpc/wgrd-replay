@@ -1,6 +1,6 @@
 # Architecture
 
-[Overview](../README.md) · [Documentation map](README.md) · [Binary format](../FORMAT.md) · [Research index](../research/INDEX.md)
+[Overview](../README.md) · [Capabilities](../README.md#capabilities) · [Binary format](../FORMAT.md) · [Research index](../research/INDEX.md)
 
 The decoder has two deliberate boundaries: exact byte parsing, then qualified
 interpretation. Static unit data can enrich the latter; it cannot reconstruct a
@@ -163,12 +163,12 @@ Sample inputs are read from `samples/manifest.json` (external bytes, not in Git)
 | current output/status contract | This reference and [FORMAT.md](../FORMAT.md) |
 | timeline interpretation evidence | [research/TIMELINE-SEMANTICS.md](../research/TIMELINE-SEMANTICS.md) |
 | entities and reference keys        | [research/ENTITY-CONTEXT.md](../research/ENTITY-CONTEXT.md), [research/OP18-REFERENCE-KEYS.md](../research/OP18-REFERENCE-KEYS.md), [research/OP18-SUPPLY-TARGETS.md](../research/OP18-SUPPLY-TARGETS.md) |
-| executable analysis (addresses)    | [REA-NOTES-59638.md](../REA-NOTES-59638.md)                            |
+| executable analysis (addresses)    | [REA-NOTES-59638.md](../research/REA-NOTES-59638.md)                            |
 | research provenance                | [research/INDEX.md](../research/INDEX.md)                             |
 | current-build experiment and Phase 2 | [research/current-build/2026-10-28-controlled-experiment.md](../research/current-build/2026-10-28-controlled-experiment.md), [research/current-build/PHASE-2-HANDOFF.md](../research/current-build/PHASE-2-HANDOFF.md) |
 | priorities                         | [NEXT-STEPS.md](../NEXT-STEPS.md)                                 |
 | usage and API                      | [docs/USAGE.md](USAGE.md) |
-| onboarding and navigation          | [README.md](../README.md), [documentation map](README.md) |
+| onboarding and navigation          | [README.md](../README.md#capabilities) |
 | contribution and validation        | [CONTRIBUTING.md](../CONTRIBUTING.md) |
 
 Use these documents as the current reference for their topic, and the implementation

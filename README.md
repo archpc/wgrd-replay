@@ -8,11 +8,22 @@ Decoded records retain their original byte offsets and raw data, allowing interp
 
 The decoder runs offline, uses only Python's standard library, and does not require a game installation.
 
-## Start here
+## Capabilities
 
-- **Inspect a replay:** [find a replay and use the CLI or Python API](docs/USAGE.md).
-- **Investigate the format:** [architecture and change guide](docs/ARCHITECTURE.md),
-  [format reference](FORMAT.md), and [research index](research/INDEX.md).
+One maintained workflow per capability:
+
+| Capability | Workflow | Docs |
+|---|---|---|
+| Decode a replay (summary, timeline) | `wgrd_replay.py` | [usage](docs/USAGE.md), [format](FORMAT.md) |
+| Census a replay collection | `wgrd_corpus.py` | [usage](docs/USAGE.md) |
+| Original-engine AAR, revision 131544 (authorized VM runs only) | capture with `instrumentation/wgrd_frida.py` + `hooks.js` + `aar-capture-131544-v3.json`, then export with `instrumentation/aar_events.py` | [instrumentation](instrumentation/README.md), [status](NEXT-STEPS.md) |
+| Guest UI input and engine-state checks | `research/current-build/tools/WgrdUi.cs`, `instrumentation/state_observe.py` | [instrumentation](instrumentation/README.md) |
+| Static executable analysis | canonical REA CLI on a disposable Ghidra project copy | [recipe](research/current-build/2026-11-02-causal-chain.md#reproduction) |
+| Change code safely | change guide and checks | [architecture](docs/ARCHITECTURE.md#change-guide), [contributing](CONTRIBUTING.md) |
+
+Current development is in the root modules, `instrumentation/`, `tests/`,
+`scripts/` and `docs/`. `research/` is the dated evidence record, indexed by
+[research/INDEX.md](research/INDEX.md). Routine changes do not require reading it.
 
 ## What comes out
 
@@ -88,8 +99,11 @@ The [architecture](docs/ARCHITECTURE.md) maps behavior to code and tests. The
   general execution outcomes. Steam content build 15652829 is a different
   identifier. See [the Oshkosh Incident](research/current-build/README.md) and
   its [experiment report](research/current-build/2026-10-28-controlled-experiment.md).
-- Frame duration, coordinate axes and units, slot-to-player identity, effective
-  contextual orders and combat outcomes remain unresolved.
+- Combat outcomes come only from original-engine playback. The current AAR
+  boundary (damage, source credit, destruction, open items) is in
+  [NEXT-STEPS.md](NEXT-STEPS.md). Frame duration and battle origin are tested
+  hypotheses. Coordinate units, slot-to-player identity and effective
+  contextual orders remain unresolved.
 - The parser frames `0x0D` bodies as opaque; the timeline separately interprets
   supported production interiors. CLI JSON represents non-finite floats explicitly;
   parser dictionaries can retain them.
