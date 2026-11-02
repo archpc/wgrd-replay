@@ -505,7 +505,8 @@ def classify(decoded, replay_field=None):
         elif started == 0:
             state, confident, reason = "not_started", True, "GameStarted byte is clear; UI state unknown"
         elif started == 1:
-            state, confident, reason = "ingame", True, "GameStarted byte is set"
+            state, confident, reason = "game_started", True, "GameStarted byte is set; UI state unknown"
+            uncertainties.append("GameStarted is also observed at the main menu; not a battle-state proof")
     if state == "unreadable" and decoded.get("slot_state") in ("unreadable", "implausible"):
         reason = "TGameplayServices slot %s; no state claim" % decoded["slot_state"]
 
@@ -639,7 +640,7 @@ def expect_matches(predicate, summary):
     if predicate == "outgame":
         return None  # A clear GameStarted flag does not establish a frontend screen.
     if predicate == "ingame":
-        return summary.get("engine_state") == "ingame"
+        return None  # GameStarted is also set in the live main-menu baseline.
     if predicate == "loading":
         # A non-null [net+0xc8] pointer is presence evidence only; the loading
         # *state* needs a calibration flag that no capture has produced yet.

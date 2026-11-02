@@ -1,7 +1,47 @@
 # Revision 131544: bounded multi-field engine state observer
 
 Status: static facts re-verified against the pinned image; corrected observer integrated
-in the canonical `~/Code/wgrd-replay/` checkout. No expanded guest capture was taken.
+in the canonical `~/Code/wgrd-replay/` checkout. The first expanded guest baseline
+now disproves the earlier `GameStarted => ingame` classification; see the live
+correction below. Replay identity and movement capture remain separate gates.
+
+## Live main-menu counterexample
+
+Fresh process 4844 (same pinned PE SHA-256 below) showed the main-menu labels
+`Solo`, `Profile`, `Options`, `Quit` while `GameStarted=1`, `EndGameAsked=0` and
+`GameEnded=0`. Its deterministic counter advanced at approximately five ticks per
+wall second. Neither the flag nor counter motion therefore proves battle/replay
+activity. A non-null replay-controller candidate and loading object were also
+present at this menu; they remain presence observations only.
+
+Evidence under private `aar-v3-20261102T082918Z/`:
+
+- `baseline-screen.png`, SHA-256
+  `3d7d9c471ba39fedabd0cb963b3e68fe668a68a107e387860cdda6bfc0c8e26b`.
+  Only locally allowlisted UI-label pixels were sent for visual inspection;
+  profile and chat data stayed masked.
+- `baseline-state.jsonl`, SHA-256
+  `c11ce6335409d822d8e2362f05e688f11e95d979c9330bafeea07d050e2431aa`,
+  eight complete records including four samples and a cleanup terminator.
+- `main-menu-gate-02.jsonl`, SHA-256
+  `4568428b0d6c3b0f35d21485aa5f75108148f9f04bf83146e6d8b13e19f0c4fa`:
+  corrected guest observer, 13 samples, `engine_state=game_started`, raw flag true,
+  and `--expect ingame` exits 3 (unknown). The original 0.2-second trial produced
+  only one sample because preflight consumed the budget; that trial is not counted
+  as a verified predicate result.
+
+Correction: the started lifecycle label is now `game_started`, not `ingame`.
+`--expect ingame` remains accepted for CLI compatibility but fails closed as
+unknown, like the uncalibrated outgame/loading predicates. Use
+`--expect engine_game_started` only to wait for the named raw lifecycle flag;
+it does not authenticate the current screen. This supersedes earlier classification
+wording in this report without changing the preserved raw captures.
+
+The previous process 1444 exited during preparation. The guarded input helper
+refused its stale PID, and no input was sent. The replacement process was
+re-hashed and rebound; the two process epochs are not merged. No snapshot was
+restored. Saved VM state is an OS/tooling checkpoint, not a reusable live-game
+baseline: the user confirmed Wargame must be relaunched for usable rendering.
 Pause/menu/browser calibration remains unverified; the predicates below keep it explicit.
 
 Target: `game/win64/WarGame3.exe` under the external artifact root, PE32

@@ -408,9 +408,21 @@ class FieldDecoding(unittest.TestCase):
 
 
 class ConservativeClassification(unittest.TestCase):
+    def test_main_menu_started_flag_does_not_prove_ingame(self):
+        # Live baseline: baseline-screen.png SHA3d7d9c47..., PID4844, main-menu
+        # Solo/Profile/Options/Quit labels while these raw lifecycle flags were set.
+        decoded = state.decode_sample(SIM["ingame"])
+        decoded["values"].update(game_started=1, end_game_asked=0, game_ended=0,
+                                 phase_id=0, chapter_id=0xFFFFFFFF, ui_binding_context=1)
+        out = state.classify(decoded)
+        self.assertTrue(out["engine_game_started"])
+        self.assertEqual(out["engine_state"], "game_started")
+        self.assertIsNone(state.expect_matches("ingame", out))
+        self.assertIsNone(out["ui_state"])
+
     def test_ingame_state_does_not_promote_replay_candidates(self):
         out = state.classify(state.decode_sample(SIM["replay_loading"]))
-        self.assertEqual(out["engine_state"], "ingame")
+        self.assertEqual(out["engine_state"], "game_started")
         self.assertEqual(out["replay_net_flag_candidate"], 1)
         self.assertFalse(out["replay_validated"])
         self.assertIsNone(out["replay_active"])
@@ -681,28 +693,28 @@ class ControllerFlow(unittest.TestCase):
 
     def test_state_gate_succeeds_and_records_replay_verification(self):
         watch = {**SIM["replay_watch"], "events": [dict(SIM["replay_watch"]["events"][0])]}
-        code, records = self.run_main(["--expect", "ingame", "--replay", str(self.replay),
+        code, records = self.run_main(["--expect", "engine_game_started", "--replay", str(self.replay),
                                        "--replay-sha256", self.digest], [SIM["ingame"]], watch)
         self.assertEqual(code, 0)
         verification = [r for r in records if r["event"] == "replay_verification"][0]
         self.assertTrue(verification["verified"])
         self.assertEqual([r["event"] for r in records].count("replay_open"), 1)
-        self.assertEqual([r for r in records if r["event"] == "summary"][0]["engine_state"], "ingame")
+        self.assertEqual([r for r in records if r["event"] == "summary"][0]["engine_state"], "game_started")
 
     def test_early_uncertainty_does_not_override_a_valid_final_verdict(self):
-        code, records = self.run_main(["--expect", "ingame"],
+        code, records = self.run_main(["--expect", "engine_game_started"],
                                       [SIM["invalid_flag"], SIM["invalid_flag"], SIM["ingame"]],
                                       SIM["replay_watch"])
         self.assertEqual(code, 0)
         summary = [r for r in records if r["event"] == "summary"][0]
-        self.assertEqual(summary["engine_state"], "ingame")
+        self.assertEqual(summary["engine_state"], "game_started")
         self.assertEqual(len(summary["earlier_uncertain_states"]), 1)
         self.assertEqual(summary["earlier_uncertain_states"][0]["engine_state"], "invalid_flags")
 
     def test_missing_open_fails_closed_when_required(self):
         watch = {"installed": True, "error": None, "other_open_count": 3,
                  "max_events": 32, "events": []}
-        code, records = self.run_main(["--expect", "ingame", "--replay", str(self.replay),
+        code, records = self.run_main(["--expect", "engine_game_started", "--replay", str(self.replay),
                                        "--replay-sha256", self.digest, "--require-replay-open"],
                                       [SIM["ingame"]], watch)
         self.assertEqual(code, 3)
