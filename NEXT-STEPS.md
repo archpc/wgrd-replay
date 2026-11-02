@@ -55,7 +55,10 @@ now have separate native FOB building classifications. Their member-unit joins
 remain unresolved because the name token is shared; ownership is not inferred.
 
 Next: resolve source-role and kill attribution where new evidence supports it,
-preserve qualified coverage, validate phase/clock mapping and
+using the [corrected native layout](research/current-build/2026-11-02-native-hook-semantics.md)
+(`TModernWarfareDamageModule` slot `+0x54`, entry stride `0x74`). The keyed
+registration hook does not provide a simulation-frame clock.
+Preserve qualified coverage, validate phase/clock mapping and
 the full replay cycle only when a specific live experiment is ready, corroborate
 combat-source semantics, and capture movement where supported. The retained-capture
 structured AAR exporter is integrated; its current coverage and explicit unknowns

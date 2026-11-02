@@ -56,6 +56,11 @@ separate from this verified installed capability.
 
 ## Exact replay-file witness
 
+The [native hook semantics check](current-build/2026-11-02-native-hook-semantics.md)
+identifies `0xb2b310` as keyed registration, not a demonstrated simulation-frame
+apply. It also corrects the damage-module dispatch slot to `+0x54` and entry
+stride to `0x74`; the upstream source-record writer remains unresolved.
+
 The [KERNELBASE wide-string watch](current-build/2026-11-02-replay-file-witness.md)
 recorded two successful exact-path opens with the pinned replay's stable digest.
 The earlier KERNEL32 W and ANSI windows remain inconclusive. A same-playback

@@ -5,6 +5,11 @@ Follow-up: the original engine subsequently exercised this candidate. See the
 status and "not yet sampled" statements below describe preparation of the experiment,
 not its current execution status.
 
+Semantic follow-up: the preserved hook ID `frame_apply_candidate` at `0xb2b310`
+has a [keyed-registration implementation](2026-11-02-native-hook-semantics.md),
+not a verified per-simulation-frame apply. Keep recorded arguments raw; its count
+does not establish elapsed simulation time.
+
 Status: **offline instrumentation revision**. No target process was attached, no
 guest was operated, no game memory was written, and no game function was called.
 The only runtime evidence in this note is the previous capture; everything new
