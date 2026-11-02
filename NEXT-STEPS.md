@@ -38,7 +38,7 @@ the structural authority. The recipe is in the
 | Scored kill | **open**: not independently confirmed | causal chain §7 |
 | `TIAKillGameplayMessage` | lifecycle only, not kill credit | causal chain §4 |
 | Kill table / kill points (debrief) | corroboration only; provider not located | causal chain §7 |
-| Weapon identity | **open**: impact record layout not captured | — |
+| Weapon identity | static: entry `+0x00` is the firing `TAmmunition` descriptor; 2092 unique GUIDs indexed. **Not yet observed** | causal chain §9 |
 | Movement / tactical events | **open**: position anchors are raw, uncalibrated | [position AAR](research/current-build/2026-11-02-position-aar.md) |
 
 ## Hypotheses (tested, not proven)
@@ -60,7 +60,9 @@ new replay with known UI times should be added to its `DISPLAYED` table.
 
 ## Next authorized capture (delta from v3)
 
-Add `0xcf8490` entry (impact record, 128 bytes at arg 0). Add `0xc52de0` only
+Add one indirect read `("arg3", 0, 128, "enter", indirect)` to
+`impact_apply_candidate`: the descriptor GUID at `+0x0c` joins the private
+ammunition index (causal chain §9). No new hook is needed. Add `0xc52de0` only
 `within` the apply hook, replacing the 1-in-997 sample. Hook `0xa72ae0` (or read owning object `+0x5c`) to
 capture team numbers. Drop
 `frame_apply_candidate`, the order/reference hooks and the clock sampler.

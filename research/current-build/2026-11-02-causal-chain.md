@@ -5,8 +5,9 @@ Status: static, read-only. Engine SHA-256
 `0x400000`. Ghidra 12.1.4 via the canonical REA CLI on a disposable clone of the
 existing project (no import, no analysis, no save). No VM or game run.
 
-Evidence: 22 REA envelopes plus the query recipe in private
-`aar-causal-static-20261102/` (`SHA256SUMS`). Each address below is in the
+Evidence: REA envelopes plus the query recipe in private
+`aar-causal-static-20261102/` and, for §9, `aar-ammo-static-20261102/`
+(each with `SHA256SUMS`). Each address below is in the
 envelope named after it, for example `decompile-0xcf97ad.json`.
 
 ## Causal path
@@ -81,6 +82,23 @@ envelope named after it, for example `decompile-0xcf97ad.json`.
    `0xC0000067`/`0xC0000068`, and no owner-class object has key `0x66`. The
    company-to-unit link itself is not runtime-observed
    (`tests/test_aar_hypotheses.py`).
+9. **Weapon boundary.** The resolver loop `0xcff5a0` (`TProjectileManager`,
+   singleton `0x203c328`, ctor `0xcf6910`) calls `0xcf8490` for each 0x68-byte
+   projectile record; `0xcf7fe0`/`0xcf81f0` append them. In `0xcf95e0`, `R[0]`
+   is passed as `ecx` to `0xc2c940(mode)`, which returns `+0xa8` for mode 2 and
+   `+0xb0` for mode 1 (byte-checked). `0xc2f6f0` registers the `TAmmunition`
+   properties `RadiusSplashPhysicalDamages` at `+0xa8` and
+   `RadiusSplashSuppressDamages` at `+0xb0`, and `0xc2c650` returns
+   `PhysicalDamages` `+0xac` and `SuppressDamages` `+0xb4`. So `R[0]` is the
+   firing `TAmmunition` descriptor, a `TSaveableDescriptor` (`0xb578e0`) whose
+   `DescriptorId` GUID is expected at `+0x0c`, as for unit descriptors. The
+   131544 NDF holds 2092 `TAmmunition` objects with 2092 unique GUIDs
+   (private `aar-ammo-static-20261102/`, reproducer `ammunition_index.py`).
+   The queued entry copies `R` (`0xc4b0f0`), so `entry+0x00` is the ammunition
+   pointer at apply time. **Not yet observed:** neither retained trace reads
+   it. `0xc9f910`'s `param_4` is the entry, and both traces show
+   `arg3 - ecx = 0x10` (25 calls) or `0x84` (3 calls), so entry `+0x00` lies
+   inside the damage module's inline entry storage.
 
 ## Consequences for the AAR
 
@@ -92,7 +110,10 @@ envelope named after it, for example `decompile-0xcf97ad.json`.
   mapping of the observed AL; no captured message and no confirmed scored kill.
   It also emits a per-unit `owning_object_ref`. Team numbers are not captured,
   so no player, faction or team is assigned.
-- Still open: the debrief data provider, exact weapon identity, `R`'s full
+- Weapon identity needs one indirect read of `[arg3]` on the existing impact
+  hook, joined by GUID to the ammunition index. Until it is captured, events
+  keep `weapon` in `not_claimed`.
+- Still open: the debrief data provider, runtime weapon observation, `R`'s full
   layout, and runtime proof of the company-to-unit link.
 
 ## Reproduction
