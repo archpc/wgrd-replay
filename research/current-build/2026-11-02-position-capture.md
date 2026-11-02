@@ -1,5 +1,10 @@
 # Owner-position capture — V3 experiment, build 131544
 
+Follow-up: the original engine subsequently exercised this candidate. See the
+[completed capture and reviewed exporter](2026-11-02-position-aar.md). The offline
+status and "not yet sampled" statements below describe preparation of the experiment,
+not its current execution status.
+
 Status: **offline instrumentation revision**. No target process was attached, no
 guest was operated, no game memory was written, and no game function was called.
 The only runtime evidence in this note is the previous capture; everything new

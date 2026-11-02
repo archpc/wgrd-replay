@@ -32,9 +32,16 @@ verified milestones are indexed in [research](research/INDEX.md):
 - The [expanded state observer](research/current-build/2026-11-02-engine-state.md)
   is integrated with the reviewed fixes, preserving the original counter records and
   rejecting unproved menu/loading/replay-active predicates. Native file-open
-  observation and the expanded guest reads still need a specific live validation.
+  observation remains unverified. Live main-menu evidence disproved the former
+  GameStarted-to-ingame inference; the predicate now stays unknown.
+- The [V3 position AAR](research/current-build/2026-11-02-position-aar.md) integrates
+  the completed native capture: raw position anchors, capture-local type joins,
+  clock brackets and value transitions, with no invented movement/arrival semantics.
+  The complete guest evidence export is hash-verified; source-owner provenance
+  remains a separate static research thread.
 
-Next: validate phase/clock mapping and
+Next: target the engine's imported CreateFileA path for an actual file-open witness,
+validate phase/clock mapping and
 the full replay cycle only when a specific live experiment is ready, corroborate
 combat-source semantics, and capture movement where supported. The retained-capture
 structured AAR exporter is integrated; its current coverage and explicit unknowns

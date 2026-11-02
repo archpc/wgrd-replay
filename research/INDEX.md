@@ -54,12 +54,14 @@ and disposable source projects remained hash-identical. Live MCP stayed idle and
 aligned; no shared-server upgrade or restart occurred. Upstream-current remains
 separate from this verified installed capability.
 
-## Bounded position-capture candidate
+## Native position-anchor capture and V3 AAR
 
 The [V3 instrumentation experiment](current-build/2026-11-02-position-capture.md)
-adds bounded tag-bit clearing and a final field offset for the static
-`owner+0xE4 → (pointer & FFFFFFFC)+0x30` position anchor. It is offline-tested,
-not live-calibrated. Sparse clock reads support brackets, not invented exact times.
+was exercised by the original engine. The [reviewed V3 AAR](current-build/2026-11-02-position-aar.md)
+contains 371 raw position observations in 71 capture-local identity tracks and
+153 anchor-value transitions. Coordinates remain unmapped; transitions are not
+claimed as movements or arrivals. Time intervals span both endpoint observations.
+The 55-file guest export was independently hash-verified on the Mac.
 The [owner-interface correction](current-build/2026-11-02-live-unit-attribution.md#typed-interface-correction-owner0x60)
 rejects the earlier name/kill-record interpretation of owner+0x60.
 

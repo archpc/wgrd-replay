@@ -4,6 +4,7 @@ import hashlib
 import importlib.util
 import io
 import json
+import math
 import os
 import copy
 from pathlib import Path
@@ -39,6 +40,11 @@ RUNTIME_INDEX = Path(os.environ.get(
     Path.home() / ".hermes" / "artifacts" / "wgrd-replay" / "aar-20261102T050816Z"
     / "units" / "unit-index-131544.json",
 ))
+V3_ROOT = Path.home() / ".hermes" / "artifacts" / "wgrd-replay" / "aar-v3-20261102T082918Z"
+RUNTIME_V3_TRACE = Path(os.environ.get("WGRD_AAR_V3_TRACE",
+                                       V3_ROOT / "native-v3b-replay.jsonl"))
+RUNTIME_V3_INFLIGHT = Path(os.environ.get("WGRD_AAR_V3_INFLIGHT",
+                                          V3_ROOT / "native-v3b-inflight-snapshot.jsonl"))
 FAKE_SHA = "0" * 64
 _RUNTIME_CACHE = {}
 
@@ -764,6 +770,320 @@ class RuntimeProfileTests(unittest.TestCase):
         self.assertNotIn('"counter": 4032', text)
         for event in self.manifest["events"]:
             self.assertNotIn("counter", event["time"])
+
+
+def _v3_read(source, offset, size, phase, hexdata, **extra):
+    read = {"source": source, "phase": phase, "offset": offset, "size": size,
+            "address": "0x%08x" % (0x10000000 + offset), "indirect": False,
+            "chain": [], "target": None, "result": {"ok": True, "hex": hexdata}}
+    read.update(extra)
+    return read
+
+
+def _v3_lookup(handle, owner, descriptor, pointer, xyz_hex):
+    header = bytearray(128)
+    struct.pack_into("<I", header, 0x20, handle)
+    struct.pack_into("<I", header, 0x28, descriptor)
+    target = (pointer & 0xFFFFFFFC) + aar.RUNTIME_V3_POSITION_OFFSET
+    return {
+        "event": "leave", "hook": "owner_lookup_candidate", "call_id": 1,
+        "thread_id": 9, "ecx": "0x%08x" % owner, "retval": "0x%08x" % owner,
+        "reads": [
+            _v3_read("retval", 0, 128, "leave", header.hex()),
+            _v3_read("retval", 40, 128, "leave", bytes(128).hex(), indirect=True,
+                     chain=["0x%08x" % descriptor], target="0x%08x" % descriptor),
+            _v3_read("retval", 228, 12, "leave", xyz_hex, indirect=True,
+                     chain=["0x%08x" % pointer], target="0x%08x" % target,
+                     raw_pointer="0x%08x" % pointer, applied_mask="0xfffffffc",
+                     target_offset=aar.RUNTIME_V3_POSITION_OFFSET,
+                     final_target="0x%08x" % target),
+        ],
+    }
+
+
+def _v3_xyz(x, y, z):
+    return struct.pack("<3f", x, y, z).hex()
+
+
+class RuntimeV3ProfileTests(unittest.TestCase):
+    """Ten-hook V3 profile with masked descriptor and position reads."""
+
+    maxDiff = None
+
+    @classmethod
+    def setUpClass(cls):
+        if not RUNTIME_V3_TRACE.exists() or not RUNTIME_INDEX.exists():
+            raise unittest.SkipTest("v3 capture or unit index unavailable")
+        cls.trace_bytes = RUNTIME_V3_TRACE.read_bytes()
+        cls.rows = aar.parse_trace(cls.trace_bytes)
+        cls.index = json.loads(RUNTIME_INDEX.read_text(encoding="utf-8"))
+        cls.manifest = aar.extract_runtime(
+            cls.rows, RUNTIME_V3_TRACE.name, aar.RUNTIME_V3_TRACE_SHA256,
+            len(cls.rows), cls.index, RUNTIME_INDEX.name,
+            aar.RUNTIME_V3_INDEX_SHA256)
+
+    def v3_extract(self, rows, profile="runtime-v3", index=None):
+        return aar.extract_runtime(
+            rows, RUNTIME_V3_TRACE.name, aar.RUNTIME_V3_TRACE_SHA256,
+            len(rows), index or self.index, RUNTIME_INDEX.name,
+            aar.RUNTIME_V3_INDEX_SHA256, profile)
+
+    def test_v3_profile_is_selected_only_by_an_exact_known_hook_set(self):
+        self.assertEqual(self.manifest["profile"]["name"], "runtime-v3")
+        self.assertEqual(self.manifest["schema"], aar.RUNTIME_V3_SCHEMA)
+        self.assertEqual(len(self.manifest["profile"]["position_hooks"]), 2)
+        self.assertEqual(aar._rt_detect_profile(self.rows)["name"], "runtime-v3")
+        short = copy.deepcopy(self.rows)
+        short[0]["hooks"] = [hook for hook in short[0]["hooks"]
+                             if hook["name"] != "phase_change_candidate"]
+        with self.assertRaisesRegex(aar.AarTraceError, "unknown hook profile"):
+            aar._rt_detect_profile(short)
+        with self.assertRaisesRegex(aar.AarTraceError, "read shape mismatch"):
+            self.v3_extract(short, profile="runtime")
+        extra = copy.deepcopy(self.rows)
+        extra[0]["hooks"].append({"name": "shell_candidate", "va": "0x1", "args": 0,
+                                  "sample_every": 1, "reads": []})
+        with self.assertRaisesRegex(aar.AarTraceError, "unknown hook profile"):
+            aar._rt_detect_profile(extra)
+
+    def test_v3_indirect_mask_and_offset_are_validated(self):
+        for key, value, message in (("indirect_mask", "fffffffe", "indirect mask mismatch"),
+                                    ("indirect_offset", 52, "indirect offset mismatch")):
+            rows = copy.deepcopy(self.rows)
+            hook = next(item for item in rows[0]["hooks"]
+                        if item["name"] == "owner_lookup_candidate")
+            read = next(item for item in hook["reads"] if item["offset"] == 228)
+            read[key] = value
+            with self.assertRaisesRegex(aar.AarTraceError, message):
+                self.v3_extract(rows)
+
+    def test_v3_incomplete_capture_is_never_exported(self):
+        for dropped in ("summary", "detached", "end"):
+            rows = [row for row in self.rows if row.get("event") != dropped]
+            with self.assertRaisesRegex(aar.AarTraceError,
+                                        "incomplete capture: missing %s" % dropped):
+                self.v3_extract(rows)
+        if not RUNTIME_V3_INFLIGHT.exists():
+            return
+        inflight = RUNTIME_V3_INFLIGHT.read_bytes()
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "events"
+            self.assertEqual(run_main([
+                str(RUNTIME_V3_INFLIGHT), "--profile", "runtime-v3", "--unit-index",
+                str(RUNTIME_INDEX), "--expect-sha256",
+                hashlib.sha256(inflight).hexdigest(), "--out", str(output)]), 2)
+            self.assertFalse(output.exists())
+
+    def test_v3_positions_are_descriptor_resolved_and_finite(self):
+        self.assertEqual(self.manifest["integrity"].get("position_descriptor_read_failures"), 0)
+        self.assertEqual(self.manifest["integrity"].get("gate_counter_status"),
+                         "not_reported_by_pinned_v3_source; no_gate_zero_claim")
+        observations = self.manifest["position_observations"]
+        self.assertEqual(len(observations), 371)
+        self.assertEqual(sum(item["hook"] == "owner_lookup_candidate"
+                             for item in observations), 365)
+        self.assertEqual(sum(item["hook"] == "owner_destroy_candidate"
+                             for item in observations), 6)
+        self.assertEqual(self.manifest["integrity"]["position_read_failures"], 0)
+        self.assertEqual(self.manifest["integrity"]["position_identity_tracks"], 71)
+        for observation in observations:
+            anchor = observation["anchor"]
+            self.assertEqual(anchor["status"], "read_ok")
+            self.assertEqual(len(anchor["xyz"]), 3)
+            self.assertTrue(all(math.isfinite(value) for value in anchor["xyz"]))
+            self.assertEqual(anchor["target"], "0x%08x" % (
+                (int(anchor["raw_pointer"], 16) & 0xFFFFFFFC)
+                + aar.RUNTIME_V3_POSITION_OFFSET))
+            self.assertEqual(len(bytes.fromhex(anchor["raw_hex"])), 12)
+            self.assertEqual(observation["identity"]["key"],
+                             "h%d|%s|%s" % (observation["identity"]["handle_u32"],
+                                            observation["identity"]["owner_object"],
+                                            observation["identity"]["descriptor_pointer"]))
+        first = observations[0]
+        self.assertEqual(first["identity"]["key"], "h15|0x79ac9dd0|0x50f51710")
+        self.assertEqual(first["line"], 8359)
+        self.assertEqual(first["anchor"]["xyz"], [575043.9375, 1593865.75, 32760.0])
+        self.assertEqual(first["identity"]["descriptor_join"]["debug_name"],
+                         "Unit_Motorstrelki")
+        self.assertEqual(first["identity"]["descriptor_join"]["status"],
+                         "2_of_2_exact_guid_and_token")
+
+    def test_v3_identity_mismatch_is_kept_as_separate_tracks(self):
+        observations, failures = aar._rt_position_observations(
+            [_v3_lookup(5, 0x2000, 0x3000, 0x4000, _v3_xyz(1, 2, 3)),
+             _v3_lookup(5, 0x2100, 0x3000, 0x5000, _v3_xyz(1, 2, 3))],
+            aar.RUNTIME_PROFILE_V3, None)
+        self.assertEqual(failures, 0)
+        aar._rt_apply_clock_brackets(observations, [])
+        report = aar._rt_position_identity(observations)
+        self.assertEqual(report["tracks"], 2)
+        self.assertEqual([item["field"] for item in report["conflicts"]], ["handle"])
+        self.assertEqual(aar._rt_position_changes(observations), [])
+
+    def test_v3_changes_need_one_identity_and_one_anchor_target(self):
+        same = _v3_xyz(1, 2, 3)
+        observations, _ = aar._rt_position_observations(
+            [_v3_lookup(7, 0x2200, 0x3000, 0x4000, same),
+             _v3_lookup(7, 0x2200, 0x3000, 0x4000, same),
+             _v3_lookup(7, 0x2200, 0x3000, 0x4000, _v3_xyz(4, 6, 3))],
+            aar.RUNTIME_PROFILE_V3, None)
+        aar._rt_apply_clock_brackets(observations, [])
+        changes = aar._rt_position_changes(observations)
+        self.assertEqual(len(changes), 1)
+        change = changes[0]
+        self.assertEqual(change["kind"], "position_anchor_changed")
+        self.assertEqual((change["from"]["line"], change["to"]["line"]), (2, 3))
+        self.assertEqual(change["delta_raw_f32"], [3.0, 4.0, 0.0])
+        self.assertEqual(change["displacement_raw_f32"], 5.0)
+        self.assertEqual(change["units"], "unknown_unmapped_raw_f32")
+        rebound, _ = aar._rt_position_observations(
+            [_v3_lookup(7, 0x2200, 0x3000, 0x4000, same),
+             _v3_lookup(7, 0x2200, 0x3000, 0x4010, _v3_xyz(9, 9, 9))],
+            aar.RUNTIME_PROFILE_V3, None)
+        aar._rt_apply_clock_brackets(rebound, [])
+        kinds = aar._rt_position_changes(rebound)
+        self.assertEqual([item["kind"] for item in kinds], ["position_anchor_rebound"])
+        self.assertFalse(kinds[0]["comparable"])
+
+    def test_v3_anchor_arithmetic_and_finiteness_are_enforced(self):
+        base = [_v3_lookup(5, 0x2000, 0x3000, 0x4000, _v3_xyz(1, 2, 3))]
+        cases = ((("final_target", "0x1"), "anchor final target mismatch"),
+                 (("applied_mask", "0xfffffffe"), "anchor mask mismatch"),
+                 (("target_offset", 44), "anchor target offset mismatch"))
+        for (field, value), message in cases:
+            rows = copy.deepcopy(base)
+            rows[0]["reads"][2][field] = value
+            with self.assertRaisesRegex(aar.AarTraceError, message):
+                aar._rt_position_observations(rows, aar.RUNTIME_PROFILE_V3, None)
+        non_finite = copy.deepcopy(base)
+        non_finite[0]["reads"][2]["result"]["hex"] = _v3_xyz(float("nan"), 0, 0)
+        with self.assertRaisesRegex(aar.AarTraceError, "non-finite position"):
+            aar._rt_position_observations(non_finite, aar.RUNTIME_PROFILE_V3, None)
+        unreadable = copy.deepcopy(base)
+        unreadable[0]["reads"][2]["result"] = {"ok": False, "reason": "unreadable"}
+        observations, failures = aar._rt_position_observations(
+            unreadable, aar.RUNTIME_PROFILE_V3, None)
+        self.assertEqual(failures, 1)
+        self.assertEqual(observations[0]["anchor"]["status"], "position_read_failed")
+        self.assertIsNone(observations[0]["anchor"]["xyz"])
+
+    def test_v3_clock_brackets_are_adjacent_and_never_interpolated(self):
+        observations = self.manifest["position_observations"]
+        bracketed = [item for item in observations
+                     if item["time"]["bracket"]["bracketed"]]
+        self.assertEqual(len(bracketed), 363)
+        self.assertEqual([item["index"] for item in observations
+                          if not item["time"]["bracket"]["bracketed"]],
+                         list(range(1, 9)))
+        clock_lines = [number for number, row in enumerate(self.rows, 1)
+                       if row.get("event") == "enter"
+                       and row.get("hook") == "clock_sample_candidate"]
+        previous = {}
+        for index, line in enumerate(clock_lines):
+            previous[line] = clock_lines[index - 1] if index else None
+        for observation in bracketed:
+            bracket = observation["time"]["bracket"]
+            self.assertLess(bracket["lower"]["line"], observation["line"])
+            self.assertLess(observation["line"], bracket["upper"]["line"])
+            self.assertEqual(bracket["lower"]["receiver"], bracket["upper"]["receiver"])
+            self.assertEqual(bracket["counter_span"],
+                             bracket["upper"]["counter"] - bracket["lower"]["counter"])
+            self.assertEqual(previous[bracket["upper"]["line"]], bracket["lower"]["line"])
+        self.assertEqual([(item["index"], item["samples"])
+                          for item in self.manifest["clock_epochs"]], [(0, 1), (1, 458)])
+        for observation in observations:
+            for key in ("frame", "simulation_time", "game_time", "battle_time",
+                        "counter_ticks"):
+                self.assertIsNone(observation["time"][key])
+        self.assertNotIn("wallclock", json.dumps(observations).lower())
+        samples = [{"ordinal": 1, "counter": 1, "container": "0x1", "enter_line": 2,
+                    "leave_line": 3},
+                   {"ordinal": 2, "counter": 2, "container": "0x2", "enter_line": 10,
+                    "leave_line": 11}]
+        synthetic = [{"line": 5, "index": 1, "hook": "h", "phase": "p", "anchor": {}}]
+        aar._rt_apply_clock_brackets(synthetic, samples)
+        self.assertFalse(synthetic[0]["time"]["bracket"]["bracketed"])
+        self.assertEqual(synthetic[0]["time"]["bracket"]["reason"],
+                         "adjacent_clock_samples_span_an_epoch_change")
+
+    def test_v3_outputs_and_line_refs_resolve(self):
+        with tempfile.TemporaryDirectory() as directory:
+            targets = aar.write_runtime_outputs(self.manifest, directory)
+            self.assertEqual(sorted(path.name for path in targets),
+                             ["chronology.md", "events.json", "positions.json",
+                              "summary.json", "units.json"])
+            positions = json.loads((Path(directory) / "positions.json")
+                                   .read_text(encoding="utf-8"))
+            self.assertEqual(positions["schema"], aar.RUNTIME_V3_POSITIONS_SCHEMA)
+            self.assertEqual(len(positions["observations"]), 371)
+            self.assertEqual(len(positions["anchor_changes"]), 153)
+            text = (Path(directory) / "chronology.md").read_text(encoding="utf-8")
+            self.assertIn("## Position observations (raw tagged anchors)", text)
+            self.assertIn("raw value transitions, not movements", text)
+        for observation in self.manifest["position_observations"]:
+            row = self.rows[observation["line"] - 1]
+            self.assertEqual(row["hook"], observation["hook"])
+            self.assertEqual(row["event"], observation["phase"])
+            source = ("retval" if observation["hook"] == "owner_lookup_candidate"
+                      else "ecx")
+            read = next(item for item in row["reads"]
+                        if item["source"] == source and item["offset"] == 228
+                        and item["size"] == 12)
+            self.assertEqual(read["result"]["hex"], observation["anchor"]["raw_hex"])
+            self.assertEqual(hashlib.sha256(bytes.fromhex(read["result"]["hex"]))
+                             .hexdigest(), observation["anchor"]["sha256"])
+        for change in self.manifest["position_anchor_changes"]:
+            self.assertLess(change["from"]["line"], change["to"]["line"])
+            self.assertIn("not_derived", change)
+            self.assertTrue(math.isclose(
+                change["displacement_raw_f32"],
+                math.sqrt(sum(value * value for value in change["delta_raw_f32"]))))
+
+    def test_v3_file_export_authenticates_sources_and_is_exclusive(self):
+        manifest = aar.extract_runtime_file(
+            RUNTIME_V3_TRACE, RUNTIME_INDEX, aar.RUNTIME_V3_TRACE_SHA256,
+            aar.RUNTIME_V3_INDEX_SHA256, "runtime-v3")
+        records = manifest["provenance"]["capture_source_verification"]
+        self.assertEqual({item["name"] for item in records},
+                         {"wgrd_frida.py", "hooks.js", "aar-capture-131544-v3.json"})
+        self.assertTrue(all(item["status"] == "matched" for item in records))
+        self.assertEqual(manifest["provenance"]["capture_config_pin"]["file"],
+                         "aar-capture-131544-v3.json")
+        self.assertEqual(len(manifest["profile"]["position_hooks"]), 2)
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "out"
+            self.assertEqual(run_main([str(RUNTIME_V3_TRACE), "--profile", "runtime-v3",
+                                       "--unit-index", str(RUNTIME_INDEX),
+                                       "--out", str(output)]), 0)
+            self.assertTrue((output / "positions.json").exists())
+            self.assertEqual(run_main([str(RUNTIME_V3_TRACE), "--profile", "runtime-v3",
+                                       "--unit-index", str(RUNTIME_INDEX),
+                                       "--out", str(output)]), 2)
+
+
+class PositionTransitionTiming(unittest.TestCase):
+    def test_v3_source_authentication_requires_all_retained_files(self):
+        with tempfile.TemporaryDirectory() as directory:
+            with self.assertRaisesRegex(aar.AarTraceError, "capture source missing"):
+                aar._rt_verify_capture_sources(directory, aar.RUNTIME_PROFILE_V3)
+            legacy = aar._rt_verify_capture_sources(directory, aar.RUNTIME_PROFILE_V2)
+            self.assertTrue(all(item["status"] == "missing" for item in legacy))
+
+    def test_change_interval_covers_both_position_observations(self):
+        observations, _ = aar._rt_position_observations(
+            [_v3_lookup(7, 0x2200, 0x3000, 0x4000, _v3_xyz(1, 2, 3)),
+             _v3_lookup(7, 0x2200, 0x3000, 0x4000, _v3_xyz(4, 6, 3))],
+            aar.RUNTIME_PROFILE_V3, None)
+        observations[0]["line"], observations[1]["line"] = 15, 45
+        clocks = [{"enter_line": line, "container": "0x5000", "counter": tick}
+                  for line, tick in [(10, 100), (20, 110), (40, 200), (50, 210)]]
+        aar._rt_apply_clock_brackets(observations, clocks)
+        change = aar._rt_position_changes(observations)[0]
+        bracket = change["time"]["bracket"]
+        self.assertTrue(bracket["bracketed"])
+        self.assertEqual(bracket["lower"]["counter"], 100)
+        self.assertEqual(bracket["upper"]["counter"], 210)
+        self.assertEqual(bracket["counter_span"], 110)
 
 
 if __name__ == "__main__":
