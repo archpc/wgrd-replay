@@ -1,15 +1,18 @@
 #!/usr/bin/env python3
-"""Recompute damage-event evidence from a pinned WGRD JSONL trace.
+"""Build the revision-131544 AAR from an authenticated original-engine trace.
 
-The raw trace is opened read-only and never rewritten. Every impact event is
-rebuilt from its paired ``enter``/``leave`` reads; the trace summary, hash,
-pairing, field reads and (optionally) the classified timeline are checked
-before any output is written. Identity, frame/simulation time and kill outcome
-stay ``None`` because this trace does not capture them. Wall-clock timestamps
-are labelled as guest-clock observations, never as game time.
+The raw trace is opened read-only, hash-pinned and never rewritten. Every
+impact is rebuilt from paired ``enter``/``leave`` reads, joined to a pinned
+native unit index and to its nested threshold/destruction calls. Inferred
+roles, hypotheses and unknowns stay labelled; wall-clock timestamps are guest
+observations, never game time.
 
 Fail-closed policy: a mismatch raises ``AarTraceError`` and the CLI exits 2
 without creating output files. Output files are exclusively created.
+
+The legacy profile for the 2026-11-01 sampled trace was retired. To reproduce
+its archived outputs byte-for-byte, run this file from commit 71c4f8e
+(``git show 71c4f8e:instrumentation/aar_events.py``); see instrumentation/README.md.
 """
 
 import argparse
@@ -22,26 +25,9 @@ from pathlib import Path
 import struct
 import sys
 
-TRACE_SHA256 = "95f3592493a3c55da52150e64eb773b68f652f4530dca586458847e1f95a7bd6"
-CLASSIFIED_SHA256 = "e19e83dd23c3baae5afadb89403676ac0b0fa68b73fdfb803f3edaceae1ebb4a"
 EXECUTABLE_SHA256 = "5eaa6d6168c9570ff9789bffb3b2cc16fd908be61263b12fcc1e8b2f09efc75d"
-REVISION = "131544"
-IMPACT_HOOK = "impact_apply_candidate"
-IMPACT_ADDRESS = "0xc9f910"
-RETURN_ADDRESS = "0xc95200"
 IMAGE_BASE = 0x400000
 IMAGE_SIZE = 31883264
-SCHEMA = "wgrd-aar-events/1"
-
-ENTER_OFFSETS = frozenset((8, 400, 412, 416))
-LEAVE_OFFSETS = frozenset((400, 412, 416))
-FIELD_0X190 = 400
-FIELD_0X194 = 404
-FIELD_0X19C = 412
-FIELD_0X1A0 = 416
-HANDLE_OFFSET = 8
-DECAY_DIVISORS = (0.6, 0.3, 0.2, 0.1, 0.05)
-QUANTIZATION_TOLERANCE = 0.002
 
 
 class AarTraceError(ValueError):
@@ -67,14 +53,6 @@ def _parse_timestamp(value, where):
         raise AarTraceError("invalid timestamp:%s:%s" % (where, error)) from None
 
 
-def _float32_memory(hex_value, where):
-    _require(isinstance(hex_value, str) and len(hex_value) == 8, "bad read bytes:%s" % where)
-    try:
-        return struct.unpack("<f", bytes.fromhex(hex_value))[0]
-    except ValueError as error:
-        raise AarTraceError("bad read bytes:%s:%s" % (where, error)) from None
-
-
 def _float32_argument(raw_value, where):
     _require(isinstance(raw_value, str) and raw_value.startswith("0x"), "bad argument:%s" % where)
     try:
@@ -85,11 +63,6 @@ def _float32_argument(raw_value, where):
     return struct.unpack("<f", struct.pack("<I", bits))[0]
 
 
-def _u32_memory(hex_value, where):
-    _require(isinstance(hex_value, str) and len(hex_value) == 8, "bad u32 read:%s" % where)
-    return struct.unpack("<I", bytes.fromhex(hex_value))[0]
-
-
 def _address(value, where):
     _require(isinstance(value, str) and value.startswith("0x"), "bad address:%s" % where)
     try:
@@ -98,19 +71,6 @@ def _address(value, where):
         raise AarTraceError("bad address:%s:%s" % (where, error)) from None
     _require(0 <= address <= 0xFFFFFFFF, "address out of range:%s" % where)
     return address
-
-
-def image_membership(address):
-    """Return arithmetic image-range facts without asserting section ownership."""
-    end = IMAGE_BASE + IMAGE_SIZE
-    inside = IMAGE_BASE <= address < end
-    return {
-        "base": "0x%08x" % IMAGE_BASE,
-        "size": IMAGE_SIZE,
-        "end": "0x%08x" % end,
-        "offset_bytes": address - IMAGE_BASE if address >= IMAGE_BASE else None,
-        "inside_image": inside,
-    }
 
 
 def parse_trace(data):
@@ -143,718 +103,27 @@ def load_trace(path, expect_sha256):
     return rows, path.name, digest, len(data.splitlines())
 
 
-def _index_reads(record, module, expected_offsets):
-    reads = record.get("reads")
-    _require(isinstance(reads, list), "missing reads:%s" % record.get("event"))
-    indexed = {}
-    for read in reads:
-        offset = read.get("offset")
-        result = read.get("result") or {}
-        where = "%s:0x%x" % (record.get("event"), offset if isinstance(offset, int) else 0)
-        _require(offset in expected_offsets, "unexpected read offset:%s" % where)
-        _require(offset not in indexed, "duplicate read offset:%s" % where)
-        _require(read.get("indirect") is False, "indirect read:%s" % where)
-        _require(read.get("chain") == [], "pointer chain read:%s" % where)
-        _require(read.get("address") == "0x%08x" % (module + offset), "read address mismatch:%s" % where)
-        _require(result.get("ok") is True, "read failure:%s" % where)
-        indexed[offset] = result.get("hex")
-    _require(frozenset(indexed) == expected_offsets, "read set mismatch:%s" % record.get("event"))
-    return indexed
-
-
-def _validate_header(rows):
-    start = _single(rows, "start")
-    identity = _single(rows, "identity_verified")
-    _single(rows, "hooks_installed")
-    summary = _single(rows, "summary")
-    _single(rows, "detached")
-    _single(rows, "end")
-
-    _require(start.get("revision") == REVISION, "revision is not %s" % REVISION)
-    _require(start.get("sha256") == EXECUTABLE_SHA256, "executable sha256 mismatch")
-    hooks = start.get("hooks")
-    _require(isinstance(hooks, list), "start record has no hooks")
-    impacts = [hook for hook in hooks if hook.get("name") == IMPACT_HOOK]
-    _require(len(impacts) == 1, "expected one impact hook")
-    impact = impacts[0]
-    _require(impact.get("va") == IMPACT_ADDRESS, "impact hook address mismatch")
-    _require(impact.get("args") == 5, "impact hook argument count mismatch")
-    _require(impact.get("sample_every") == 1, "sampling failure: impact hook is sampled")
-    read_shape = {(read.get("source"), read.get("offset"), read.get("size"), read.get("phase"))
-                  for read in impact.get("reads", [])}
-    expected_shape = {("ecx", 8, 4, "enter"), ("ecx", 400, 4, "both"),
-                      ("ecx", 412, 4, "both"), ("ecx", 416, 4, "both")}
-    _require(read_shape == expected_shape, "impact hook read shape mismatch")
-
-    module = identity.get("module") or {}
-    _require(module.get("name", "").lower() == "wargame3.exe", "identity module name mismatch")
-    _require(module.get("arch") == "ia32" and module.get("pointer_size") == 4, "identity is not ia32")
-    _require(module.get("base") == "0x400000", "image base mismatch")
-    _require(module.get("size") == IMAGE_SIZE, "image size mismatch")
-    entries = [entry for entry in module.get("entries", []) if entry.get("name") == IMPACT_HOOK]
-    _require(len(entries) == 1 and entries[0].get("address") == IMPACT_ADDRESS,
-             "identity has no impact entry")
-    _require(entries[0].get("executable") is True, "impact address is not executable")
-
-    counts = summary.get("counts") or {}
-    for key in ("suppressed", "callback_errors", "stale_frames", "stack_mismatches",
-                "outstanding_threads", "gate_read_failures", "gate_ambiguities"):
-        _require(summary.get(key) == 0, "summary failure:%s=%r" % (key, summary.get(key)))
-    _require(isinstance(counts.get(IMPACT_HOOK), int), "summary has no impact count")
-    end = _single(rows, "end")
-    _require(end.get("cleanup_errors") == 0, "cleanup error")
-    start_ts = _parse_timestamp(start.get("timestamp_utc"), "start")
-    end_ts = _parse_timestamp(end.get("timestamp_utc"), "end")
-    _require(start_ts <= end_ts, "start is after end")
-    return start, summary, counts[IMPACT_HOOK]
-
-
-def _pair_impacts(rows):
-    enters = {}
-    leaves = {}
-    for line_number, row in enumerate(rows, 1):
-        if row.get("event") == "enter" and row.get("hook") == IMPACT_HOOK:
-            key = (row.get("thread_id"), row.get("call_id"))
-            _require(key not in enters, "duplicate impact enter:%d" % line_number)
-            enters[key] = (line_number, row)
-        elif row.get("event") == "leave" and row.get("hook") == IMPACT_HOOK:
-            key = (row.get("thread_id"), row.get("call_id"))
-            _require(key not in leaves, "duplicate impact leave:%d" % line_number)
-            leaves[key] = (line_number, row)
-    _require(set(enters) == set(leaves), "missing impact pair: enters=%d leaves=%d"
-             % (len(enters), len(leaves)))
-    return [enters[key] for key in enters], leaves
-
-
-def _build_event(enter_line, enter, leave_line, leave):
-    where = "ordinal:%s" % enter.get("ordinal")
-    module = _address(enter.get("ecx"), where + ":ecx")
-    _require(module % 4 == 0, "unaligned module:%s" % where)
-    _require(module >= IMAGE_BASE, "module address below image base:%s" % where)
-    enter_reads = _index_reads(enter, module, ENTER_OFFSETS)
-    leave_reads = _index_reads(leave, module, LEAVE_OFFSETS)
-    _require(leave.get("stack_match") is True, "stack mismatch:%s" % where)
-    _require(enter.get("return_address") == RETURN_ADDRESS, "unexpected return address:%s" % where)
-    _require(enter.get("stale_frames_discarded") == 0, "stale frames:%s" % where)
-
-    arguments = enter.get("args")
-    _require(isinstance(arguments, list) and len(arguments) == 5, "argument count:%s" % where)
-    mode_token = arguments[4]
-    _require(mode_token in ("0x1", "0x2"), "unsupported mode:%s" % where)
-    mode = int(mode_token, 16)
-    arg0 = _float32_argument(arguments[0], where)
-    _require(math.isfinite(arg0) and arg0 >= 0, "non-finite/negative input:%s" % where)
-
-    handle = _u32_memory(enter_reads[HANDLE_OFFSET], where + ":handle")
-    before = {offset: _float32_memory(enter_reads[offset], where + ":enter")
-              for offset in (FIELD_0X190, FIELD_0X19C, FIELD_0X1A0)}
-    after = {offset: _float32_memory(leave_reads[offset], where + ":leave")
-             for offset in (FIELD_0X190, FIELD_0X19C, FIELD_0X1A0)}
-    for offset in before:
-        _require(math.isfinite(before[offset]) and math.isfinite(after[offset]),
-                 "non-finite field:%s:0x%x" % (where, offset))
-
-    changed = [offset for offset in (FIELD_0X190, FIELD_0X19C, FIELD_0X1A0)
-               if enter_reads[offset] != leave_reads[offset]]
-    expected = FIELD_0X190 if mode == 1 else FIELD_0X19C
-    _require(changed == [expected], "transition fields %r do not match mode %d at %s"
-             % (changed, mode, where))
-    delta = after[expected] - before[expected]
-    _require(delta > 0 and math.isfinite(delta), "non-increasing transition:%s" % where)
-    _require(delta <= arg0 + 1e-3, "effective damage exceeds input:%s" % where)
-
-    enter_time = _parse_timestamp(enter.get("timestamp_utc"), where + ":enter")
-    leave_time = _parse_timestamp(leave.get("timestamp_utc"), where + ":leave")
-    _require(enter_time <= leave_time, "enter after leave:%s" % where)
-
-    ordinal = enter.get("ordinal")
-    _require(isinstance(ordinal, int) and ordinal >= 1, "bad ordinal:%s" % where)
-    kind = "suppression_increase" if mode == 1 else "physical_damage_increase"
-    return {
-        "ordinal": ordinal,
-        "kind": kind,
-        "mode": mode,
-        "mode_arg4_raw": mode_token,
-        "source": {
-            "trace": None,  # filled by extract()
-            "trace_sha256": None,
-            "enter_line": enter_line,
-            "leave_line": leave_line,
-            "line_ref": "L%d-L%d" % (enter_line, leave_line),
-        },
-        "call": {
-            "thread_id": enter.get("thread_id"),
-            "call_id": enter.get("call_id"),
-            "parent_call_id": enter.get("parent_call_id"),
-            "parent_recorded": enter.get("parent_recorded") is True,
-        },
-        "module": {
-            "label": None,
-            "address": "0x%08x" % module,
-            "address_u32": module,
-            "raw_handle_u32": handle,
-            "image_membership": image_membership(module),
-        },
-        "fields": {
-            "0x190": {"before": before[FIELD_0X190], "after": after[FIELD_0X190],
-                      "before_hex": enter_reads[FIELD_0X190],
-                      "after_hex": leave_reads[FIELD_0X190]},
-            "0x194": {"captured": False, "value": None,
-                      "note": "MaxDamages is not in the hook read set"},
-            "0x19c": {"before": before[FIELD_0X19C], "after": after[FIELD_0X19C],
-                      "before_hex": enter_reads[FIELD_0X19C],
-                      "after_hex": leave_reads[FIELD_0X19C]},
-            "0x1a0": {"before": before[FIELD_0X1A0], "after": after[FIELD_0X1A0],
-                      "before_hex": enter_reads[FIELD_0X1A0],
-                      "after_hex": leave_reads[FIELD_0X1A0]},
-        },
-        "arg0_float32": arg0,
-        "arg0_raw": arguments[0],
-        "observed_delta": delta,
-        "changed_fields": ["0x%x" % offset for offset in changed],
-        "identity": {
-            "unit": None,
-            "player": None,
-            "basis": "no captured module-to-entity or entity-to-unit bridge",
-        },
-        "time": {
-            "frame": None,
-            "simulation_time": None,
-            "game_time": None,
-            "wallclock_enter_utc": enter.get("timestamp_utc"),
-            "wallclock_leave_utc": leave.get("timestamp_utc"),
-            "relative_wallclock_seconds": None,
-            "basis": "guest wall-clock observation only; not replay, simulation or game time",
-        },
-        "kill": {
-            "outcome": None,
-            "destruction_observed": False,
-            "basis": "no destruction hook, removal capture or unit identity",
-        },
-        "causation": {
-            "shooter": None,
-            "weapon": None,
-            "basis": ("parent dispatcher sampled out" if enter.get("parent_recorded") is not True
-                      else "parent recorded, but no shooter/weapon identity was captured"),
-        },
-        "_enter_time": enter_time,
-        "_leave_time": leave_time,
-    }
-
-
-def _module_label_order(events):
-    labels = {}
-    for event in sorted(events, key=lambda item: item["ordinal"]):
-        address = event["module"]["address"]
-        if address not in labels:
-            labels[address] = "M%d" % (len(labels) + 1)
-    return labels
-
-
-def _module_histories(events):
-    by_module = {}
-    for event in events:
-        by_module.setdefault(event["module"]["label"], []).append(event)
-    histories = []
-    for label in sorted(by_module, key=lambda value: int(value[1:])):
-        group = sorted(by_module[label], key=lambda item: item["ordinal"])
-        suppression = [event for event in group if event["mode"] == 1]
-        physical = [event for event in group if event["mode"] == 2]
-        histories.append({
-            "label": label,
-            "address": group[0]["module"]["address"],
-            "raw_handle_u32": group[0]["module"]["raw_handle_u32"],
-            "image_membership": group[0]["module"]["image_membership"],
-            "event_count": len(group),
-            "event_ordinals": [event["ordinal"] for event in group],
-            "suppression": {
-                "applications": len(suppression),
-                "observed_peak": max((event["fields"]["0x190"]["after"] for event in suppression),
-                                     default=None),
-                "last_observed": group[-1]["fields"]["0x190"]["after"],
-            },
-            "physical": {
-                "applications": len(physical),
-                "observed_max": max((event["fields"]["0x19c"]["after"] for event in physical),
-                                    default=None),
-                "transitions": [
-                    {
-                        "ordinal": event["ordinal"],
-                        "before": event["fields"]["0x19c"]["before"],
-                        "after": event["fields"]["0x19c"]["after"],
-                    }
-                    for event in physical
-                ],
-            },
-            "identity": None,
-            "kill": None,
-            "wallclock_first_utc": group[0]["time"]["wallclock_enter_utc"],
-            "wallclock_last_utc": group[-1]["time"]["wallclock_enter_utc"],
-        })
-    return histories
-
-
-def _divisor_fits(loss):
-    """Test how each candidate value granularity divides one observed loss."""
-    fits = []
-    for divisor in DECAY_DIVISORS:
-        units = round(loss / divisor)
-        residual = loss - units * divisor
-        fits.append({
-            "divisor": divisor,
-            "units": units,
-            "residual": residual,
-            "integral": units >= 1 and abs(residual) <= QUANTIZATION_TOLERANCE,
-        })
-    return fits
-
-
-def _decay_observations(events):
-    observations = []
-    by_module = {}
-    for event in events:
-        by_module.setdefault(event["module"]["label"], []).append(event)
-    for label, group in by_module.items():
-        group = sorted(group, key=lambda item: item["ordinal"])
-        for previous, current in zip(group, group[1:]):
-            loss = previous["fields"]["0x190"]["after"] - current["fields"]["0x190"]["before"]
-            if loss <= 0:
-                continue
-            wall = current["time"]["relative_wallclock_seconds"] - previous["time"]["relative_wallclock_seconds"]
-            fits = _divisor_fits(loss)
-            observations.append({
-                "module": label,
-                "from_ordinal": previous["ordinal"],
-                "to_ordinal": current["ordinal"],
-                "observed_loss": loss,
-                "divisor_fits": fits,
-                "integral_divisors": [fit["divisor"] for fit in fits if fit["integral"]],
-                "wallclock_seconds": wall,
-            })
-    return observations
-
-
-def _wallclock_span(entries):
-    values = [entry["wallclock_seconds"] for entry in entries]
-    return {"count": len(values), "min": min(values, default=None),
-            "max": max(values, default=None)}
-
-
-def _timing(events):
-    first = min(event["_enter_time"] for event in events)
-    last = max(event["_enter_time"] for event in events)
-    decay = _decay_observations(events)
-    short = [entry for entry in decay if entry["wallclock_seconds"] < 1.0]
-    long = [entry for entry in decay if entry["wallclock_seconds"] > 10.0]
-    fit_counts = {}
-    for divisor in DECAY_DIVISORS:
-        fit_counts["%g" % divisor] = sum(
-            1 for entry in decay
-            if any(fit["divisor"] == divisor and fit["integral"] for fit in entry["divisor_fits"]))
-    equal_divisors = [divisor for divisor in DECAY_DIVISORS
-                      if decay and fit_counts["%g" % divisor] == len(decay)]
-    unique_divisor = equal_divisors[0] if len(equal_divisors) == 1 else None
-    decay_note = ""
-    if decay and equal_divisors:
-        decay_note = (
-            " Suppression declines are not quantized on a resolvable time base: each "
-            "observed loss (%d) fits %s value units to within %.3f, so the divisor is not "
-            "identified and no engine step count can be derived."
-            % (len(decay), ", ".join("%g" % divisor for divisor in equal_divisors),
-               QUANTIZATION_TOLERANCE))
-    elif decay:
-        decay_note = (
-            " Suppression declines are not quantized on a resolvable time base: no single "
-            "candidate value granularity divides all %d observed losses." % len(decay))
-    return {
-        "basis": "guest wall-clock observation only",
-        "frame": None,
-        "simulation_time": None,
-        "game_time": None,
-        "first_impact_wallclock_utc": first.isoformat().replace("+00:00", "Z"),
-        "last_impact_wallclock_utc": last.isoformat().replace("+00:00", "Z"),
-        "impact_window_wallclock_seconds": (last - first).total_seconds(),
-        "frame_to_time_conversion": None,
-        "hypotheses": [
-            {
-                "id": "H1_5.01_fps",
-                "claim": "The replay advances about 5.01 frames per second.",
-                "status": "not_supported_by_trace",
-                "reason": ("No trace record carries a frame index or simulation time. "
-                           "The figure depends on an external frame count and playback "
-                           "interval, not an in-trace counter." + decay_note),
-            },
-            {
-                "id": "H2_battle_start_frame_2914",
-                "claim": "The battle starts at replay frame 2914.",
-                "status": "not_supported_by_trace",
-                "reason": ("No frame index or replay binding exists in this trace. The only "
-                           "frame-2914 evidence is a 0x13 synchronization append in a different "
-                           "artifact; that opcode does not establish battle start."),
-            },
-            {
-                "id": "H3_three_kills_from_three_transitions",
-                "claim": "The three physical-damage transitions are three kills.",
-                "status": "rejected",
-                "reason": ("Three mode-2 transitions are observed, but MaxDamages (+0x194), the "
-                           "destruction path, unit identity and any removal/kill record are absent. "
-                           "Damage accumulation is not a kill outcome."),
-            },
-        ],
-        "decay_observations": decay,
-        "decay_summary": {
-            "declines": len(decay),
-            "candidate_divisors": list(DECAY_DIVISORS),
-            "divisor_fit_counts": fit_counts,
-            "equal_fit_divisors": equal_divisors,
-            "unique_divisor": unique_divisor,
-            "quantization_tolerance": QUANTIZATION_TOLERANCE,
-            "short_interval_wallclock_seconds": _wallclock_span(short),
-            "long_interval_wallclock_seconds": _wallclock_span(long),
-            "warning": ("0.6 is an assumed audit value granularity, not an engine step and not "
-                        "a measured period. The data cannot select it over 0.3, 0.2, 0.1 or "
-                        "0.05, and the trace carries no frame or step counter, so no step "
-                        "rate is asserted."),
-        },
-    }
-
-
-def _crosscheck_classified(classified, classified_sha256, manifest):
-    _require(classified.get("trace_sha256") == manifest["source"]["sha256"],
-             "classified trace sha256 mismatch")
-    _require(classified.get("executable_sha256") == EXECUTABLE_SHA256,
-             "classified executable sha256 mismatch")
-    classified_events = classified.get("events")
-    _require(isinstance(classified_events, list), "classified file has no events")
-    ours = manifest["events"]
-    _require(len(classified_events) == len(ours),
-             "classified event count %d != recomputed %d" % (len(classified_events), len(ours)))
-    by_ordinal = {}
-    for event in classified_events:
-        ordinal = event.get("ordinal")
-        _require(ordinal not in by_ordinal, "duplicate classified ordinal:%r" % ordinal)
-        by_ordinal[ordinal] = event
-    _require(set(by_ordinal) == {event["ordinal"] for event in ours},
-             "classified ordinals do not match recomputed events")
-    checked = []
-    for event in ours:
-        other = by_ordinal[event["ordinal"]]
-        where = "classified ordinal %d" % event["ordinal"]
-        checks = {
-            "call_id": other.get("call_id") == event["call"]["call_id"],
-            "thread_id": other.get("thread_id") == event["call"]["thread_id"],
-            "enter_line": (other.get("source") or {}).get("enter_line") == event["source"]["enter_line"],
-            "leave_line": (other.get("source") or {}).get("leave_line") == event["source"]["leave_line"],
-            "module": other.get("runtime_module_address") == event["module"]["address"],
-            "handle": other.get("runtime_handle_raw_u32") == event["module"]["raw_handle_u32"],
-            "kind": other.get("kind") == event["kind"],
-            "changed_fields": other.get("changed_fields") == event["changed_fields"],
-            "arg0": math.isclose(other.get("arg0_float32", math.nan), event["arg0_float32"],
-                                 rel_tol=0, abs_tol=1e-6),
-            "delta": math.isclose(other.get("observed_delta", math.nan),
-                                  event["observed_delta"], rel_tol=0, abs_tol=1e-6),
-            "frame_is_unknown": other.get("frame") is None,
-            "simulation_time_is_unknown": other.get("simulation_time") is None,
-            "unit_is_unknown": other.get("unit_identity") is None,
-            "player_is_unknown": other.get("player_identity") is None,
-        }
-        for field in ("0x190", "0x19c", "0x1a0"):
-            for phase in ("before", "after"):
-                expected = event["fields"][field][phase]
-                actual = ((other.get(phase) or {}).get(field) or {}).get("float32", math.nan)
-                checks["%s_%s" % (field, phase)] = math.isclose(
-                    actual, expected, rel_tol=0, abs_tol=1e-6)
-        failed = sorted(name for name, ok in checks.items() if not ok)
-        _require(not failed, "%s differs in: %s" % (where, ", ".join(failed)))
-        checked.append(event["ordinal"])
-    return {
-        "status": "match",
-        "sha256": classified_sha256,
-        "events": len(checked),
-        "matched_events": len(checked),
-        "fields_checked": ["ordinal", "call_id", "thread_id", "enter_line", "leave_line",
-                           "module", "handle", "kind", "changed_fields", "arg0", "delta",
-                           "0x190", "0x19c", "0x1a0", "unknown_time_identity"],
-    }
-
-
-def _image_correction(modules):
-    """Score the inside-image claim from the observed module addresses."""
-    membership = [module["image_membership"] for module in modules]
-    _require(all(item["offset_bytes"] is not None for item in membership),
-             "module address below image base")
-    inside = [item for item in membership if item["inside_image"]]
-    outside = [item for item in membership if not item["inside_image"]]
-    offsets = [item["offset_bytes"] for item in membership]
-    outside_offsets = [item["offset_bytes"] for item in outside]
-    total = len(membership)
-    head = ("Image range 0x%08x-0x%08x is %d bytes. "
-            % (IMAGE_BASE, IMAGE_BASE + IMAGE_SIZE, IMAGE_SIZE))
-    if not inside:
-        status = "rejected_by_arithmetic"
-        detail = (head + "All %d observed module addresses are outside it; the closest is "
-                  "%d bytes from the image base." % (total, min(offsets)))
-        implication = ("Do not describe these objects as image/.data residents without "
-                       "a section-table or allocation capture.")
-    elif not outside:
-        status = "confirmed_by_arithmetic"
-        detail = (head + "All %d observed module addresses fall inside it, at offsets "
-                  "%d-%d bytes from the image base." % (total, min(offsets), max(offsets)))
-        implication = ("Arithmetic image membership alone does not establish section "
-                       "ownership; a section-table or allocation capture is still required.")
-    else:
-        status = "partially_confirmed_by_arithmetic"
-        detail = (head + "%d of %d observed module addresses fall inside it and %d outside; "
-                  "the closest outside address is %d bytes from the image base."
-                  % (len(inside), total, len(outside), min(outside_offsets)))
-        implication = ("Mixed membership: neither the inside-image claim nor its rejection "
-                       "holds for every module; a section-table or allocation capture is "
-                       "required per module.")
-    return {
-        "claim": "The captured damage-module objects lie inside the loaded executable image.",
-        "status": status,
-        "detail": detail,
-        "observed": {
-            "module_addresses_checked": total,
-            "inside_image": len(inside),
-            "outside_image": len(outside),
-            "minimum_offset_bytes": min(offsets),
-            "minimum_outside_offset_bytes": min(outside_offsets) if outside_offsets else None,
-            "image_size_bytes": IMAGE_SIZE,
-        },
-        "implication": implication,
-    }
-
-
-def extract(rows, source_name, source_sha256, line_count, classified=None,
-            classified_sha256=None):
-    """Recompute the event manifest from parsed trace rows."""
-    start, summary, impact_count = _validate_header(rows)
-    enter_pairs, leaves = _pair_impacts(rows)
-    _require(impact_count == len(enter_pairs),
-             "summary impact count %d != paired events %d" % (impact_count, len(enter_pairs)))
-    events = []
-    for enter_line, enter in enter_pairs:
-        key = (enter.get("thread_id"), enter.get("call_id"))
-        leave_line, leave = leaves[key]
-        events.append(_build_event(enter_line, enter, leave_line, leave))
-    events.sort(key=lambda item: item["ordinal"])
-    _require(events, "no impact events in trace")
-    _require([event["ordinal"] for event in events] == list(range(1, len(events) + 1)),
-             "impact ordinals are not contiguous from 1")
-    labels = _module_label_order(events)
-    first_time = min(event["_enter_time"] for event in events)
-    for event in events:
-        event["module"]["label"] = labels[event["module"]["address"]]
-        event["source"]["trace"] = source_name
-        event["source"]["trace_sha256"] = source_sha256
-        event["time"]["relative_wallclock_seconds"] = (
-            event["_enter_time"] - first_time).total_seconds()
-
-    modules = _module_histories(events)
-    timing = _timing(events)
-    for event in events:
-        del event["_enter_time"]
-        del event["_leave_time"]
-    starts = [row for row in rows if row.get("event") == "start"]
-    start_record = starts[0]
-    parent_recorded = sum(1 for event in events if event["call"]["parent_recorded"])
-    manifest = {
-        "schema": SCHEMA,
-        "status": "partial_evidence",
-        "source": {
-            "trace": source_name,
-            "sha256": source_sha256,
-            "line_count": line_count,
-            "revision": start_record.get("revision"),
-            "executable_sha256": start_record.get("sha256"),
-            "image": {"base": "0x%08x" % IMAGE_BASE, "size": IMAGE_SIZE,
-                      "end": "0x%08x" % (IMAGE_BASE + IMAGE_SIZE)},
-        },
-        "integrity": {
-            "impact_enters": len(enter_pairs),
-            "impact_leaves": len(leaves),
-            "paired": len(events),
-            "ordinals_contiguous": True,
-            "impact_hook_sample_every": 1,
-            "parent_recorded": parent_recorded,
-            "parent_unrecorded": len(events) - parent_recorded,
-            "suppressed_events": summary.get("suppressed"),
-            "callback_errors": summary.get("callback_errors"),
-            "stack_mismatches": summary.get("stack_mismatches"),
-            "stale_frames": summary.get("stale_frames"),
-            "read_failures": 0,
-            "summary_impact_count": impact_count,
-        },
-        "unknowns": {
-            "unit_identity": None,
-            "player_identity": None,
-            "frame": None,
-            "simulation_time": None,
-            "game_time": None,
-            "kill_outcome": None,
-            "max_damages": None,
-            "shooter": None,
-            "weapon": None,
-            "reasons": {
-                "identity": "no module-to-entity or entity-to-unit bridge was captured",
-                "time": "no trace record carries a replay frame or simulation clock",
-                "kill": "no destruction, removal or score record was captured",
-                "max_damages": "+0x194 is not in the hook read set",
-                "causation": "27 of 28 parent dispatcher calls were sampled out",
-            },
-        },
-        "modules": modules,
-        "events": events,
-        "timing": timing,
-        "corrections": [_image_correction(modules)],
-    }
-    if classified is not None:
-        _require(classified_sha256 is not None,
-                 "classified cross-check requires its sha256")
-        manifest["integrity"]["classification"] = _crosscheck_classified(
-            classified, classified_sha256, manifest)
-    else:
-        manifest["integrity"]["classification"] = {
-            "status": "not_requested", "events": None, "matched_events": 0}
-    return manifest
-
-
-def extract_file(trace_path, expect_sha256=TRACE_SHA256, classified_path=None,
-                 expect_classified_sha256=None):
-    rows, name, digest, line_count = load_trace(trace_path, expect_sha256)
-    classified = None
-    if classified_path is not None:
-        data = Path(classified_path).read_bytes()
-        classified_sha256 = hashlib.sha256(data).hexdigest()
-        _require(expect_classified_sha256 is not None,
-                 "classified cross-check requires --expect-classified-sha256")
-        _require(classified_sha256 == expect_classified_sha256,
-                 "classified sha256 mismatch: %s" % classified_sha256)
-        try:
-            classified = json.loads(data.decode("utf-8"))
-        except (UnicodeDecodeError, json.JSONDecodeError) as error:
-            raise AarTraceError("invalid classified json:%s" % error) from None
-        _require(isinstance(classified, dict), "classified root is not an object")
-    return extract(rows, name, digest, line_count, classified, expect_classified_sha256)
-
-
-def _event_line(event):
-    field = "0x190" if event["mode"] == 1 else "0x19c"
-    values = event["fields"][field]
-    return (
-        "- **%s** `T+%.3fs` ord %d | call %s | %s/h%d | mode %d | %s %s "
-        "%.6f -> %.6f (delta %.6f) | unit=UNKNOWN player=UNKNOWN frame=UNKNOWN "
-        "sim_time=UNKNOWN game_time=UNKNOWN kill=UNKNOWN"
-        % (event["source"]["line_ref"], event["time"]["relative_wallclock_seconds"],
-           event["ordinal"], event["call"]["call_id"], event["module"]["label"],
-           event["module"]["raw_handle_u32"], event["mode"], event["kind"], field,
-           values["before"], values["after"], event["observed_delta"])
-    )
-
-
-def render_chronology(manifest):
-    source = manifest["source"]
-    lines = [
-        "# Damage-event chronology",
-        "",
-        "Source: `%s` SHA-256 `%s` (%d lines), read-only."
-        % (source["trace"], source["sha256"], source["line_count"]),
-        "Executable: revision %s, SHA-256 `%s`."
-        % (source["revision"], source["executable_sha256"]),
-        "",
-        "Every `Lx-Ly` reference resolves to the paired enter/leave records in that "
-        "exact file and hash. `T+` is relative guest wall-clock observation from the "
-        "first impact; it is not replay, simulation or game time.",
-        "",
-        "## Events",
-        "",
-    ]
-    lines.extend(_event_line(event) for event in manifest["events"])
-    lines.extend([
-        "",
-        "## Module histories",
-        "",
-        "| module | raw handle | events | suppression | peak 0x190 | physical | physical 0x19c |",
-        "|---|---:|---:|---:|---:|---:|---|",
-    ])
-    for module in manifest["modules"]:
-        physical = module["physical"]["transitions"]
-        physical_text = ", ".join("%.1f -> %.1f" % (item["before"], item["after"])
-                                  for item in physical) or "-"
-        lines.append("| %s | %d | %d | %d | %s | %d | %s |" % (
-            module["label"], module["raw_handle_u32"], module["event_count"],
-            module["suppression"]["applications"],
-            "%.6f" % module["suppression"]["observed_peak"]
-            if module["suppression"]["observed_peak"] is not None else "-",
-            module["physical"]["applications"], physical_text))
-    lines.extend([
-        "",
-        "Each module has `unit=UNKNOWN`, `player=UNKNOWN` and `kill=UNKNOWN`: the "
-        "raw `+0x08` value is an unauthenticated candidate handle, not an entity id.",
-        "",
-        "## Timing assessment",
-        "",
-        "Frame and simulation time are `null` for all %d events. The hypotheses in "
-        "`summary.json` are not promoted to observations." % len(manifest["events"]),
-        "",
-        "- H1 (5.01 fps): not supported by this trace; no in-trace frame counter exists.",
-        "- H2 (battle start frame 2914): not supported; no frame index or replay binding exists.",
-        "- H3 (three kills from three transitions): rejected; no destruction or identity evidence.",
-        "",
-        "## Image-range correction",
-        "",
-        manifest["corrections"][0]["detail"],
-        "",
-        "Status: `%s`. `events.json` keeps the per-module `image_membership` arithmetic."
-        % manifest["corrections"][0]["status"],
-        "",
-    ])
-    return "\n".join(lines)
-
-
 def _json_text(value):
     return json.dumps(value, indent=2, allow_nan=False) + "\n"
 
 
-def write_outputs(manifest, out_dir):
-    """Exclusively create events.json, summary.json and chronology.md."""
-    out_dir = Path(out_dir)
-    out_dir.mkdir(parents=True, exist_ok=True)
-    payloads = {
-        "events.json": _json_text(manifest),
-        "summary.json": _json_text({key: value for key, value in manifest.items()
-                                    if key != "events"}),
-        "chronology.md": render_chronology(manifest),
-    }
-    targets = [out_dir / name for name in payloads]
-    existing = [str(path) for path in targets if path.exists()]
-    _require(not existing, "refusing to overwrite existing output: %s" % ", ".join(existing))
-    created = []
-    try:
-        for path in targets:
-            with open(path, "x", encoding="utf-8", newline="\n") as handle:
-                handle.write(payloads[path.name])
-                created.append(path)
-    except FileExistsError as error:
-        for path in created:
-            path.unlink()
-        raise AarTraceError("output appeared during write: %s" % error) from None
-    return targets
-
-
 # ---------------------------------------------------------------------------
-# Runtime profile (build 131544 capture with type and destruction hooks)
+# Runtime profiles (build 131544 capture with type and destruction hooks)
 #
-# This profile is additive: the legacy extractor above keeps its pinned
-# trace, output keys and chronology unchanged. The runtime profile reads a
-# different trace shape, joins two captured descriptor GUID/token pairs to a
-# hash-pinned native unit index, and exports independently witnessed
-# damage -> threshold -> destruction call chains. It never promotes inferred
-# source roles to proven shooters or observed destruction calls to kills.
+# Read the runtime trace shape, join captured descriptor GUID/token pairs to a
+# hash-pinned native unit index, and export independently witnessed
+# damage -> threshold -> destruction call chains.
 # ---------------------------------------------------------------------------
 
 RUNTIME_SCHEMA = "wgrd-aar-runtime-events/1"
+# Static basis for arg1 (research/current-build/2026-11-02-causal-chain.md).
+SOURCE_ROLE = "engine_credited_damage_source"
+SOURCE_CONFIDENCE = "static_xp_credit_and_producer_dataflow"
+SOURCE_BASIS = ("0xc9f910 credits arg1 with an ExperienceMessage for this damage, with a "
+                "lethal-hit bonus (0xc9fa75-0xc9fc08); arg1 is resolved from the queued "
+                "entry's copied impact record (0xcf8490 -> 0xcf95e0 -> 0xcf7f40 -> 0xc58a70). "
+                "Weapon and projectile identity are not captured")
+FRAME_TICK_SECONDS = 0.2
 RUNTIME_UNITS_SCHEMA = "wgrd-aar-runtime-units/1"
 RUNTIME_TRACE_SHA256 = "607ee419a674b554051cec998ca8ba619de5c11c8e9de277f071fd7d62f2ba74"
 RUNTIME_INDEX_SHA256 = "73d5912746ae5b278dfd77c29bc84dc96b0e8d28cc9a79b765bf91c0851a411d"
@@ -961,8 +230,8 @@ RUNTIME_CAPTURE_SOURCE_PINS = {
 #
 # The V3 capture keeps every earlier hook and adds a phase candidate plus a
 # tagged anchor read (mask 0xfffffffc, +0x30) on the owner lookup (leave) and
-# owner destroy (enter) hooks. The legacy and runtime profiles above are
-# unchanged: this profile only widens header validation and adds position
+# owner destroy (enter) hooks. The runtime profile above is unchanged: this
+# profile only widens header validation and adds position
 # observations with bounded clock brackets. Nothing here promotes an anchor
 # to metres, a visual centre, a movement intent or a game-time source.
 # ---------------------------------------------------------------------------
@@ -2204,13 +1473,13 @@ def _rt_extract(rows, source_name, source_sha256, line_count, index, index_name,
                 "descriptor_matches_arg2": (source_descriptor_pointer == arg2_address
                                             if source_descriptor_pointer is not None else None),
                 "join": source_join,
-                "role": ("inferred_damage_source_owner" if source_handle is not None
+                "role": (SOURCE_ROLE if source_handle is not None
                          else "unresolved_owner"),
-                "confidence": ("inferred_not_static_proven" if source_handle is not None
+                "confidence": (SOURCE_CONFIDENCE if source_handle is not None
                                else "not_applicable"),
-                "basis": ("arg1 is the captured owner argument and equals an owner whose "
-                          "+0x28 is arg2; no static data-flow proof ties arg1 to a "
-                          "shooter, weapon or projectile"),
+                "basis": (SOURCE_BASIS if source_handle is not None else
+                          "arg1 is null: the entry carries no engine-credited source; "
+                          "the producing impact record was not captured"),
             },
             "check": {
                 "call_id": check_enter.get("call_id"),
@@ -2249,6 +1518,10 @@ def _rt_extract(rows, source_name, source_sha256, line_count, index, index_name,
                 "epoch": None,
                 "frame": None,
                 "replay_frame": None,
+                "replay_frame_hypothesis": ({
+                    "value": round(time_value / FRAME_TICK_SECONDS),
+                    "status": "hypothesis_0p2s_per_replay_frame",
+                } if time_value is not None and time_value >= 0 else None),
                 "simulation_time": None,
                 "game_time": None,
                 "battle_time": None,
@@ -2265,7 +1538,7 @@ def _rt_extract(rows, source_name, source_sha256, line_count, index, index_name,
                 "target_type": target_join["confidence"],
                 "source_owner": ("observed_pointer_and_header" if source_handle is not None
                                  else "unresolved_owner"),
-                "source_role": ("inferred_not_static_proven" if source_handle is not None
+                "source_role": (SOURCE_CONFIDENCE if source_handle is not None
                                 else "not_applicable"),
                 "threshold_met": "observed_low_byte",
                 "destruction_call": "observed_nested_call" if destroy else "not_observed",
@@ -2347,12 +1620,11 @@ def _rt_extract(rows, source_name, source_sha256, line_count, index, index_name,
             },
             "observed": ("impact on handle -> same-object threshold check returns AL=1 "
                          "-> nested destroy call on the looked-up owner"),
-            "not_claimed": ["shooter identity", "weapon", "kill/score outcome",
-                            "replay frame", "battle time"],
+            "not_claimed": ["weapon", "kill/score outcome", "replay frame", "battle time"],
             "confidence": {
                 "damage_destruction_control_flow": "observed_same_trace_nesting",
                 "victim_identity": "observed_handle_plus_static_type_join",
-                "source_attribution": "inferred_not_static_proven",
+                "source_attribution": SOURCE_CONFIDENCE,
                 "kill_outcome": "unknown",
             },
         })
@@ -2909,7 +2181,8 @@ def render_runtime_chronology(manifest):
            len({event["damage_object"]["handle_u32"] for event in manifest["events"]}),
            manifest["integrity"]["lifecycle_destroys"],
            manifest["integrity"]["cleanup_destroys"]),
-        "Source roles remain provisional. Missing source-owner pointers are unresolved, "
+        "Source owners are engine-credited (static XP-credit path), not weapon-resolved. "
+        "Missing source-owner pointers are unresolved, "
         "not proof that no source existed. No movement, confirmed kill credit or tactical "
         "victory is inferred from these hooks.",
         "",
@@ -3093,59 +2366,41 @@ def write_runtime_outputs(manifest, out_dir):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("trace", help="path to the raw damage JSONL trace")
+    parser.add_argument("trace", help="path to the raw runtime JSONL trace")
     parser.add_argument("--out", required=True, help="events output directory")
-    parser.add_argument("--profile", choices=("legacy", "runtime", "runtime-v3"),
-                        default="legacy",
-                        help="trace profile (default: legacy pinned combat trace)")
+    parser.add_argument("--profile", choices=("runtime", "runtime-v3"), default="runtime",
+                        help="trace profile (default: runtime)")
     parser.add_argument("--runtime", action="store_true",
-                        help="alias for --profile runtime")
-    parser.add_argument("--unit-index", help="native unit index JSON (runtime profile)")
+                        help="compatibility alias for --profile runtime")
+    parser.add_argument("--unit-index", help="native unit index JSON (required)")
     parser.add_argument("--expect-unit-index-sha256", default=RUNTIME_INDEX_SHA256,
-                        help="required unit index SHA-256 (runtime profile)")
+                        help="required unit index SHA-256")
     parser.add_argument("--expect-sha256", default=None,
                         help="required trace SHA-256 (default: profile pin)")
-    parser.add_argument("--classified", help="optional battle-timeline-classified.json")
-    parser.add_argument("--expect-classified-sha256", default=None,
-                        help="required classified SHA-256 when --classified is used")
     args = parser.parse_args(argv)
-    runtime = args.runtime or args.profile in ("runtime", "runtime-v3")
+    if args.unit_index is None:
+        print("aar_events: --unit-index is required", file=sys.stderr)
+        return 2
+    selected = args.profile
+    expect_trace = args.expect_sha256
+    if expect_trace is None:
+        expect_trace = (RUNTIME_V3_TRACE_SHA256 if selected == "runtime-v3"
+                        else RUNTIME_TRACE_SHA256)
     try:
-        if runtime:
-            _require(args.unit_index is not None,
-                     "--runtime/--profile runtime requires --unit-index")
-            _require(args.classified is None,
-                     "--classified is a legacy-profile option")
-            selected = "runtime-v3" if args.profile == "runtime-v3" else "runtime"
-            expect_trace = args.expect_sha256
-            if expect_trace is None:
-                expect_trace = (RUNTIME_V3_TRACE_SHA256 if selected == "runtime-v3"
-                                else RUNTIME_TRACE_SHA256)
-            manifest = extract_runtime_file(args.trace, args.unit_index, expect_trace,
-                                            args.expect_unit_index_sha256, selected)
-            targets = write_runtime_outputs(manifest, args.out)
-            if "position_observations" in manifest:
-                print("wrote %d runtime impacts, %d units, %d lifecycle destructions, "
-                      "%d position observations, %d anchor changes to %s"
-                      % (len(manifest["events"]), len(manifest["units"]),
-                         len(manifest["damage_lifecycle_observations"]),
-                         len(manifest["position_observations"]),
-                         len(manifest["position_anchor_changes"]), targets[0].parent))
-                return 0
-            print("wrote %d runtime impacts, %d units, %d lifecycle destructions to %s"
-                  % (len(manifest["events"]), len(manifest["units"]),
-                     len(manifest["damage_lifecycle_observations"]), targets[0].parent))
-            return 0
-        expect_trace = (args.expect_sha256 if args.expect_sha256 is not None
-                        else TRACE_SHA256)
-        manifest = extract_file(args.trace, expect_trace, args.classified,
-                                args.expect_classified_sha256)
-        targets = write_outputs(manifest, args.out)
+        manifest = extract_runtime_file(args.trace, args.unit_index, expect_trace,
+                                        args.expect_unit_index_sha256, selected)
+        targets = write_runtime_outputs(manifest, args.out)
     except (AarTraceError, OSError) as error:
         print("aar_events: %s" % error, file=sys.stderr)
         return 2
-    print("wrote %d events, %d modules to %s"
-          % (len(manifest["events"]), len(manifest["modules"]), targets[0].parent))
+    message = ("wrote %d runtime impacts, %d units, %d lifecycle destructions"
+               % (len(manifest["events"]), len(manifest["units"]),
+                  len(manifest["damage_lifecycle_observations"])))
+    if "position_observations" in manifest:
+        message += (", %d position observations, %d anchor changes"
+                    % (len(manifest["position_observations"]),
+                       len(manifest["position_anchor_changes"])))
+    print("%s to %s" % (message, targets[0].parent))
     return 0
 
 
