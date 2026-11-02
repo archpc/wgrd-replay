@@ -1,9 +1,10 @@
-"""Falsification checks for the AAR clock hypotheses, on hash-pinned private evidence.
+"""Falsification checks for AAR hypotheses H1-H3, on hash-pinned private evidence.
 
 H1: one replay frame is one 0.2 s deterministic tick, origin at frame 0.
 H2: the battle clock starts at the opcode-0x13 frame.
+H3: replay actor 0xC0000066 is the company that owns runtime units 0xC0000067/68.
 These tests record agreement with the available evidence; they do not prove
-either hypothesis. A new replay with known UI times should extend DISPLAYED.
+any hypothesis. A new replay with known UI times should extend DISPLAYED.
 """
 
 import hashlib
@@ -106,6 +107,50 @@ class TickHypothesis(unittest.TestCase):
             # than the sampling gap, and never behind it.
             self.assertGreaterEqual(round(ticks), last)
             self.assertLessEqual(round(ticks) - last, 3)
+
+
+class ActorGroupHypothesis(unittest.TestCase):
+    """H3: replay actor 0xC0000066 is the company owning runtime 0xC0000067/68."""
+
+    INDEX = (ARTIFACTS / "aar-20261102T050816Z" / "units-parent-verified"
+             / "unit-index-131544.json")
+    INDEX_SHA256 = "73d5912746ae5b278dfd77c29bc84dc96b0e8d28cc9a79b765bf91c0851a411d"
+
+    def test_actor_guid_is_merkava_company_and_runtime_members_follow_its_key(self):
+        if not self.INDEX.exists() or not V3_TRACE.exists():
+            raise unittest.SkipTest("unit index or v3 trace unavailable")
+        index_bytes = self.INDEX.read_bytes()
+        self.assertEqual(hashlib.sha256(index_bytes).hexdigest(), self.INDEX_SHA256)
+        index = json.loads(index_bytes)
+        case = DISPLAYED["combat"]
+        data = (ARTIFACTS / case["path"]).read_bytes()
+        self.assertEqual(hashlib.sha256(data).hexdigest(), case["sha256"])
+        timeline = build_timeline(wgrd_replay.parse_replay(data))
+        actors = [entry for entry in timeline["entity_references"]["entries"]
+                  if entry["occurrences"]["actor"]]
+        self.assertEqual([entry["lookup_key_u32"] for entry in actors], [0xC0000066])
+        guid = actors[0]["validation_guid_hex"]
+        descriptor = index["descriptors"][guid]
+        self.assertEqual(descriptor["source_nodes"], ["51786"])
+        self.assertEqual(index["nodes"]["51786"]["properties"]["ClassNameForDebug"],
+                         "Company_Merkava_IIIB_Baz")
+        self.assertEqual([c["unit_type_id"] for c in descriptor["candidates"]], ["19537"])
+        # Runtime owner headers: +0x1c key, +0x28 descriptor (V3 owner reads).
+        keys_by_descriptor = {}
+        for line in V3_TRACE.read_bytes().splitlines():
+            row = json.loads(line)
+            for read in row.get("reads", []):
+                result = read.get("result", {})
+                if read["offset"] == 0 and read["size"] == 128 and result.get("ok"):
+                    header = bytes.fromhex(result["hex"])
+                    if header[:4] == bytes.fromhex("0c449901"):
+                        key, = struct.unpack_from("<I", header, 0x1c)
+                        desc, = struct.unpack_from("<I", header, 0x28)
+                        keys_by_descriptor.setdefault(desc, set()).add(key)
+        merkava_keys = [keys for keys in keys_by_descriptor.values()
+                        if 0xC0000067 in keys]
+        self.assertEqual(merkava_keys, [{0xC0000067, 0xC0000068}])
+        self.assertNotIn(0xC0000066, set().union(*keys_by_descriptor.values()))
 
 
 if __name__ == "__main__":

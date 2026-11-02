@@ -124,6 +124,14 @@ SOURCE_BASIS = ("0xc9f910 credits arg1 with an ExperienceMessage for this damage
                 "entry's copied impact record (0xcf8490 -> 0xcf95e0 -> 0xcf7f40 -> 0xc58a70). "
                 "Weapon and projectile identity are not captured")
 FRAME_TICK_SECONDS = 0.2
+# 0xc95344 stores the threshold check's AL as the Killed token of the per-entry
+# composition posted at 0xc954f9; 0xa72ae0 resolves owner+0x24 as a type-2
+# owning-object reference whose +0x5c is the team number.
+KILLED_TOKEN_BASIS = "check AL stored at 0xc95344 is the Killed token posted at 0xc954f9"
+OWNING_REF_BASIS = ("owner+0x24 is the owning-object reference resolved by 0xa72ae0; "
+                    "its +0x5c team number is not captured, so no player, faction "
+                    "or team is assigned")
+
 RUNTIME_UNITS_SCHEMA = "wgrd-aar-runtime-units/1"
 RUNTIME_TRACE_SHA256 = "607ee419a674b554051cec998ca8ba619de5c11c8e9de277f071fd7d62f2ba74"
 RUNTIME_INDEX_SHA256 = "73d5912746ae5b278dfd77c29bc84dc96b0e8d28cc9a79b765bf91c0851a411d"
@@ -1598,6 +1606,13 @@ def _rt_extract(rows, source_name, source_sha256, line_count, index, index_name,
         lifecycle.append({
             "impact_ordinal": event["ordinal"],
             "impact_refs": event["refs"],
+            "killed_token": {
+                "value": event["check"]["al_u8"] == 1,
+                "level": "static_mapping_of_observed_check_al",
+                "combat_message_captured": False,
+                "scored_kill_confirmed": False,
+                "basis": KILLED_TOKEN_BASIS,
+            },
             "damaged_handle_u32": event["damage_object"]["handle_u32"],
             "victim_unit": event["target"]["join"].get("debug_name"),
             "victim_unit_type_id": event["target"]["join"].get("unit_type_id"),
@@ -1620,7 +1635,7 @@ def _rt_extract(rows, source_name, source_sha256, line_count, index, index_name,
             },
             "observed": ("impact on handle -> same-object threshold check returns AL=1 "
                          "-> nested destroy call on the looked-up owner"),
-            "not_claimed": ["weapon", "kill/score outcome", "replay frame", "battle time"],
+            "not_claimed": ["weapon", "scored kill", "replay frame", "battle time"],
             "confidence": {
                 "damage_destruction_control_flow": "observed_same_trace_nesting",
                 "victim_identity": "observed_handle_plus_static_type_join",
@@ -1939,6 +1954,8 @@ def _rt_unit_histories(events, lookup_by_handle, lookup_samples, descriptor_buck
             "owner_object": "0x%08x" % info["owner_object"],
             "descriptor_pointer": "0x%08x" % descriptor_pointer,
             "owner_field_0x24_raw": "0x%08x" % info["owner_field_0x24_raw"],
+            "owning_object_ref": {"raw": "0x%08x" % info["owner_field_0x24_raw"],
+                                  "basis": OWNING_REF_BASIS},
             "id_like": None,
             "roles": sorted(roles[handle]),
             "lookup_samples": len(refs_by_handle.get(handle, [])),
@@ -2241,14 +2258,15 @@ def render_runtime_chronology(manifest):
         "Each row is a witnessed control-flow chain: an impact mutated a damaged "
         "object, the immediately following check on that same object returned AL=1, "
         "and the check's recorded child called the destruction hook on the owner "
-        "resolved by handle. Source attribution remains inferred.",
+        "resolved by handle. Statically, the check's AL is the entry's Killed token; "
+        "the message itself and debrief scoring are not captured.",
         "",
     ])
     for item in manifest["damage_lifecycle_observations"]:
         lines.append(
             "- ord %d handle %d | victim `%s` (node %s) | reported source handle %s `%s` "
-            "(inferred) | impact L%d-L%d, check L%d-L%d | check %s AL=%d | destroy %s on `%s` "
-            "L%d-L%d | kill=UNKNOWN"
+            "(engine-credited) | impact L%d-L%d, check L%d-L%d | check %s AL=%d | destroy %s "
+            "on `%s` L%d-L%d | Killed token=%d (static mapping; message not captured)"
             % (item["impact_ordinal"], item["damaged_handle_u32"],
                item["victim_unit"] or "UNRESOLVED", item["victim_unit_type_id"] or "-",
                item["reported_source_owner_handle_u32"],
@@ -2258,7 +2276,8 @@ def render_runtime_chronology(manifest):
                item["threshold"]["check_call_id"], item["threshold"]["al_u8"],
                item["destruction_call"]["call_id"], item["destruction_call"]["operand_object"],
                item["destruction_call"]["line_refs"][0],
-               item["destruction_call"]["line_refs"][1]))
+               item["destruction_call"]["line_refs"][1],
+               item["killed_token"]["value"]))
     lines.extend([
         "",
         "These are destruction invocations, not confirmed kills: no score, removal, "
