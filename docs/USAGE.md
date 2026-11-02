@@ -131,15 +131,16 @@ This writes `timeline.json` (schema `wgrd_structural_timeline/2`) and
 `timeline.md`, and refuses to overwrite existing files. It lists every frame,
 pact and command with raw bytes and source offsets. It also reports measured
 coverage and structural checks (frame gaps, ordering, byte coverage) and flags
-identical repeated commands. A failed check exits 2 and writes nothing. Only the
-frame index is observed per event; `t+` is derived from it as
-`frame * 0.2 s` since replay load, because the engine consumes exactly one frame
-per 0.2 s tick (`0xb34060`, one frame per quantum at `0xb349bd`). Frame 0 is the
-load origin, not battle start: deterministic ticks, game time, battle time and
-wall-clock time stay null, and `clock_mapping` records the unlocated tick writer
-with its smallest experiment. The report also separates bulk frame loading from
-per-tick execution (`execution_model`) and keeps native AAR damage events
-unplaced. Player names and deck codes are omitted, but entity references remain.
+identical repeated commands. A failed check exits 2 and writes nothing. Each
+event carries the observed frame index, `t+` = `frame × 0.2 s` since replay load,
+and `est` = `(frame - 10.5) × 0.2 s` with per-event bounds `(frame - 11)..(frame -
+10) × 0.2`. `est` is a statistic from one authorized speed-1 playback: the
+observed integer frame/tick difference is 10 or 11 and the exact boundary is
+unresolved. Verified battle time, battle start, game time and per-event
+deterministic ticks stay null. The report also separates
+bulk frame loading from per-tick execution (`execution_model`) and keeps native
+AAR damage events unplaced. Player names and deck codes are omitted, but entity
+references remain.
 
 ## Use the Python API
 

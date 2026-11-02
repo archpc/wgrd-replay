@@ -5,12 +5,14 @@ Layered over wgrd_replay.parse_replay and wgrd_timeline.build_timeline; adds
 no decoding. Writes timeline.json (machine-readable) and timeline.md
 (human-readable) with exclusive create. Output is deterministic for one input.
 
-Time domains are kept separate. The replay frame index is known for each event,
-and the engine's tick quantum (0.2 s per frame, static) gives a derived
-seconds-since-replay-load value. Deterministic ticks, game/battle time and
-wall-clock time stay null: no evidence binds the frame index to the engine
-counter or to battle start (see CLOCK_MAPPING).
-Runtime AAR observations are not merged, because no frame correlation exists.
+Time domains are kept separate. The replay frame index is known for each event.
+The engine tick quantum (0.2 s per frame, static and observed at 5 Hz) gives
+seconds since replay load. One capture observed the deterministic clock lagging
+the frame counter by an integer 10 or 11 frames; the 10.5 midpoint is only a
+statistic, so each event carries an estimate with bounds. Verified battle time,
+battle start, game time, deterministic ticks per event and wall clock stay null
+(see CLOCK_MAPPING). Runtime AAR observations are not merged, because no
+frame correlation exists.
 """
 import argparse
 from collections import Counter
@@ -34,17 +36,47 @@ SOURCES = ("wgrd_replay.py", "wgrd_timeline.py", "wgrd_orders.py", "wgrd_entitie
 # a derived offset from replay load, never as battle time.
 FRAME_SECONDS = 0.2
 
+# One authorized 131544 playback (2026-11-02, trace b3a60af4...) observed the
+# deterministic tick counter one tick per frame, lagging the frame counter by an
+# integer difference of 10 or 11 frames (48 and 47 samples, 462 s, no drift).
+# The 10.5 midpoint is a sample statistic, not an observed synchronization
+# boundary; it is applied only as a labelled estimate with frame bounds, and
+# never as verified battle time.
+FRAME_TICK_DIFFERENCE_OBSERVED = (10, 11)
+FRAME_TICK_DIFFERENCE_ESTIMATE = 10.5
+
 # Evidence for frame -> simulation-clock mapping, revision 131544. Every value
 # below is a measurement or static fact. Only the derived offset is applied to
 # events; deterministic ticks and battle time are not.
 CLOCK_MAPPING = {
-    "status": "tick_quantum_static_origin_unresolved",
+    "status": "clock_rate_observed_frame_tick_difference_unresolved_battle_start_unknown",
     "frame_seconds": FRAME_SECONDS,
-    "frame_seconds_basis": "static_engine_tick_quantum",
+    "frame_seconds_basis": "static_engine_tick_quantum_and_observed_5hz",
+    "frame_tick_difference_observed": list(FRAME_TICK_DIFFERENCE_OBSERVED),
+    "frame_tick_difference_samples": {"10": 48, "11": 47},
+    "frame_tick_difference_estimate_frames": FRAME_TICK_DIFFERENCE_ESTIMATE,
+    "frame_tick_difference_basis": "single_capture_statistic_2026-11-02_speed_1",
+    "frame_tick_difference_status": "integer_10_or_11_observed_boundary_unresolved",
     "frame_to_deterministic_tick": None,
     "frame_origin": "replay_load (frame counter zeroed by 0xb2cfe0)",
-    "derived_event_field": "time.t_from_replay_load_seconds = frame * 0.2",
+    "verified_battle_time": None,
+    "derived_event_fields": {
+        "time.t_from_replay_load_seconds": "frame * 0.2 (frame counter, origin at load)",
+        "time.estimated_deterministic_time_seconds": "(frame - 10.5) * 0.2, statistic, with "
+                                                    "bounds (frame - 11) .. (frame - 10)",
+    },
     "verified": [
+        "Observed (authorized playback, replay abf6a5e9..., trace b3a60af4...): frame 0 at "
+        "22:38:42.856Z with the replay byte +0xa5 = 1; 2311 frames in 462.65 s = 4.995 frames/s.",
+        "Observed (same trace): all 10965 paired tick_step calls move the frame index by 0 (8576) "
+        "or +1 (2389). No skip, repeat or multi-frame advance.",
+        "Observed (same trace): 95 clock samples spanning deterministic ticks 13..2293 give "
+        "frame - tick = 10 (48 samples) or 11 (47 samples), no drift over 462 s, so the tick "
+        "counter is one tick per frame and lags the frame counter by an integer 10 or 11 "
+        "frames; the exact synchronization boundary is unresolved.",
+        "Observed (same trace): the replay HUD showed 00:00:00 - 00:13:53. (4174 - 11..10) * 0.2 "
+        "= 832.6..832.8 s also displays as 13:53, so the duration is consistent with the "
+        "deterministic clock. Consistency is not identity: the HUD clock was not read directly.",
         "Static: the per-tick step 0xb34060 accumulates real seconds in +0x68 and, at "
         "0xb3473a/0xb34758, compares against and subtracts 0.2f (0x195d768 = 0x3e4ccccd), "
         "then advances the frame index by exactly one at 0xb349bd. One quantum, one frame.",
@@ -61,32 +93,43 @@ CLOCK_MAPPING = {
     ],
     "hypotheses": [
         {"id": "H1", "claim": "one replay frame = one deterministic tick, origin frame 0",
-         "status": "tested_not_proven", "test": "tests/test_aar_hypotheses.py"},
+         "status": "rate_observed_offset_integer_10_or_11_boundary_unresolved",
+         "detail": "Rate confirmed at 1:1 in a live replay. The counters do not share an origin; "
+                   "the exact integer frame/tick boundary is unresolved (10 and 11 both observed).",
+         "test": "tests/test_aar_hypotheses.py"},
         {"id": "H2", "claim": "battle time starts at the opcode-0x13 frame",
-         "status": "tested_not_proven", "test": "tests/test_aar_hypotheses.py"},
+         "status": "untested_runtime_phase_hook_never_fired",
+         "detail": "0xab4780 produced 0 calls in 481.8 s of load and playback.",
+         "test": "tests/test_aar_hypotheses.py"},
         {"id": "H4", "claim": "damage-clock seconds / 0.2 place AAR events on replay frames",
-         "status": "arithmetic_consistency_only",
-         "detail": "806.4/0.2=4032, 806.6/0.2=4033, 830.8/0.2=4154, 831.0/0.2=4155: integral and "
-                   "inside 0..4173, but no capture carries a frame field; a shared origin is unproven.",
+         "status": "corrected_by_measured_offset",
+         "detail": "frame = seconds/0.2 is off by an unresolved 10- or 11-frame difference: "
+                   "806.4 s -> frames 4042..4043, 830.8 s -> frames 4164..4165. The earlier 4154 "
+                   "match is withdrawn; no capture yet carries both hooks.",
          "test": "tests/test_timeline_report.py"},
     ],
     "unknowns": [
-        {"field": "TGameplayServices+0xd0 writer",
-         "status": "not_located",
-         "detail": "All 537 textual references to 0x201d318 and all 497 +0xd0 store sites in .text "
-                   "yield one writer, the Lua setter 0xa41bc0 (mov [eax+0xd0],ecx at 0xa41bf2). "
-                   "The observed runtime advancement is unaccounted for statically.",
-         "smallest_experiment": "Hook 0xb34758 (or its return 0xb349bd) and read "
-                                "[[0x201d318]+0xd0] with [ebx+0x6c] on enter/leave in one authorized "
-                                "playback; ratio and offset give tick-per-frame and the origin link."},
-        {"field": "battle start",
+        {"field": "battle start / phase boundary",
          "status": "unknown",
-         "detail": "0xab4780 phase store observed once with argument 0x2; one sample is not a phase "
-                   "timeline, and opcode 0x13 is not proven battle start.",
-         "smallest_experiment": "Hook 0xab4780 enter with the phase argument and "
-                                "[[0x201d318]+0x20..0x22] in the same run."},
+         "detail": "0xab4780 was never called in 481.8 s of load and playback, so it is not the "
+                   "replay phase path. Deployment length and the battle-start frame are unknown.",
+         "smallest_experiment": "Hook the phase manager store 0x6d17e0 and the gameplay-services "
+                                "flags +0x20..0x22 for one full-length playback."},
+        {"field": "exact frame/tick synchronization boundary",
+         "status": "unresolved",
+         "detail": "Samples give frame - tick = 10 or 11 with no drift. The 10.5 midpoint is a "
+                   "statistic; nothing observed a tick and a frame advance at the same instant.",
+         "smallest_experiment": "Hook the tick store and the frame increment in the same call path "
+                                "with a monotonic sequence number, or read both in one hook entry."},
+        {"field": "offset generalization",
+         "status": "single_observation",
+         "detail": "The 10/11-frame difference comes from one replay at speed 1 on one machine. "
+                   "Other speeds, replays or process epochs are unmeasured; no universal offset "
+                   "may be applied.",
+         "smallest_experiment": "Repeat the same two hooks once at speed 2 and once on another replay."},
     ],
-    "evidence": ["research/current-build/2026-11-02-frame-clock-consumption.md",
+    "evidence": ["research/current-build/2026-11-02-frame-tick-capture.md",
+                 "research/current-build/2026-11-02-frame-clock-consumption.md",
                  "research/current-build/2026-11-02-aar-release.md#6-timing-evidence",
                  "research/current-build/2026-11-02-causal-chain.md"],
 }
@@ -120,13 +163,16 @@ EXECUTION_MODEL = {
 TIME_DOMAINS = {
     "frame_index": "known: replay star index, contiguous from 0",
     "t_from_replay_load_seconds": "derived: frame * 0.2 (static tick quantum; origin = replay load)",
+    "estimated_deterministic_time_seconds": "statistic: (frame - 10.5) * 0.2 from one capture, with "
+                                            "bounds (frame - 11) * 0.2 .. (frame - 10) * 0.2; "
+                                            "negative values are pre-roll frames",
     "deterministic_ticks": None,
     "deterministic_seconds": None,
     "game_time": None,
     "battle_time": None,
     "wall_clock": None,
     "origins": {"frame_index": "first star chunk", "deterministic_ticks": "unknown",
-                "battle_time": "unknown (H2 untested at runtime)",
+                "battle_time": "replay load, per the displayed replay timeline",
                 "t_from_replay_load_seconds": "frame counter zero (0xb2cfe0 reset)",
                 "wall_clock": "replay carries no wall-clock field"},
 }
@@ -263,7 +309,13 @@ def build_report(b):
             "time": {"frame_index": e["frame"],
                      "t_from_replay_load_seconds": round(e["frame"] * FRAME_SECONDS, 3),
                      "t_basis": "derived_from_static_tick_quantum",
-                     "deterministic_ticks": None, "game_time": None, "battle_time": None,
+                     "estimated_deterministic_time_seconds":
+                         round((e["frame"] - FRAME_TICK_DIFFERENCE_ESTIMATE) * FRAME_SECONDS, 3),
+                     "estimated_deterministic_time_bounds_seconds": [
+                         round((e["frame"] - FRAME_TICK_DIFFERENCE_OBSERVED[1]) * FRAME_SECONDS, 3),
+                         round((e["frame"] - FRAME_TICK_DIFFERENCE_OBSERVED[0]) * FRAME_SECONDS, 3)],
+                     "estimated_time_basis": "single_capture_statistic",
+                     "deterministic_ticks": None, "game_time": None,
                      "wall_clock": None},
             "references": _actors(e), "undecoded": _undecoded(e),
         })
@@ -308,6 +360,7 @@ def build_report(b):
                 "note": "Field-level request semantics verified for this replay Version; "
                         "the enclosing event status stays as reported."},
             "timing": {"frame_index": len(rows), "derived_seconds": len(rows),
+                       "estimated_deterministic_time": len(rows),
                        "deterministic_ticks": 0, "game_time": 0, "battle_time": 0,
                        "wall_clock": 0},
         },
@@ -333,15 +386,17 @@ def render_markdown(report):
               "Decode status: " + ", ".join("%s %d" % kv for kv in c["decode_status"].items()),
               "Undecoded flags: " + ", ".join("%s %d" % kv for kv in c["undecoded_flags"].items()),
               "Verified request fields: queue_request %d." % c["verified_fields"]["queue_request"],
-              "Timing: frame index and derived t+ for %d/%d commands; deterministic ticks, "
-              "game time, battle time and wall clock 0." %
-              (c["timing"]["derived_seconds"], c["commands"]), "",
+              "Timing: frame index, t+ and the estimated deterministic time for %d/%d commands; "
+              "verified battle time, game time and wall clock stay null." %
+              (c["timing"]["estimated_deterministic_time"], c["commands"]), "",
               "## Time", "",
-              "Per event, `t+` is `frame * 0.2` seconds since the replay was loaded. The 0.2 s "
-              "tick quantum and the one-frame-per-tick advance are static engine facts "
-              "(`0xb34060`); frame 0 is the load origin, not battle start. Frame-to-tick "
-              "mapping: %s. Battle time and deterministic ticks stay null. "
-              "Hypotheses H1/H2 are tested, not proven, and are not applied." %
+              "Per event, `t+` is `frame * 0.2` seconds since the replay was loaded. `est` is "
+              "`(frame - 10.5) * 0.2`, a statistic from one capture whose observed integer "
+              "frame/tick difference is 10 or 11 frames; every event also carries its bounds "
+              "(negative values are pre-roll frames). The 0.2 s quantum and the "
+              "one-frame-per-tick advance (`0xb34060`) are static and were observed at 5.00 Hz. "
+              "Frame-to-tick mapping: %s. Verified battle time, battle start, game time and "
+              "deterministic ticks per event stay null." %
               report["clock_mapping"]["status"],
               "", "## Execution model", "",
               "Load and execution are separate. The reader stores every frame in one burst; "
@@ -357,11 +412,12 @@ def render_markdown(report):
               "Identical raw commands in the same frame and slot (retained): %d." %
               len(i["identical_raw_commands_in_same_frame_and_slot"]),
               "", "## Command history (chronological)", "",
-              "| # | frame | t+ (s) | slot | opcode | class | decode | interpretation | action | flags |",
-              "|---:|---:|---:|---:|---|---|---|---|---|---|"]
+              "| # | frame | t+ (s) | est (s) | slot | opcode | class | decode | interpretation | action | flags |",
+              "|---:|---:|---:|---:|---:|---|---|---|---|---|---|"]
     for e in report["events"]:
-        lines.append("| %d | %d | %.1f | %d | 0x%02x | %s | %s | %s | %s | %s |" % (
+        lines.append("| %d | %d | %.1f | %.1f | %d | 0x%02x | %s | %s | %s | %s | %s |" % (
             e["command_order"], e["frame"], e["time"]["t_from_replay_load_seconds"],
+            e["time"]["estimated_deterministic_time_seconds"],
             e["player_slot"], e["opcode"], e["class"] or "unknown",
             e["decode_status"], e["interpretation"]["status"], e["interpretation"].get("action") or "-",
             ", ".join(e["undecoded"]) or "-"))

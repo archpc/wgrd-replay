@@ -131,13 +131,12 @@ Consequences for interpretation, no stronger claim than the bytes support:
    `0..4173`. That is arithmetic consistency with §2, not proof that the damage
    clock and the frame clock share an origin. It is reported as a hypothesis.
 
-   One bounded cross-check from the same replay: the retained trace's last
-   standard order is the frame-4154 command (0x07), whose derived
-   `t_from_replay_load_seconds` is 830.8, and the third lethal impact in the
-   same trace carries deterministic seconds 830.8. Two independent fields agree
-   on the same 0.2 s grid value while the order is being applied. This raises
-   confidence that the damage clock runs on the frame grid; it still does not
-   establish a shared origin or place the impact relative to the order.
+   ~~One bounded cross-check from the same replay:~~ **Withdrawn** by the
+   bounded playback (see [frame/tick capture](2026-11-02-frame-tick-capture.md)):
+   the observed difference is an integer 10 or 11 frames, so `frame = seconds /
+   0.2` is off by an unresolved correction. The 830.8 s impact lands at frame
+   4164..4165, not 4154. The earlier agreement was a coincidence of the naive
+   formula, not evidence of a shared origin.
 
 Smallest experiment that closes all three, one authorized playback, one hook:
 

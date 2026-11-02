@@ -22,12 +22,12 @@ ARTIFACTS = Path(os.environ.get("WGRD_ARTIFACTS_DIR", Path.home() / ".hermes" / 
 AUTHENTIC = {
     "controlled": ("current-build-20261028/raw/replay_2026-10-28_01-49-18.wargamerpl2",
                    "1b060d2ab2e5501c6c8731fcb87ac0c7ac6dc4598387dcdb261ab8bb06bc8d70", 1784, 12,
-                   "eb3c0e205abd739d960526fd146426b65fd126f54a5619698b4c458cd003ab57",
-                   "d3260ee68b3dd8b6dad02182bf1186229ed541548df2a2fc24b7ba28e0cb17ee"),
+                   "1b65da0916ea45e5a5baebd30785fd7fa6cde0ff049e3fe28d3bb2d67b34ea54",
+                   "d71abb0fc7f749f5e81c112ebeeb627da8d8ef32982808f29bb5da6fe50fb80a"),
     "combat": ("combat-20261101/replay_2026-11-01_19-10-26.wargamerpl2",
                "abf6a5e909ec976a30d16e043f25220bfb7d7a149cfbf828de992be8e69da121", 4174, 14,
-               "0f3f07a7c449dea3855a435cd6c5e9d17f1de898363806e3a6872b4d77852de0",
-               "c6786a3dc52c07b393dd1de0a45126b4f26f5f6d6cdc46066f285cdc13d1825c"),
+               "193641eeaa73a2a77dd8a2014cff97604117affc638d88cd075c91f98183ac72",
+               "70e4f84a1839c86aa725b684141b02d456b7e4173011b6fb635ae3ef3521d391"),
 }
 
 
@@ -71,38 +71,66 @@ class StructuralTimeline(unittest.TestCase):
             self.assertEqual(e["time"], {"frame_index": e["frame"],
                                          "t_from_replay_load_seconds": round(e["frame"] * 0.2, 3),
                                          "t_basis": "derived_from_static_tick_quantum",
+                                         "estimated_deterministic_time_seconds":
+                                             round((e["frame"] - 10.5) * 0.2, 3),
+                                         "estimated_deterministic_time_bounds_seconds": [
+                                             round((e["frame"] - 11) * 0.2, 3),
+                                             round((e["frame"] - 10) * 0.2, 3)],
+                                         "estimated_time_basis": "single_capture_statistic",
                                          "deterministic_ticks": None, "game_time": None,
-                                         "battle_time": None, "wall_clock": None})
+                                         "wall_clock": None})
             self.assertIsNone(e["player_identity"])
         self.assertIsNone(r["clock_mapping"]["frame_to_deterministic_tick"])
         self.assertIsNone(r["time_domains"]["deterministic_ticks"])
-        self.assertIsNone(r["time_domains"]["battle_time"])
         self.assertEqual(r["aar_integration"]["status"], "not_integrated")
         self.assertIsNone(r["teams"]["slot_to_player"])
         self.assertEqual(r["coverage"]["timing"],
-                         {"frame_index": 4, "derived_seconds": 4, "deterministic_ticks": 0,
-                          "game_time": 0, "battle_time": 0, "wall_clock": 0})
+                         {"frame_index": 4, "derived_seconds": 4, "estimated_deterministic_time": 4,
+                          "deterministic_ticks": 0, "game_time": 0, "battle_time": 0,
+                          "wall_clock": 0})
 
     def test_tick_quantum_is_static_and_labelled(self):
         r = self.result
         self.assertEqual(r["schema"], "wgrd_structural_timeline/2")
         clock = r["clock_mapping"]
         self.assertEqual(clock["frame_seconds"], 0.2)
-        self.assertEqual(clock["frame_seconds_basis"], "static_engine_tick_quantum")
-        self.assertEqual(clock["status"], "tick_quantum_static_origin_unresolved")
+        self.assertEqual(clock["frame_seconds_basis"], "static_engine_tick_quantum_and_observed_5hz")
+        self.assertEqual(clock["status"],
+                         "clock_rate_observed_frame_tick_difference_unresolved_battle_start_unknown")
         self.assertIn("replay_load", clock["frame_origin"])
         self.assertTrue(any("0xb34060" in line for line in clock["verified"]))
         self.assertTrue(any("0xb349bd" in line for line in clock["verified"]))
-        # The unlocated tick writer must stay an explicit unknown with its experiment.
-        writer = [u for u in clock["unknowns"] if u["field"].endswith("+0xd0 writer")]
-        self.assertEqual(len(writer), 1)
-        self.assertEqual(writer[0]["status"], "not_located")
-        self.assertIn("0xa41bc0", writer[0]["detail"])
-        self.assertIn("0xb34758", writer[0]["smallest_experiment"])
-        # Derived seconds must never present as battle time.
+        # Integer observations stay distinct from the statistical midpoint.
+        self.assertEqual(clock["frame_tick_difference_observed"], [10, 11])
+        self.assertEqual(clock["frame_tick_difference_samples"], {"10": 48, "11": 47})
+        self.assertEqual(clock["frame_tick_difference_estimate_frames"], 10.5)
+        self.assertEqual(clock["frame_tick_difference_status"],
+                         "integer_10_or_11_observed_boundary_unresolved")
+        self.assertIsNone(clock["verified_battle_time"])
+        self.assertTrue(any("4.995 frames/s" in line for line in clock["verified"]))
+        self.assertTrue(any("13:53" in line for line in clock["verified"]))
+        self.assertTrue(any("not identity" in line for line in clock["verified"]))
+        boundary = [u for u in clock["unknowns"]
+                    if u["field"].startswith("exact frame/tick")]
+        self.assertEqual(len(boundary), 1)
+        self.assertEqual(boundary[0]["status"], "unresolved")
+        # Battle start stays an explicit unknown with its experiment.
+        phase = [u for u in clock["unknowns"] if u["field"].startswith("battle start")]
+        self.assertEqual(len(phase), 1)
+        self.assertIn("0xab4780", phase[0]["detail"])
+        self.assertIn("0x6d17e0", phase[0]["smallest_experiment"])
+        h4 = [h for h in clock["hypotheses"] if h["id"] == "H4"][0]
+        self.assertEqual(h4["status"], "corrected_by_measured_offset")
+        self.assertIn("4164..4165", h4["detail"])
+        # Derived seconds must never present as observed engine time.
         for e in r["events"]:
-            self.assertIsNone(e["time"]["battle_time"])
             self.assertIsNone(e["time"]["deterministic_ticks"])
+            self.assertIsNone(e["time"]["game_time"])
+            self.assertEqual(e["time"]["estimated_time_basis"], "single_capture_statistic")
+            low, high = e["time"]["estimated_deterministic_time_bounds_seconds"]
+            self.assertLess(low, high)
+            self.assertLessEqual(low, e["time"]["estimated_deterministic_time_seconds"])
+            self.assertLessEqual(e["time"]["estimated_deterministic_time_seconds"], high)
 
     def test_execution_model_separates_load_from_tick(self):
         r = self.result
