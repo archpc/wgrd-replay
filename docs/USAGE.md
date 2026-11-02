@@ -127,14 +127,19 @@ corpus inventory for a compatibility verdict.
 python3 -B wgrd_timeline_report.py /path/to/match.wargamerpl2 --out /path/to/private-dir
 ```
 
-This writes `timeline.json` (schema `wgrd_structural_timeline/1`) and
+This writes `timeline.json` (schema `wgrd_structural_timeline/2`) and
 `timeline.md`, and refuses to overwrite existing files. It lists every frame,
 pact and command with raw bytes and source offsets. It also reports measured
 coverage and structural checks (frame gaps, ordering, byte coverage) and flags
 identical repeated commands. A failed check exits 2 and writes nothing. Only the
-frame index is given per event. Ticks, game time and wall-clock time stay null
-because no evidence binds replay frames to the engine clock (`clock_mapping`).
-Player names and deck codes are omitted, but entity references remain.
+frame index is observed per event; `t+` is derived from it as
+`frame * 0.2 s` since replay load, because the engine consumes exactly one frame
+per 0.2 s tick (`0xb34060`, one frame per quantum at `0xb349bd`). Frame 0 is the
+load origin, not battle start: deterministic ticks, game time, battle time and
+wall-clock time stay null, and `clock_mapping` records the unlocated tick writer
+with its smallest experiment. The report also separates bulk frame loading from
+per-tick execution (`execution_model`) and keeps native AAR damage events
+unplaced. Player names and deck codes are omitted, but entity references remain.
 
 ## Use the Python API
 

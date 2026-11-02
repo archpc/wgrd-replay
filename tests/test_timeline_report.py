@@ -22,12 +22,12 @@ ARTIFACTS = Path(os.environ.get("WGRD_ARTIFACTS_DIR", Path.home() / ".hermes" / 
 AUTHENTIC = {
     "controlled": ("current-build-20261028/raw/replay_2026-10-28_01-49-18.wargamerpl2",
                    "1b060d2ab2e5501c6c8731fcb87ac0c7ac6dc4598387dcdb261ab8bb06bc8d70", 1784, 12,
-                   "ae9cfd110b49fedb350f6f9bf88f850fc3cc58cbe72ef0c48319f39bbcc56b55",
-                   "e94a84cfa482803b78468deacc812342eee359e65c03754add67c819faa60a71"),
+                   "eb3c0e205abd739d960526fd146426b65fd126f54a5619698b4c458cd003ab57",
+                   "d3260ee68b3dd8b6dad02182bf1186229ed541548df2a2fc24b7ba28e0cb17ee"),
     "combat": ("combat-20261101/replay_2026-11-01_19-10-26.wargamerpl2",
                "abf6a5e909ec976a30d16e043f25220bfb7d7a149cfbf828de992be8e69da121", 4174, 14,
-               "b0f8998f8234003ae7f955e7148874dee22391f2625837b648226630e54c3b17",
-               "f6443f72183517123c7c56d8e53db1b3714050b4d12067d7943ca0482b4b00ca"),
+               "0f3f07a7c449dea3855a435cd6c5e9d17f1de898363806e3a6872b4d77852de0",
+               "c6786a3dc52c07b393dd1de0a45126b4f26f5f6d6cdc46066f285cdc13d1825c"),
 }
 
 
@@ -68,15 +68,56 @@ class StructuralTimeline(unittest.TestCase):
     def test_time_domains_never_invent_values(self):
         r = self.result
         for e in r["events"]:
-            self.assertEqual(e["time"], {"frame_index": e["frame"], "deterministic_ticks": None,
-                                         "game_time": None, "wall_clock": None})
+            self.assertEqual(e["time"], {"frame_index": e["frame"],
+                                         "t_from_replay_load_seconds": round(e["frame"] * 0.2, 3),
+                                         "t_basis": "derived_from_static_tick_quantum",
+                                         "deterministic_ticks": None, "game_time": None,
+                                         "battle_time": None, "wall_clock": None})
             self.assertIsNone(e["player_identity"])
         self.assertIsNone(r["clock_mapping"]["frame_to_deterministic_tick"])
-        self.assertIsNone(r["clock_mapping"]["frame_duration_seconds"])
+        self.assertIsNone(r["time_domains"]["deterministic_ticks"])
+        self.assertIsNone(r["time_domains"]["battle_time"])
         self.assertEqual(r["aar_integration"]["status"], "not_integrated")
         self.assertIsNone(r["teams"]["slot_to_player"])
         self.assertEqual(r["coverage"]["timing"],
-                         {"frame_index": 4, "deterministic_ticks": 0, "game_time": 0, "wall_clock": 0})
+                         {"frame_index": 4, "derived_seconds": 4, "deterministic_ticks": 0,
+                          "game_time": 0, "battle_time": 0, "wall_clock": 0})
+
+    def test_tick_quantum_is_static_and_labelled(self):
+        r = self.result
+        self.assertEqual(r["schema"], "wgrd_structural_timeline/2")
+        clock = r["clock_mapping"]
+        self.assertEqual(clock["frame_seconds"], 0.2)
+        self.assertEqual(clock["frame_seconds_basis"], "static_engine_tick_quantum")
+        self.assertEqual(clock["status"], "tick_quantum_static_origin_unresolved")
+        self.assertIn("replay_load", clock["frame_origin"])
+        self.assertTrue(any("0xb34060" in line for line in clock["verified"]))
+        self.assertTrue(any("0xb349bd" in line for line in clock["verified"]))
+        # The unlocated tick writer must stay an explicit unknown with its experiment.
+        writer = [u for u in clock["unknowns"] if u["field"].endswith("+0xd0 writer")]
+        self.assertEqual(len(writer), 1)
+        self.assertEqual(writer[0]["status"], "not_located")
+        self.assertIn("0xa41bc0", writer[0]["detail"])
+        self.assertIn("0xb34758", writer[0]["smallest_experiment"])
+        # Derived seconds must never present as battle time.
+        for e in r["events"]:
+            self.assertIsNone(e["time"]["battle_time"])
+            self.assertIsNone(e["time"]["deterministic_ticks"])
+
+    def test_execution_model_separates_load_from_tick(self):
+        r = self.result
+        model = r["execution_model"]
+        self.assertEqual(model["status"], "static_dispatch_path_with_unproven_outcomes")
+        self.assertIn("0xb3dbc0", model["bulk_load"]["reader"])
+        self.assertIn("0xb2b310", model["bulk_load"]["store"])
+        self.assertEqual(model["per_tick"]["quantum_seconds"], 0.2)
+        self.assertIn("0xb34060", model["per_tick"]["step"])
+        self.assertIn("0xb35650", model["per_tick"]["missing_frame_padding"])
+        self.assertEqual(model["order_apply"]["class"], "TNetworkActionGiveOrderStandard")
+        self.assertIn("0xb2be30", model["order_apply"]["method"])
+        self.assertIn("intra-tick ordering across slots", model["not_claimed"])
+        self.assertIn("## Execution model", report.render_markdown(r))
+        self.assertIn("t+ (s)", report.render_markdown(r))
 
     def test_checks_fail_closed_on_dropped_reordered_or_altered_events(self):
         frames = report._frame_table(self.data)

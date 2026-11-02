@@ -48,16 +48,21 @@ the structural authority. The recipe is in the
 | Kill table / kill points (debrief) | source = `TTeam` stats `+0x64`/`+0x70` (static); UI binding unresolved | causal chain §10 |
 | Weapon identity | static: entry `+0x00` is the firing `TAmmunition` descriptor; 2092 unique GUIDs indexed. **Not yet observed** | causal chain §9 |
 | Movement / tactical events | **open**: position anchors are raw, uncalibrated | [position AAR](research/current-build/2026-11-02-position-aar.md) |
+| Frame → simulation time | static: one frame per 0.2 s tick; origin = replay load | [frame consumption](research/current-build/2026-11-02-frame-clock-consumption.md) |
+| Recorded order apply path | static: `TNetworkActionGiveOrderStandard` slot 1 `0xb2be30`; outcome unknown | frame consumption §3 |
 
 ## Hypotheses (tested, not proven)
 
 `tests/test_aar_hypotheses.py` checks these against pinned evidence. Any
 new replay with known UI times should be added to its `DISPLAYED` table.
 
-- **H1:** one replay frame is a 0.2 s deterministic tick. The impact clock equals
-  0.2 × the engine counter, and the counter stays within the file's frame range.
-  The controlled replay's 1784 frames give 356.8 s against a UI total of 5:55.
-  The exporter emits `replay_frame_hypothesis` with this status.
+- **H1:** one replay frame is a 0.2 s deterministic tick. Static support now
+  includes the tick loop itself (`0xb34060` consumes one 0.2 f quantum and
+  advances the frame index by one at `0xb349bd`), so frames and deterministic
+  seconds advance at the same rate. The counter-to-frame *origin* link is still
+  unproven: the writer of `[TGameplayServices+0xd0]` was not located (one
+  store site, the Lua setter `0xa41bc0`, among 537 references). The controlled
+  replay's 1784 frames give 356.8 s against a UI total of 5:55.
 - **H2:** battle time starts at the opcode-0x13 frame. It matches two displayed
   battle durations (4:11 and 2:24) and one mid-battle UI point (replay 4:29 =
   battle 0:58).
