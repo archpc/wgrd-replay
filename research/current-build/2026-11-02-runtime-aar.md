@@ -170,6 +170,15 @@ by the screenshot. No individual kill table is visible. This is a same-session
 UI observation, not a replay-open or per-kill binding, and does not corroborate
 named killers or turn 30 into a unit count.
 
+## Bounded cross-capture update
+
+The [original kill-table corroboration](2026-11-02-kill-corroboration.md) now
+independently checks the repeated 28-event sequence and three visible VTT-323
+rows. All 252 selected values match across captures. Same-input execution is
+strongly supported but not a logged file-open fact. The agreement is cohort-level;
+per-row native handles and killer identities remain unknown, so the existing
+structured per-event kill fields are unchanged.
+
 ## Code and tests
 
 `instrumentation/aar_events.py` gains an additive runtime profile:

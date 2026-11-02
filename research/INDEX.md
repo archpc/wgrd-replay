@@ -38,6 +38,14 @@ report from the authenticated retained trace and native unit index. Source roles
 remain provisional; destruction calls are not silently promoted to credited kills.
 The original 28-event legacy exporter and original artifacts are preserved.
 
+## Cross-capture and kill-table corroboration
+
+The [bounded corroboration note](current-build/2026-11-02-kill-corroboration.md)
+records 252 exact scalar comparisons across the old/new 28-event sequences and
+three freshly inspected visible VTT-323 table rows. This is count/type agreement,
+not a replay-open log or a handle-to-row/killer join. Kill outcomes and source
+roles are not silently promoted.
+
 ## Build-131544 native unit data (2026-11-02)
 
 [Native descriptor extraction and exact GUID joins](current-build/2026-11-02-unit-data.md)
