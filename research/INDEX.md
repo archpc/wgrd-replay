@@ -19,7 +19,10 @@ records the build-matched counter-to-float path and damage-module timestamp stor
 The current
 [guarded Win32 input and read-only state observer](current-build/2026-11-02-state-observer.md)
 separates counter motion from the independently named engine `GameEnded` flag.
-Runtime clock origin, live unit identities and causal kills remain unresolved.
+The [live owner/type bridge and damage lifecycle](current-build/2026-11-02-live-unit-attribution.md)
+now resolves the impacted types and separates three threshold-parented lifecycle
+calls from three cleanup calls. Clock origins, wire-member mapping, source-role
+semantics and independently corroborated kill attribution remain unresolved.
 
 ## Build-131544 native unit data (2026-11-02)
 
