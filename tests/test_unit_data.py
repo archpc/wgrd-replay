@@ -1,5 +1,8 @@
 """Exact descriptor GUID joins; never runtime-key, truncated-GUID or company rewrites."""
+import contextlib
 import copy
+import importlib.util
+import io
 import json
 import os
 from pathlib import Path
@@ -97,13 +100,27 @@ class UnitData(unittest.TestCase):
         self.assertEqual(result.returncode,2);self.assertIn('requires --timeline',result.stderr)
 
 
+def public_unit_data():
+    """Pinned public fixture. The default location is provisioned by the hash-pinned
+    fetcher, so a clean checkout needs no pre-existing ignored work/ tree. An explicit
+    WGRD_UNIT_DATA is used as given and never fetched into. Missing or altered data fails."""
+    explicit = os.environ.get('WGRD_UNIT_DATA')
+    if explicit:
+        return Path(explicit)
+    spec = importlib.util.spec_from_file_location('fetch_public_fixture', ROOT/'scripts/fetch_public_fixture.py')
+    fetcher = importlib.util.module_from_spec(spec); spec.loader.exec_module(fetcher)
+    with contextlib.redirect_stdout(io.StringIO()):
+        fetcher.main(fetcher.DEFAULT_DESTINATION)  # Verifies size and SHA-256 of every file.
+    return fetcher.DEFAULT_DESTINATION
+
+
 class AuthenticPublicData(unittest.TestCase):
     def test_pinned_public_snapshot_integrity(self):
-        public = Path(os.environ.get('WGRD_UNIT_DATA', str(ROOT/'work/public-units/wargame-data')))
+        public = public_unit_data()
         load_unit_data(public)  # Missing public inputs are failures, never private-data skips.
 
     def test_all_726_exact_matches_no_contextual_resolution(self):
-        public = Path(os.environ.get('WGRD_UNIT_DATA',str(ROOT/'work/public-units/wargame-data')))
+        public = public_unit_data()
         data=load_unit_data(public)
         samples=Path(os.environ.get('WGRD_SAMPLES_DIR',str(Path.home()/'.hermes/artifacts/wgrd-replay/samples/raw')))
         manifest = json.loads((ROOT/'samples/manifest.json').read_text())['samples']

@@ -17,6 +17,7 @@ Status codes: **S** reproduction script, **T** regression tests, **E** static-an
 
 | Topic | Note | Code and tests |
 |---|---|---|
+| **Evidence-bounded AAR release (final)** | [AAR release](current-build/2026-11-02-aar-release.md) | `instrumentation/aar_events.py`, `tests/test_aar_release.py` |
 | Damage producer, source credit, Killed token, ownership | [causal chain](current-build/2026-11-02-causal-chain.md) | `instrumentation/aar_events.py`, `tests/test_aar_events.py` |
 | Runtime lifecycle export | [runtime AAR](current-build/2026-11-02-runtime-aar.md) | same |
 | Native positions (V3) | [position AAR](current-build/2026-11-02-position-aar.md) | same |
