@@ -5,6 +5,29 @@ version-specific decoder change. See the [experiment report](research/current-bu
 and [cross-build manifest](samples/cross-build-manifest.json) for the bounded results.
 Layout compatibility does not establish gameplay outcomes.
 
+## Active original-engine AAR work
+
+Revision-131544 AAR work is in progress on the Frida feature branch. Current
+verified milestones are indexed in [research](research/INDEX.md):
+
+- Native 131544 descriptor extraction and exact configured-type joins work.
+- Engine deterministic ticks/seconds have original Lua binding names and a
+  verified computation path. Replay-frame and battle-clock origins remain open.
+- Live owner/type snapshots resolve the impacted VTT-323 instances and two
+  Merkava source candidates. Three damage-threshold/lifecycle chains are distinct
+  from three end-cleanup calls. Source-role semantics and corroborated killer
+  attribution remain open.
+- Guarded Win32 input and read-only Frida counter/GameEnded observations work.
+  A complete menu/browser/loading/replay cycle with state gates is not yet validated.
+
+Next: integrate the corrected state observer, validate phase/clock mapping and
+the full replay cycle only when a specific live experiment is ready, corroborate
+combat-source semantics, and capture movement where supported. The retained-capture
+structured AAR exporter is integrated; its current coverage and explicit unknowns
+are in [the runtime AAR note](research/current-build/2026-11-02-runtime-aar.md).
+Raw evidence remains private, exported to the Mac and hash-verified
+before any baseline restore. These status notes do not grant future VM authorization.
+
 ## Priorities
 
 1. **Timing and movement validation.** Follow the [Phase 2 handoff](research/current-build/PHASE-2-HANDOFF.md)

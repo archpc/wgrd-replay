@@ -1,5 +1,36 @@
 # WGRD Frida tracing
 
+## Experimental Gate 1/2 capture, not ready for playback
+
+`wgrd_frida.py --gate-replay REPLAY --output OUTPUT` selects a fixed revision-131544
+hook set and verifies the exact controlled replay SHA-256 before attaching. It
+uses the existing repository parser and timeline modules, which must be present
+beside the instrumentation directory. It refuses `--hook` subsets. This mode is
+fixture-tested only: **do not use it for a playback yet**. The complete actor
+identity-chain validator and queue allocation-lifetime witness are missing.
+An identical address or readable memory does not prove the same allocation.
+The emitted queue snapshot explicitly says `lifetime: unverified`.
+
+Root matching is scoped to the exact reference, request bytes and runtime actor
+count, with per-thread correlation. Other threads and unmatched roots do not
+emit events. Queue snapshots are retained on the parent replace call and read
+before the clear and at parent return; each read is bounded, counts over 32 fail
+closed, and storage is re-read after possible reallocation. Snapshot content
+comparison is conditional, not a Gate 1/2 result. The inspector can report
+content `pass`/`fail`/`inconclusive` only for that comparison; both complete gate
+results remain inconclusive without identity and lifetime validation. A completed
+trace is not evidence that the target process loaded the supplied replay.
+
+Run offline fixtures without game execution or Frida attachment:
+
+```text
+python3.14 -B -m unittest discover -s tests -p 'test_gate_request.py' -v
+python3.14 -B -m unittest discover -s tests -p 'test_frida_inspect.py' -v
+```
+
+Do not copy runtime data, raw traces or replay bytes into Git. Any future guest
+execution, Frida attachment or replay requires separate authorization.
+
 This optional research tool uses the Windows Frida Python API. It is separate
 from the standard-library replay decoder and does not add a decoder dependency.
 It attaches to an already-running process; it never launches the game. Frida
@@ -76,7 +107,20 @@ and arguments are raw values. For x86 `thiscall`, ECX is commonly the object;
 verify the calling convention per function, not by configuration alone.
 
 Only use function entries and offsets supported by evidence from the exact
-executable revision. Python converts VA to RVA relative to `ghidra_base`; the
+executable revision. Optional `within: ["parent_hook"]` admits a hook only while
+one of those instrumented hooks is active on the same OS thread and its saved
+ESP is above the callee's ESP. Other invocations increment `summary.filtered`
+without emitting entry/return records. In standard (non-gate) capture mode,
+`summary.counts` counts admitted callbacks; `counts + filtered` recovers observed
+entries for scoped hooks. This is a
+bounded nesting filter, not proof of unit identity, lifetime or causality.
+
+A read may use `source: "retval"` only with `phase: "leave"`. It treats the raw
+return register as a pointer, records each bounded dereference, and retains failed
+reads explicitly. It does not validate the pointed-to type or a success boolean;
+for a byte-returning x86 function, unrelated upper EAX bits can remain nonzero.
+
+Python converts VA to RVA relative to `ghidra_base`; the
 script adds the RVA to the observed module base. It rejects an address outside
 the loaded image or mismatched entry bytes. Configuring a new function does not
 establish its calling convention, parameters, return meaning, or success.
@@ -149,3 +193,109 @@ configuration, replay hash and source offset, timing, and limitations. Only map
 replay frame/slot/offset to a runtime request after a reproducible identity or
 content match. An order can resolve to multiple actors and each actor can receive
 a different order. A post-grouping call is not proof of execution or state change.
+
+## Retained-capture AAR export
+
+`aar_events.py` has explicit legacy and revision-131544 runtime profiles. The
+runtime profile verifies trace/index pins, pairs calls, joins captured descriptor
+GUID and token bytes, and emits `events.json`, `units.json`, `summary.json` and
+`chronology.md`. Existing outputs are never overwritten. Details and coverage:
+[runtime AAR evidence](../research/current-build/2026-11-02-runtime-aar.md).
+
+Example executed from an isolated staged-source export against the retained data:
+
+```sh
+EVIDENCE="$HOME/.hermes/artifacts/wgrd-replay/aar-20261102T050816Z"
+python3.14 -B instrumentation/aar_events.py \
+  "$EVIDENCE/wgrd-aar-combat-20261102-01.jsonl" --runtime \
+  --unit-index "$EVIDENCE/units/unit-index-131544.json" \
+  --out "$EVIDENCE/existing-evidence-aar-repro"
+```
+
+Put matching capture-era source/config copies in `capture-sources/` beside the
+trace for independent source-hash verification. Missing copies remain explicit;
+mismatched copies fail. The current working scripts are not substituted. Source
+roles, kill credit, movement and battle-clock mapping remain unproven where the
+retained evidence does not establish them.
+
+## Scoped AAR capture candidate (2026-11-02)
+
+`aar-capture-131544-v2.json` is an offline-validated experiment configuration,
+not yet an engine-validated capture. It retains the pinned image and impact,
+threshold and lifecycle targets, captures owner lookup return headers and the
+candidate descriptor at return-object+0x28, and captures clock getter calls only
+inside selected roots. `frame_apply_candidate` at `0xb2b310` records two raw
+arguments; the caller at `0xb3dccd` passes the decoded frame and command object.
+The relationship between a runtime counter and replay frame remains unresolved.
+The phase-change candidate at `0xab4780` records its raw type argument, the
+GameplayServices counter, phase-manager header and three named flags on both
+sides. Its tail target `0x6d17e0` stores the argument at manager+0x0c. Native
+configuration contains deployment type 1 and wargame type 2, but their use by this
+live manager and any battle-clock zero require the planned runtime capture.
+
+The first expanded capture had 28 impact calls, 28 threshold checks and six
+owner/lifecycle calls, with no suppressed events or callback/stack errors. It did
+not capture the target descriptor bytes. V2 adds the missing read without tracing
+hundreds of thousands of unrelated owner/clock calls. An owner header's +0x04 is
+not treated as a descriptor pointer; that experimental read is replaced by the
++0x28 candidate, still requiring runtime/type validation.
+
+`test_frida_scope.py` and its Node callback simulation validate admission,
+thread/stack scoping, filtered counts and bounded return-value reads. The staged
+controller/hooks were separately exported and tested without the pre-existing
+uncommitted request-gate work, so this capture support does not depend on that
+unfinished work. Simulated hooks are mechanics tests, not live engine evidence.
+
+## Damage-event publish capture (2026-11-01)
+
+`damage-publish-131544.json` selects two hooks against the same pinned executable
+(SHA-256 `5eaa6d61...f09efc75d`, Ghidra base `0x400000`). Evidence: REA/Ghidra
+12.1.4 read-only existing-project session on the hash-pinned image; addresses are
+Ghidra VAs valid only for that revision.
+
+- `take_damage_publish` `0x00c4cba0` — IA message publish helper. Thiscall: ECX is
+  a queue/container object; arg0 points to a caller-constructed message. It copies
+  seven words from arg0 (+4, +8, +0xc, +0x10, +0x14, +0x18, +0x1c) into a new
+  heap `TIAMessage` and appends it. The 32-byte read at arg0+0 is bounded raw
+  message data, INCLUDING the base `TIAMessage` vftable word; no field beyond the
+  vftables is claimed as decoded.
+- `damage_dispatch_entry` `0x00c95040` — damage-application loop. ECX-relative
+  owner object; iterates damage entries at owner+0x15c, stride 0x74, count at
+  owner+0x164. On damage and on kill it builds messages on its stack and calls
+  `0xc4cba0`. No reads are configured; the hook records call timing and nesting
+  only.
+
+Message identity, byte-aligned to observed constructor stores in `0xc95040`
+(evidence `ev_b4c8b9d2`, `ev_97203167`):
+
+- Base `Eugen::IA::TIAMessage` vftable at message+0 (`0x1998940` in .rdata).
+- `Eugen::IA::TIATakeDamageMessage` vftable at message+8 (`0x199bcc0`; RTTI COL
+  `0x1b93e54`, type descriptor `0x1ea4368`).
+- Publisher copies arg0+4 to the heap object's singleton-word slot and arg0+8,
+  +0xc, +0x10, +0x14, +0x18, +0x1c to consecutive heap fields. In the sender's
+  stack message, the observed stores are: +0x0c amount (float, written only when
+  the pre-computed value passes a >0 guard), +0x10 damage type (observed stores
+  1, 2, 3; meaning unverified), +0x14 target unit id, +0x18 shooter-side id
+  (defaults 0x17 when a lookup fails), +0x1c unverified. These are candidate
+  field positions from one call site; treat every field except the vftable words
+  as unknown until a runtime capture correlates values with visible game state.
+- Kill composition (separate message, not `TIATakeDamageMessage`) carries typed
+  tokens `Killed`, `DamagesType`, `Damages`, `Target`, `TargetTeamNumber`,
+  `ShooterTeamNumber`; token-constructor vftables `0x19998d4` (Killed),
+  `0x19998bc` (Target), `0x19998c8` (TargetTeamNumber), `0x19b5bb4`
+  (ShooterTeamNumber), `0x19b5bc0` (Damages), `0x19ae374` (DamagesType), built
+  at `0xc9535d`..`0xc954f9` and published through the same `0xc4cba0` chokepoint.
+  Its heap layout is NOT captured by the arg0+0..32 read and is unverified.
+
+Interpretation limits: ECX (the queue/container) is not dereferenced. Amount,
+type, and id fields are inferred from instruction-level stores at one call site
+in `0xc95040`; other publishers of `0xc4cba0` may write different message types
+(`TIAKillGameplayMessage` singleton accessor `0xad5320`, `TIATakeDamageMessage`
+accessor `0xad5940`). The vftable word at arg0+0 is the only reliable
+message-type discriminator in this capture; classify every event by that word
+before quoting any field.
+
+Run the same controller with `--config instrumentation/damage-publish-131544.json`
+instead of `--gate-replay`; no gate root is used. Expect sparse events in menus
+and bursts during combat. Unknown fields stay null; do not apply the
+`TIATakeDamageMessage` offsets to messages whose vftable word differs.

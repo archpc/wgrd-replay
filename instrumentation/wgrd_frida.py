@@ -87,6 +87,7 @@ def validate_config(config):
     if not isinstance(hooks, list) or not hooks or len(hooks) > 16:
         raise ValueError("configure 1 to 16 hooks")
     names, addresses = set(), set()
+    configured_names = {hook.get("name") for hook in hooks}
     for hook in hooks:
         name = hook.get("name")
         va = int(hook["va"], 0)
@@ -94,6 +95,10 @@ def validate_config(config):
             raise ValueError("hook names and addresses must be unique, within image")
         names.add(name)
         addresses.add(va)
+        within = hook.get("within")
+        if within is not None and (not isinstance(within, list) or not within or len(within) > 16 or
+                any(not isinstance(parent, str) or parent not in configured_names for parent in within)):
+            raise ValueError("within must name configured parent hooks")
         if not 0 <= hook.get("args", 0) <= 12 or not 1 <= hook.get("sample_every", 1) <= 1000000:
             raise ValueError("invalid argument count or sample rate")
         for read in hook.get("reads", []):
@@ -104,7 +109,10 @@ def validate_config(config):
                 raise ValueError("invalid second pointer dereference")
             if read.get("phase", "enter") not in {"enter", "leave", "both"}:
                 raise ValueError("invalid read phase")
-            if read.get("source") not in {"ecx", "edx", *[f"arg{i}" for i in range(hook.get("args", 0))]}:
+            valid_sources = {"ecx", "edx", *[f"arg{i}" for i in range(hook.get("args", 0))]}
+            if read.get("source") == "retval" and read.get("phase") == "leave":
+                valid_sources.add("retval")
+            if read.get("source") not in valid_sources:
                 raise ValueError("invalid read source")
             if not isinstance(read.get("offset"), int) or not 0 <= read["offset"] <= 4096:
                 raise ValueError("invalid read offset")

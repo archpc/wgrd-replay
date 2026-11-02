@@ -12,6 +12,32 @@ possible serializer. `opaque` is a structural label, not an interpretation statu
 No historical finding is promoted to general gameplay verification by the
 controlled experiment.
 
+## Revision-131544 AAR clock research (2026-11-02)
+
+[Clock computation and capture targets](current-build/2026-11-02-aar-clock.md)
+records the build-matched counter-to-float path and damage-module timestamp store.
+The current
+[guarded Win32 input and read-only state observer](current-build/2026-11-02-state-observer.md)
+separates counter motion from the independently named engine `GameEnded` flag.
+The [live owner/type bridge and damage lifecycle](current-build/2026-11-02-live-unit-attribution.md)
+now resolves the impacted types and separates three threshold-parented lifecycle
+calls from three cleanup calls. Clock origins, wire-member mapping, source-role
+semantics and independently corroborated kill attribution remain unresolved.
+
+## Retained-capture AAR export
+
+The [reviewed runtime AAR exporter](current-build/2026-11-02-runtime-aar.md)
+produces structured events, event-involved unit histories and a chronological
+report from the authenticated retained trace and native unit index. Source roles
+remain provisional; destruction calls are not silently promoted to credited kills.
+The original 28-event legacy exporter and original artifacts are preserved.
+
+## Build-131544 native unit data (2026-11-02)
+
+[Native descriptor extraction and exact GUID joins](current-build/2026-11-02-unit-data.md)
+authenticates the retained 131544 archive and resolves the controlled replay types.
+These are static type/configuration joins, not live unit identities.
+
 ## Revision-131544 Frida and data-flow research (2026-10-29)
 
 [Two-trace observations](current-build/2026-10-29-frida-observations.md) document
