@@ -46,6 +46,14 @@ three freshly inspected visible VTT-323 table rows. This is count/type agreement
 not a replay-open log or a handle-to-row/killer join. Kill outcomes and source
 roles are not silently promoted.
 
+## Ghidra reuse readiness
+
+The [task-owned canonical CLI smoke](current-build/2026-11-02-ghidra-reuse.md)
+returned `0xaaedf0` from an existing-project private copy in 6153 ms. Both original
+and disposable source projects remained hash-identical. Live MCP stayed idle and
+aligned; no shared-server upgrade or restart occurred. Upstream-current remains
+separate from this verified installed capability.
+
 ## Bounded position-capture candidate
 
 The [V3 instrumentation experiment](current-build/2026-11-02-position-capture.md)
