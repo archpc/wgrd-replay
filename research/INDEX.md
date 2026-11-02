@@ -19,6 +19,12 @@ records the build-matched counter-to-float path and damage-module timestamp stor
 The current
 [guarded Win32 input and read-only state observer](current-build/2026-11-02-state-observer.md)
 separates counter motion from the independently named engine `GameEnded` flag.
+The [bounded multi-field observer](current-build/2026-11-02-engine-state.md)
+adds exact speed-factor reads, fail-closed predicates and an optional native
+replay-open watch. Its mechanics are tested; the expanded guest capture remains
+unverified. Raw candidate fields and caller fingerprints do not authenticate UI
+screens or replay-active state.
+
 The [live owner/type bridge and damage lifecycle](current-build/2026-11-02-live-unit-attribution.md)
 now resolves the impacted types and separates three threshold-parented lifecycle
 calls from three cleanup calls. Clock origins, wire-member mapping, source-role
