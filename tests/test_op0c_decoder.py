@@ -4,10 +4,12 @@ Layout from creator FUN_00b2eeb0 (build 59638); see research/CHANGEPRODUCTION-0C
 Field meanings are unconfirmed, so tests pin raw values only. Sample2 is a different
 build (510117427): its 0x0C blocks are checked structurally and labelled inferred.
 Corpus tests skip when samples are absent (WGRD_SAMPLES_DIR, default
-~/.hermes/artifacts/wgrd-replay/samples/raw). Same pattern as tests/test_op0c_layout.py.
+~/.hermes/artifacts/wgrd-replay/samples/raw). Sample1 is cross-checked against the
+independent research/op0c_layout.py parser.
 """
 import importlib.util
 import json
+import math
 import os
 import struct
 import unittest
@@ -138,9 +140,10 @@ def _corpus_records(path):
 
 
 class CorpusDecode(unittest.TestCase):
-    EXPECTED_SINGLE = {"koppeltar-Sample1.wargamerpl2": 13,
-                       "koppeltar-Sample3.wargamerpl2": 28,
-                       "koppeltar-Sample2.wargamerpl2": 6}  # Sample2: different build, inferred
+    # Block-length histogram per sample; Sample2 is a different build (inferred).
+    EXPECTED_LENGTHS = {"koppeltar-Sample1.wargamerpl2": {105: 13},
+                        "koppeltar-Sample3.wargamerpl2": {105: 28},
+                        "koppeltar-Sample2.wargamerpl2": {105: 4, 281: 2}}
 
     def setUp(self):
         manifest = json.loads((ROOT / "samples" / "manifest.json").read_text())["samples"]
@@ -149,9 +152,12 @@ class CorpusDecode(unittest.TestCase):
             self.skipTest("authentic samples not cached; set WGRD_SAMPLES_DIR")
 
     def test_every_single_0c_block_is_complete(self):
-        for name, expected in self.EXPECTED_SINGLE.items():
+        for name, expected in self.EXPECTED_LENGTHS.items():
             recs = list(_corpus_records(self.paths[name]))
-            self.assertEqual(len(recs), expected, name)
+            lengths = {}
+            for rec in recs:
+                lengths[rec["block_length"]] = lengths.get(rec["block_length"], 0) + 1
+            self.assertEqual(lengths, expected, name)
             for rec in recs:
                 dec = rec["command_decode"]
                 self.assertEqual(dec["status"], "complete", (name, rec["frame"], rec["slot"], dec.get("reason")))
@@ -164,7 +170,14 @@ class CorpusDecode(unittest.TestCase):
         for rec in recs:
             f = rec["command_decode"]["commands"][0]["fields"]
             self.assertEqual(f["obj_04_u32"], 0xC000001E + rec["slot"], (rec["frame"], rec["slot"]))
-            self.assertEqual(f["obj_08_hex"], "00" * 12 + "32000000")
+            self.assertEqual(f["obj_08_hex"], "00" * 12 + "32000000")  # same raw16 as 0x08
+            self.assertEqual((f["obj_104_u32"], f["obj_108_hex"]), (0, "00" * 16))
+            self.assertEqual(f["obj_50_points"]["items"][0]["kind_u32"], 2)
+            point = f["obj_9c_points"]["items"][0]
+            self.assertTrue(all(math.isinf(fl(c)) for c in point["xyz_f32"]))
+            self.assertEqual(point["kind_u32"], 0)
+        self.assertEqual([rec["command_decode"]["commands"][0]["fields"]["obj_34_array"]["items_u32"][0]
+                          for rec in recs], [3, 3, 3, 3, 3, 3, 10, 3, 3, 13, 10, 8, 13])
 
     def test_sample1_agrees_with_standalone_parser(self):
         path = self.paths["koppeltar-Sample1.wargamerpl2"]

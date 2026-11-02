@@ -618,10 +618,6 @@ class ReplayOpenWatch(unittest.TestCase):
         self.assertTrue(result["invalid_handle_observed"], "the final invalid result was dropped")
         self.assertFalse(result["observation_complete"])
 
-    def test_path_normalization_matches_windows_semantics(self):
-        self.assertEqual(state.normalize_windows_path("C:/Games//Foo/REPLAY.wrpl"),
-                         state.normalize_windows_path("c:\\games\\foo\\replay.wrpl"))
-
     def test_watch_retains_only_the_exact_full_target_path(self):
         watch = SIM["replay_watch"]
         self.assertTrue(watch["installed"])

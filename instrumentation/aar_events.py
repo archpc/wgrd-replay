@@ -74,7 +74,7 @@ def _address(value, where):
 
 
 def parse_trace(data):
-    """Parse strict UTF-8 JSONL into (rows, source_name, line_count)."""
+    """Parse strict UTF-8 JSONL into a list of row objects."""
     _require(isinstance(data, bytes), "trace bytes required")
     try:
         text = data.decode("utf-8")
@@ -251,74 +251,29 @@ RUNTIME_V3_INDEX_SHA256 = RUNTIME_INDEX_SHA256
 RUNTIME_V3_POSITION_MASK = "fffffffc"
 RUNTIME_V3_POSITION_OFFSET = 48
 
-RUNTIME_V3_HOOK_SPECS = {
-    "impact_apply_candidate": {
-        "va": "0xc9f910", "args": 5, "sample_every": 1,
-        "reads": (("ecx", 0, 16, "enter", False),
-                  ("ecx", 400, 96, "both", False),
-                  ("ecx", 4, 128, "enter", True),
-                  ("arg1", 0, 128, "enter", False),
-                  ("arg2", 0, 128, "enter", False)),
-        "masks": {},
-    },
-    "destruction_check_candidate": {
-        "va": "0xc9bf20", "args": 1, "sample_every": 1,
-        "reads": (("ecx", 0, 16, "enter", False),
-                  ("ecx", 400, 96, "both", False)),
-        "masks": {},
-    },
-    "owner_destroy_candidate": {
-        "va": "0xa75c70", "args": 1, "sample_every": 1,
-        "reads": (("ecx", 0, 128, "both", False),
-                  ("ecx", 40, 128, "enter", True),
-                  ("ecx", 228, 12, "enter", True)),
-        "masks": {("ecx", 228): (RUNTIME_V3_POSITION_MASK, RUNTIME_V3_POSITION_OFFSET)},
-    },
-    "clock_sample_candidate": {
-        "va": "0xaaedf0", "args": 0, "sample_every": 997,
-        "reads": (("ecx", 208, 4, "enter", False),),
-        "masks": {},
-    },
-    "order_request_wrapper": {
-        "va": "0xb2be30", "args": 2, "sample_every": 1,
-        "reads": (("ecx", 4, 20, "enter", False),
-                  ("ecx", 88, 4, "enter", False),
-                  ("ecx", 208, 36, "enter", False)),
-        "masks": {},
-    },
-    "reference_remap": {
-        "va": "0xae4830", "args": 1, "sample_every": 1,
-        "reads": (("arg0", 0, 4, "enter", False),
-                  ("retval", 0, 4, "leave", False)),
-        "masks": {},
-    },
-    "reference_lookup": {
-        "va": "0xae48d0", "args": 2, "sample_every": 1,
-        "reads": (("retval", 0, 128, "leave", False),
-                  ("retval", 40, 128, "leave", True)),
-        "masks": {},
-    },
-    "owner_lookup_candidate": {
-        "va": "0xc52de0", "args": 0, "sample_every": 997,
-        "reads": (("ecx", 8, 4, "enter", False),
-                  ("retval", 0, 128, "leave", False),
-                  ("retval", 40, 128, "leave", True),
-                  ("retval", 228, 12, "leave", True)),
-        "masks": {("retval", 228): (RUNTIME_V3_POSITION_MASK, RUNTIME_V3_POSITION_OFFSET)},
-    },
-    "frame_apply_candidate": {
-        "va": "0xb2b310", "args": 2, "sample_every": 1,
-        "reads": (),
-        "masks": {},
-    },
-    "phase_change_candidate": {
-        "va": "0xab4780", "args": 1, "sample_every": 1,
-        "reads": (("ecx", 208, 4, "both", False),
-                  ("ecx", 56, 16, "both", True),
-                  ("ecx", 32, 4, "both", False)),
-        "masks": {},
-    },
-}
+_V3_ANCHOR_MASK = (RUNTIME_V3_POSITION_MASK, RUNTIME_V3_POSITION_OFFSET)
+# V3 keeps every runtime hook and read; it widens three hooks and adds two.
+RUNTIME_V3_HOOK_SPECS = {name: dict(spec, masks={}) for name, spec in RUNTIME_HOOK_SPECS.items()}
+RUNTIME_V3_HOOK_SPECS["owner_destroy_candidate"].update(
+    reads=(("ecx", 0, 128, "both", False),
+           ("ecx", 40, 128, "enter", True),
+           ("ecx", 228, 12, "enter", True)),
+    masks={("ecx", 228): _V3_ANCHOR_MASK})
+RUNTIME_V3_HOOK_SPECS["reference_lookup"]["reads"] += (("retval", 40, 128, "leave", True),)
+RUNTIME_V3_HOOK_SPECS["owner_lookup_candidate"].update(
+    reads=RUNTIME_HOOK_SPECS["owner_lookup_candidate"]["reads"]
+    + (("retval", 40, 128, "leave", True), ("retval", 228, 12, "leave", True)),
+    masks={("retval", 228): _V3_ANCHOR_MASK})
+RUNTIME_V3_HOOK_SPECS["frame_apply_candidate"] = {
+    "va": "0xb2b310", "args": 2, "sample_every": 1, "reads": (), "masks": {}}
+RUNTIME_V3_HOOK_SPECS["phase_change_candidate"] = {
+    "va": "0xab4780", "args": 1, "sample_every": 1,
+    "reads": (("ecx", 208, 4, "both", False),
+              ("ecx", 56, 16, "both", True),
+              ("ecx", 32, 4, "both", False)),
+    "masks": {}}
+RUNTIME_V3_FRAME_HOOK = "frame_apply_candidate"
+RUNTIME_V3_PHASE_HOOK = "phase_change_candidate"
 
 # Capture-era source copies retained under <artifact root>/capture-sources.
 RUNTIME_V3_CAPTURE_CONFIG = {
@@ -336,13 +291,6 @@ RUNTIME_PROFILE_V2 = {
     "capture_config_pin": RUNTIME_CAPTURE_CONFIG,
     "capture_source_pins": RUNTIME_CAPTURE_SOURCE_PINS,
     "hooks": RUNTIME_HOOK_SPECS,
-    "impact": RUNTIME_IMPACT_HOOK,
-    "check": RUNTIME_CHECK_HOOK,
-    "destroy": RUNTIME_DESTROY_HOOK,
-    "clock": RUNTIME_CLOCK_HOOK,
-    "lookup": RUNTIME_LOOKUP_HOOK,
-    "phase": None,
-    "frame": None,
     "position_hooks": {},
     "extra_limitations": (),
 }
@@ -353,13 +301,6 @@ RUNTIME_PROFILE_V3 = {
     "capture_config_pin": RUNTIME_V3_CAPTURE_CONFIG,
     "capture_source_pins": RUNTIME_V3_CAPTURE_SOURCE_PINS,
     "hooks": RUNTIME_V3_HOOK_SPECS,
-    "impact": "impact_apply_candidate",
-    "check": "destruction_check_candidate",
-    "destroy": "owner_destroy_candidate",
-    "clock": "clock_sample_candidate",
-    "lookup": "owner_lookup_candidate",
-    "phase": "phase_change_candidate",
-    "frame": "frame_apply_candidate",
     "position_hooks": {
         # (source, offset, size) blocks read in the named phase of that hook.
         "owner_lookup_candidate": {"phase": "leave", "owner_source": "retval",
@@ -455,8 +396,7 @@ def _rt_f32(data, offset, where):
     return struct.unpack_from("<f", data, offset)[0]
 
 
-def _rt_records(rows, profile=None):
-    profile = profile or RUNTIME_PROFILE_V2
+def _rt_records(rows, profile):
     grouped = {name: {"enter": [], "leave": []} for name in profile["hooks"]}
     for line_number, row in enumerate(rows, 1):
         hook = row.get("hook")
@@ -466,8 +406,7 @@ def _rt_records(rows, profile=None):
     return grouped
 
 
-def _rt_pairs(grouped, name, profile=None):
-    profile = profile or RUNTIME_PROFILE_V2
+def _rt_pairs(grouped, name, profile):
     spec = profile["hooks"][name]
     enters = {}
     leaves = {}
@@ -506,8 +445,7 @@ def _rt_pairs(grouped, name, profile=None):
     return pairs
 
 
-def _rt_validate_header(rows, profile=None):
-    profile = profile or RUNTIME_PROFILE_V2
+def _rt_validate_header(rows, profile):
     hook_specs = profile["hooks"]
     start = _single(rows, "start")
     identity = _single(rows, "identity_verified")
@@ -588,8 +526,7 @@ def _rt_validate_header(rows, profile=None):
     return start, summary
 
 
-def _rt_check_counts(summary, pairs_by_hook, profile=None):
-    profile = profile or RUNTIME_PROFILE_V2
+def _rt_check_counts(summary, pairs_by_hook, profile):
     counts = summary["counts"]
     total_enters = 0
     for name, pairs in pairs_by_hook.items():
@@ -1067,9 +1004,9 @@ def _rt_position_tracks(observations):
 def _rt_position_changes(observations):
     """Explicit anchor-value transitions per exact identity track."""
     changes = []
-    for key in sorted(_rt_position_tracks(observations)):
-        track = sorted(_rt_position_tracks(observations)[key],
-                       key=lambda item: item["line"])
+    tracks = _rt_position_tracks(observations)
+    for key in sorted(tracks):
+        track = sorted(tracks[key], key=lambda item: item["line"])
         for previous, current in zip(track, track[1:]):
             before, after = previous["anchor"], current["anchor"]
             if before["status"] != "read_ok" or after["status"] != "read_ok":
@@ -1202,11 +1139,11 @@ def _rt_extract(rows, source_name, source_sha256, line_count, index, index_name,
     pairs_by_hook = {name: _rt_pairs(grouped, name, profile) for name in profile["hooks"]}
     emitted = _rt_check_counts(summary, pairs_by_hook, profile)
 
-    impacts = pairs_by_hook[profile["impact"]]
-    checks = pairs_by_hook[profile["check"]]
-    destroys = pairs_by_hook[profile["destroy"]]
-    lookups = pairs_by_hook[profile["lookup"]]
-    clocks = pairs_by_hook[profile["clock"]]
+    impacts = pairs_by_hook[RUNTIME_IMPACT_HOOK]
+    checks = pairs_by_hook[RUNTIME_CHECK_HOOK]
+    destroys = pairs_by_hook[RUNTIME_DESTROY_HOOK]
+    lookups = pairs_by_hook[RUNTIME_LOOKUP_HOOK]
+    clocks = pairs_by_hook[RUNTIME_CLOCK_HOOK]
     _require(len(impacts) > 0, "no runtime impacts")
     _require([item[0] for item in impacts] == list(range(1, len(impacts) + 1)),
              "impact ordinals are not contiguous")
@@ -1298,8 +1235,6 @@ def _rt_extract(rows, source_name, source_sha256, line_count, index, index_name,
     for ordinal, enter_line, enter, leave_line, leave in impacts:
         where = "impact:%d" % enter_line
         arguments = enter.get("args")
-        _require(isinstance(arguments, list) and len(arguments) == 5,
-                 "impact argument count at %s" % where)
         _require(arguments[4] in ("0x1", "0x2"), "unsupported mode at %s" % where)
         mode = int(arguments[4], 16)
         arg0 = _float32_argument(arguments[0], where)
@@ -1431,9 +1366,6 @@ def _rt_extract(rows, source_name, source_sha256, line_count, index, index_name,
         else:
             source_join = None
 
-        fields_out = {}
-        for offset, values in fields.items():
-            fields_out[offset] = dict(values)
         events.append({
             "ordinal": ordinal,
             "kind": "suppression_increase" if mode == 1 else "physical_damage_increase",
@@ -1457,7 +1389,7 @@ def _rt_extract(rows, source_name, source_sha256, line_count, index, index_name,
                 "vtable": "0x%08x" % _rt_u32(header, 0, where),
                 "constant_pointer": "0x%08x" % source_pointer,
             },
-            "fields": fields_out,
+            "fields": fields,
             "arg0_float32": arg0,
             "arg0_raw": arguments[0],
             "observed_delta": delta,
@@ -1849,20 +1781,20 @@ def _rt_extract(rows, source_name, source_sha256, line_count, index, index_name,
         } for epoch in position_epochs]
         unmapped = {"note": ("Captured hooks that are counted and exported raw but "
                              "not assigned semantics.")}
-        if profile["frame"] in pairs_by_hook:
-            frames = pairs_by_hook[profile["frame"]]
+        if RUNTIME_V3_FRAME_HOOK in pairs_by_hook:
+            frames = pairs_by_hook[RUNTIME_V3_FRAME_HOOK]
             unmapped["frame_apply"] = {
-                "hook": profile["frame"],
+                "hook": RUNTIME_V3_FRAME_HOOK,
                 "pairs": len(frames),
-                "invocations": summary["counts"].get(profile["frame"]),
+                "invocations": summary["counts"].get(RUNTIME_V3_FRAME_HOOK),
                 "first_arguments": [enter.get("args") for _, _, enter, _, _ in frames[:3]],
                 "frame_index": None,
                 "basis": ("the invocation count and arguments are captured raw; the "
                           "count is not a frame index and no replay frame is inferred"),
             }
-        if profile["phase"] in pairs_by_hook:
+        if RUNTIME_V3_PHASE_HOOK in pairs_by_hook:
             phases = []
-            for ordinal, enter_line, enter, leave_line, leave in pairs_by_hook[profile["phase"]]:
+            for ordinal, enter_line, enter, leave_line, leave in pairs_by_hook[RUNTIME_V3_PHASE_HOOK]:
                 reads = {}
                 for read in enter.get("reads") or []:
                     reads[str(read.get("offset"))] = {
@@ -1881,7 +1813,7 @@ def _rt_extract(rows, source_name, source_sha256, line_count, index, index_name,
                     "semantics": None,
                 })
             unmapped["phase_change"] = {
-                "hook": profile["phase"],
+                "hook": RUNTIME_V3_PHASE_HOOK,
                 "pairs": len(phases),
                 "records": phases,
                 "basis": ("the argument and reads are captured raw; no battle phase, "
@@ -2097,9 +2029,7 @@ def _rt_position_lines(manifest):
         "| track | handle | owner | descriptor | unit | obs | changed |",
         "|---|---:|---|---|---|---:|---:|",
     ]
-    tracks = {}
-    for observation in observations:
-        tracks.setdefault(observation["identity"]["key"], []).append(observation)
+    tracks = _rt_position_tracks(observations)
     for key in sorted(tracks):
         track = tracks[key]
         first = track[0]["identity"]

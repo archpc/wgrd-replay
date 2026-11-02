@@ -25,14 +25,12 @@ MAX_READ_BYTES = 0x100
 MAX_TOTAL_BYTES = 0x200
 MAX_SAMPLES = 150
 MAX_SECONDS = 30.0
-MAX_TS_PREFIX = 0x100
 MAX_PATH_BYTES = 1024        # 512 UTF-16 units, never crossing one mapping
 
 # --- verified static addresses (module VAs, evidence in the research note) ---
 TS_SLOT = 0x201D318          # TGameplayServices* global slot (.data)
 TS_PREFIX_SIZE = 0x100       # preserve the v1 +0x00..+0xff raw prefix
 CLOCK_OBJECT = 0x1FCE0D0     # static clock/speed object, used as `ecx` directly
-CLOCK_SPAN_OFFSET = 0x68
 CLOCK_SPAN_SIZE = 0x08       # f32 speed factor at +0x68, i32 step at +0x6c
 
 CLOCK_CONSTANTS = {
@@ -55,8 +53,7 @@ ENGINE_NAMED_TIME_BINDINGS = (
 )
 TICK_SECONDS = 0.2
 
-MANAGER_IA = 0x2024A40       # TManagerIA singleton pointer slot
-MANAGER_CHAPTER_OFFSET = 0x74
+MANAGER_IA = 0x2024A40       # TManagerIA singleton pointer slot (chapter id at +0x74)
 UI_BINDING_CONTEXT = 0x2022844  # dword passed to the Lua-arg resolver; meaning unresolved
 
 # TS field map. `offset` is relative to TGameplayServices.
@@ -71,11 +68,9 @@ TS_FIELDS = {
     "realtime_current_time": (0x98, "f32"),
     "tick_counter": (0xD0, "u32"),
 }
-# Dereference targets.
-PHASE_MANAGER_PHASE_ID = 0x0C
+# Dereference targets (phase id and loading phase index are both at +0x0c).
 SPEED_HEADER_SPAN = (0x08, 0x0C)     # +0x08 direction code, +0x0c dword, +0x10 f32
 NET_SPAN = (0xA0, 0x2C)              # +0xa1 pending, +0xa4 dedicated, +0xa5 replay cand, +0xc8 loading
-LOADING_PHASE_INDEX = 0x0C
 
 # Every planned read: (name, static VA or None when pointer-derived, size).
 # Sum of sizes is asserted against MAX_TOTAL_BYTES by the tests.
@@ -368,29 +363,28 @@ def decode_sample(sample):
         else:
             out["present"][name] = True
 
+    def ts_field(prefix, offset, kind, name):
+        if kind == "f32":
+            return _finite(_f32(prefix, offset), out, name)
+        return _u(prefix, offset, 1 if kind == "u8" else 4)
+
     ts = reads.get("ts")
     note("ts", ts)
     if ts and ts.get("ok"):
-        prefix = ts["hex"]
         for name, (offset, kind) in TS_FIELDS.items():
             try:
-                value = _f32(prefix, offset) if kind == "f32" else _u(
-                    prefix, offset, 1 if kind == "u8" else 4)
-                out["values"][name] = _finite(value, out, name) if kind == "f32" else value
+                out["values"][name] = ts_field(ts["hex"], offset, kind, name)
             except ValueError as error:
                 out["errors"][name] = str(error)
-    else:
-        # Legacy samples only carried container_prefix_hex.
-        prefix = sample.get("container_prefix_hex")
-        if prefix:
-            try:
-                for name, (offset, kind) in TS_FIELDS.items():
-                    if offset + (1 if kind == "u8" else 4) <= len(prefix) // 2:
-                        value = _f32(prefix, offset) if kind == "f32" else _u(
-                            prefix, offset, 1 if kind == "u8" else 4)
-                        out["values"][name] = _finite(value, out, name) if kind == "f32" else value
-            except ValueError as error:
-                out["errors"]["prefix"] = str(error)
+    elif sample.get("container_prefix_hex"):
+        # Legacy samples only carried container_prefix_hex; decode what fits.
+        prefix = sample["container_prefix_hex"]
+        try:
+            for name, (offset, kind) in TS_FIELDS.items():
+                if offset + (1 if kind == "u8" else 4) <= len(prefix) // 2:
+                    out["values"][name] = ts_field(prefix, offset, kind, name)
+        except ValueError as error:
+            out["errors"]["prefix"] = str(error)
 
     clock = reads.get("clock")
     note("clock", clock)
@@ -713,16 +707,6 @@ def _container(sample):
 def _counter(sample):
     value = sample.get("counter")
     return value if isinstance(value, int) else None
-
-
-def normalize_windows_path(value):
-    """Case-insensitive comparison form for a Win32 path; separators collapsed."""
-    if not isinstance(value, str):
-        return ""
-    text = value.replace("/", "\\")
-    while "\\\\" in text:
-        text = text.replace("\\\\", "\\")
-    return text.lower()
 
 
 def sha256_file(path):
