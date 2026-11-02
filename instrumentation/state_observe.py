@@ -254,7 +254,7 @@ function readWidePath(p) {
   for (let i = 0; i < end; i += 2) text += String.fromCharCode(bytes[i] | (bytes[i + 1] << 8));
   return {ok: true, value: text, bytes: end};
 }
-rpc.exports.install_replay_watch = function (config) {
+rpc.exports.installReplayWatch = function (config) {
   if (watchInstalled || watch) return {installed: watchInstalled, error: watchError};
   const target = normPath(config.path);
   if (!target) return {installed: false, error: 'no exact target path supplied'};
@@ -307,7 +307,7 @@ rpc.exports.install_replay_watch = function (config) {
     return {installed: false, error: watchError};
   }
 };
-rpc.exports.replay_watch = function () {
+rpc.exports.replayWatch = function () {
   return {installed: watchInstalled, error: watchError, other_open_count: otherOpens,
           path_read_errors: pathErrors, max_events: MAX_EVENTS, matching_open_attempts: matchingOpens,
           dropped_events: droppedEvents, invalid_handle_count: invalidHandles,

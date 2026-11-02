@@ -5,6 +5,23 @@ in the canonical `~/Code/wgrd-replay/` checkout. The first expanded guest baseli
 now disproves the earlier `GameStarted => ingame` classification; see the live
 correction below. Replay identity and movement capture remain separate gates.
 
+## Replay-watch RPC integration correction
+
+The first real `--replay` invocation failed before hook installation:
+`unable to find method 'installReplayWatch'`. Python Frida converts snake-case
+export attribute access to camelCase RPC names. The JavaScript exports had been
+snake_case; the local simulation had bypassed that conversion. Exports are now
+`installReplayWatch` / `replayWatch`; Python call sites retain their normal
+snake-case API. A runtime-export-name regression failed before this correction.
+
+Private `replay-open-window-01.jsonl` retains that failed attempt, SHA-256
+`3db760624ef8a762b9b49c98b9e7f68f9aa1b9026a28e072579d16947346f86c`.
+The guard sent no UI input. Subsequent real watcher windows installed and
+completed with a cleanup terminator. Windows 03, 04 and 05 did not observe the
+exact target path; they do not authenticate playback identity. Three Parallels
+background-exec transport failures did not start Python or create a trace;
+a task-owned bounded Python subprocess worked without changing VM settings.
+
 ## Live main-menu counterexample
 
 Fresh process 4844 (same pinned PE SHA-256 below) showed the main-menu labels

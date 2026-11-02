@@ -200,6 +200,7 @@ assert.equal(scenarios.implausible_slot.ts_present, null);
 assert.equal(scenarios.implausible_slot.slot_state, 'implausible');
 
 // Optional CreateFileW watch: real Win32 ABI, bounded per-invocation state.
+scenarios.rpc_export_names = Object.keys(api);
 map(0x50a00000, 0x1000);
 function wide(address, text, opts) {
   const nul = !opts || opts.nul !== false;
@@ -208,7 +209,7 @@ function wide(address, text, opts) {
   write(0x50a00000, address - 0x50a00000, bytes);
 }
 reset();
-const install = api.install_replay_watch({
+const install = api.installReplayWatch({
   path: 'C:/Replays/match.wrpl', backtrace: true
 });
 assert.equal(install.installed, true);
@@ -240,7 +241,7 @@ full(ctx0, new Pointer(0x50a00100), new Pointer(0x1a4), 0x80000000, 3, 3);
 full(ctx0, new Pointer(0x50a00200), new Pointer(0x1a8), 0x80000000, 3, 3);
 full(ctx0, new Pointer(0x50a00300), new Pointer(0xffffffff), 1, 0, 2);
 full(ctx0, new Pointer(0x50a00400), new Pointer(0x1ac), 1, 0, 2);
-const watchA = api.replay_watch();
+const watchA = api.replayWatch();
 scenarios.replay_watch = {install, ...watchA, hooks: hooks.length};
 assert.equal(watchA.other_open_count, 3, 'non-matching opens are counted, never retained');
 assert.equal(watchA.events.length, 1);
@@ -259,7 +260,7 @@ enter(ctxA, new Pointer(0x50a00200), 1, 0, 3);
 enter(ctxB, new Pointer(0x50a00200), 2, 1, 4);
 leave(ctxB, new Pointer(0x1b0));
 leave(ctxA, new Pointer(0x1b4));
-const watchB = api.replay_watch();
+const watchB = api.replayWatch();
 scenarios.replay_watch_interleaved = {events: watchB.events, other_open_count: watchB.other_open_count,
   path_read_errors: watchB.path_read_errors};
 assert.equal(watchB.events.length, 3);
@@ -278,7 +279,7 @@ map(0x50c00000, 0x800);
 const longText = 'A'.repeat(512);
 write(0x50c00000, 0, Buffer.from(longText.split('').map(c => c + '\u0000').join(''), 'binary'));
 full(context(0x401234), new Pointer(0x50c00000), new Pointer(0x1c4), 1, 0, 3);
-const watchC = api.replay_watch();
+const watchC = api.replayWatch();
 scenarios.replay_watch_bounded = {events: watchC.events.length - 3,
   other_open_count: watchC.other_open_count, path_read_errors: watchC.path_read_errors};
 assert.equal(watchC.events.length, 3, 'refused path reads never become events');
@@ -289,7 +290,7 @@ assert.equal(JSON.stringify(watchC).includes('AAAAAAAA'), false);
 for (let i = 0; i < 40; i++)
   full(context(0x401234), new Pointer(0x50a00200), new Pointer(0x2000 + i), 1, 0, 3);
 full(context(0x401234), new Pointer(0x50a00200), new Pointer(0xffffffff), 1, 0, 3);
-scenarios.replay_watch_saturated = api.replay_watch();
+scenarios.replay_watch_saturated = api.replayWatch();
 
 fs.writeFileSync(process.argv[3], JSON.stringify(scenarios));
 console.log('WGRD_STATE_SIM_OK');
@@ -540,6 +541,10 @@ class NamedClock(unittest.TestCase):
 
 
 class ReplayOpenWatch(unittest.TestCase):
+    def test_rpc_names_match_python_frida_camelcase_conversion(self):
+        self.assertIn("installReplayWatch", SIM["rpc_export_names"])
+        self.assertIn("replayWatch", SIM["rpc_export_names"])
+
     def test_watch_errors_and_dropped_invalid_results_are_persisted(self):
         watch = SIM["replay_watch_saturated"]
         result = state.evaluate_replay_open(watch, "ab" * 32, None, None)
