@@ -17,6 +17,7 @@ when the change depends on a claim that needs investigation.
 |---|---|---|
 | Header, chunks, frames or command boundaries | `wgrd_replay.parse_header`, `parse_replay`, `decode_command_block` | `tests/test_wgrd_replay.py`, `tests/test_header_metadata.py`, opcode decoder tests |
 | Timeline shape, ordering or source offsets | `wgrd_timeline.build_timeline` | `tests/test_timeline.py` |
+| Structural timeline export (frames, coverage, integrity) | `wgrd_timeline_report.build_report` | `tests/test_timeline_report.py` |
 | Standard-order interpretation | `wgrd_orders.decode_standard_order` | `tests/test_orders.py` |
 | Production interpretation | `wgrd_production.decode_production_action`, `decode_change_production` | `tests/test_production.py`, `tests/test_timeline_0c.py` |
 | References and supply attribution | `wgrd_entities.build_reference_catalog`, `attribute_supply_requests` | `tests/test_entities.py`, `tests/test_timeline_0x18.py` |

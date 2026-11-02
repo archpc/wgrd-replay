@@ -121,6 +121,21 @@ diagnostics in its result. Exit 0 alone therefore does not establish that every
 command decoded. Inspect each block's `command_decode.status` or use the full
 corpus inventory for a compatibility verdict.
 
+## Export a complete structural timeline
+
+```sh
+python3 -B wgrd_timeline_report.py /path/to/match.wargamerpl2 --out /path/to/private-dir
+```
+
+This writes `timeline.json` (schema `wgrd_structural_timeline/1`) and
+`timeline.md`, and refuses to overwrite existing files. It lists every frame,
+pact and command with raw bytes and source offsets. It also reports measured
+coverage and structural checks (frame gaps, ordering, byte coverage) and flags
+identical repeated commands. A failed check exits 2 and writes nothing. Only the
+frame index is given per event. Ticks, game time and wall-clock time stay null
+because no evidence binds replay frames to the engine clock (`clock_mapping`).
+Player names and deck codes are omitted, but entity references remain.
+
 ## Use the Python API
 
 This example assumes `match.wargamerpl2` is in the current directory:
