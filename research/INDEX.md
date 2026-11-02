@@ -37,7 +37,7 @@ The 2026-10-28 controlled recording ("Oshkosh Incident") report is archived. Its
 | Per-opcode layouts (04/07/08/09/0A/0E/17) | [command layouts](COMMAND-LAYOUTS.md) | `tests/test_wgrd_replay.py`, `tests/test_production.py` | E, T |
 | 0x02 / 0x13 / 0x18 fixed layouts | [fixed opcodes](FIXED-OPCODES-02-13-18.md) | `research/op_fixed_layout.py`, `tests/test_fixed_opcodes.py` | E, S, T |
 | 0x07 orders: requested kind, references | [0x07 orders](OP07-ORDERS.md) | `tests/test_orders.py` | E, T |
-| 0x0C ChangeProduction | [0x0C](CHANGEPRODUCTION-0C.md) | `research/op0c_layout.py`, `tests/test_op0c_layout.py`, `tests/test_op0c_decoder.py`, `tests/test_timeline_0c.py` | S, T |
+| 0x0C ChangeProduction | [0x0C](CHANGEPRODUCTION-0C.md) | `research/op0c_layout.py`, `tests/test_op0c_decoder.py`, `tests/test_timeline_0c.py` | S, T |
 | 0x0D / 0x0A production interiors | [production commands](PRODUCTION-COMMANDS.md); `evidence/production59638-native.json` | `tests/test_production.py` | E, T |
 | References: u32 registry key + 16-byte validation GUID | [entity context](ENTITY-CONTEXT.md) | `tests/test_entities.py` | E, T |
 | 0x18 registry keys and supply targets | [reference keys](OP18-REFERENCE-KEYS.md), [supply targets](OP18-SUPPLY-TARGETS.md) | `research/op18_reference_keys.py`, `research/op18_supply_targets.py`, `tests/test_op18_reference_keys.py`, `tests/test_timeline_0x18.py` | S, T |
