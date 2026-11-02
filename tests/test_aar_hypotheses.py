@@ -30,7 +30,7 @@ DISPLAYED = {
     "combat": {"path": "combat-20261101/replay_2026-11-01_19-10-26.wargamerpl2",
                "sha256": "abf6a5e909ec976a30d16e043f25220bfb7d7a149cfbf828de992be8e69da121",
                "battle_seconds": 251, "points": []},
-    # research/current-build/2026-10-28-controlled-experiment.md lines 15 and 352
+    # archived: research/current-build/2026-10-28-controlled-experiment.md lines 15 and 352
     "controlled": {"path": "current-build-20261028/raw/replay_2026-10-28_01-49-18.wargamerpl2",
                    "sha256": "1b060d2ab2e5501c6c8731fcb87ac0c7ac6dc4598387dcdb261ab8bb06bc8d70",
                    "battle_seconds": 144, "replay_total_seconds": 355,

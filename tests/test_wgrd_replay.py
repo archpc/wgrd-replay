@@ -21,7 +21,7 @@ SAMPLES = os.environ.get("WGRD_SAMPLES_DIR",
                          os.path.expanduser("~/.hermes/artifacts/wgrd-replay/samples/raw"))
 MANIFEST = json.load(open(os.path.join(ROOT, "samples", "manifest.json")))
 
-# Independently computed expectations (see research/REPLAY-RESEARCH-2026-10-23.md, survey script).
+# Independently computed expectations (archived: research/REPLAY-RESEARCH-2026-10-23.md, survey script).
 EXPECTED = {
     "koppeltar-Sample1.wargamerpl2": dict(json_length=2412, payload_offset=0x9A4, frames=19033,
                                           pact=76132, slots=4, nonempty=3866, version="59638"),

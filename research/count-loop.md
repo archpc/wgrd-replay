@@ -1,7 +1,7 @@
 # WGRD counted command loop — accepted read-only evidence report
 
 Historical investigation; implementation now authorized and delivered. Current status:
-[Command layouts](COMMAND-LAYOUTS.md) and [coverage](coverage.json).
+[Command layouts](COMMAND-LAYOUTS.md) and coverage (archived: `research/coverage.json`).
 
 Date: 2026-10-23. Repository: /Users/sein/Code/wgrd-replay.
 Baseline HEAD: 3122ba7ded32ae1fcb8c97a215c02d5d138ddbca.

@@ -12,7 +12,7 @@ consumer traces now qualify the slot-ID policy, the `0x07` queue option and
 
 The original observations use the hash-pinned KoppelTAR Sample1/2/3 recordings
 (builds 59638 / 510117427 / 59638) in [the sample manifest](samples/manifest.json).
-Later cross-build observations are recorded in [the controlled experiment](research/current-build/2026-10-28-controlled-experiment.md)
+Later cross-build observations are recorded in the controlled experiment (archived: `research/current-build/2026-10-28-controlled-experiment.md`)
 and [its manifest](samples/cross-build-manifest.json). Structural fit does not
 verify another executable's behavior.
 
@@ -129,7 +129,7 @@ are not exposed in the parser result; the original file remains their source.
 
 **Frame duration is unresolved.** Recorded frame order is not wall-clock time,
 and the controlled experiment distinguishes replay and battle clocks. See
-[timing evidence](research/current-build/2026-10-28-controlled-experiment.md#7-time-bases-and-playback).
+timing evidence (archived: `research/current-build/2026-10-28-controlled-experiment.md`).
 
 ## 4. `pact` payload (little-endian)
 
@@ -219,7 +219,7 @@ records the enum and float hypotheses separately from the proven reads.
 Creator addresses, evidence records, authentic sample identities and reproduction:
 [layout recovery](research/COMMAND-LAYOUTS.md), [fixed opcodes](research/FIXED-OPCODES-02-13-18.md),
 [0x07 orders](research/OP07-ORDERS.md) and [0x0C](research/CHANGEPRODUCTION-0C.md).
-Current per-sample counts: [generated structural coverage](research/coverage.json).
+Current per-sample counts: `wgrd_corpus.py` and the pinned tests.
 
 ### Block result and failure boundaries
 
@@ -249,7 +249,7 @@ the original sample corpus. That is a bounded observation, not proof that the
 format cannot contain them. RTTI entries such as `TNetworkActionKill` do not
 establish a decoded outcome feature.
 
-The [controlled experiment](research/current-build/2026-10-28-controlled-experiment.md)
+The controlled experiment (archived: `research/current-build/2026-10-28-controlled-experiment.md`)
 adds sample-specific UI and playback evidence. It does not supply a universal
 simulation model or establish all field meanings.
 
@@ -381,5 +381,5 @@ projection, not a live world model. Non-59638 mappings remain inferred.
 
 With unit data, production requests also gain static type associations. Neither
 reference nor production enrichment proves membership, ownership, active modules,
-accepted placement or execution. See [matching-build enrichment](research/TIMELINE-59638.md),
+accepted placement or execution. See matching-build enrichment (archived: `research/TIMELINE-59638.md`),
 [NDF bridge](research/NDF59638-BRIDGE.md) and [production commands](research/PRODUCTION-COMMANDS.md).

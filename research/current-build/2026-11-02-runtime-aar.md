@@ -178,7 +178,7 @@ named killers or turn 30 into a unit count.
 
 ## Bounded cross-capture update
 
-The [original kill-table corroboration](2026-11-02-kill-corroboration.md) now
+The original kill-table corroboration (archived: `research/current-build/2026-11-02-kill-corroboration.md`) now
 independently checks the repeated 28-event sequence and three visible VTT-323
 rows. All 252 selected values match across captures. Same-input execution is
 strongly supported but not a logged file-open fact. The agreement is cohort-level;

@@ -141,15 +141,13 @@ Field-level meanings and their confidence are in the per-opcode notes linked bel
 
 ## 4. Generated files and their scripts
 
-| output                                   | produced by                               |
-|------------------------------------------|-------------------------------------------|
-| `research/coverage.json`                 | `python3 -B research/coverage.py > research/coverage.json` |
-| `research/timeline-coverage.json`        | `python3 -B research/timeline_coverage.py` (stdout) |
-| `research/op07-coverage.json`            | `research/op07_coverage.py` (stdout)       |
-| `research/production-coverage.json`      | `research/production_coverage.py` (stdout) |
-| `research/entity-coverage.json`          | `research/entity_coverage.py` (stdout)     |
-| `research/public-unit-coverage.json`     | `research/public_unit_coverage.py <dir>` (stdout) |
-| `research/unit-data/build59638-v1.json.gz` | `research/export_unit_index59638.py` (see its header; inputs come from the git-ignored `work/` NDF extraction) |
+| output | produced by |
+|---|---|
+| `research/unit-data/build59638-v1.json.gz` | `research/export_unit_index59638.py` (inputs: the git-ignored `work/` NDF extraction from `research/ndf59638_unpack.py` and `ndf59638_parse.py`) |
+| private 131544 unit index (`unit-index-131544.json`) | `research/aar_unit_index.py` |
+| AAR `events.json`, `units.json`, `chronology.md` | `instrumentation/aar_events.py` |
+
+Per-sample structural counts come from `wgrd_corpus.py` (`--expect` for regression comparison) and the pinned tests, not from generated reports. The former coverage generators are archived.
 
 Regenerate, then explain the diff in the commit or note. Counts are read from these files, not from docs.
 Sample inputs are read from `samples/manifest.json` (external bytes, not in Git).
@@ -165,7 +163,7 @@ Sample inputs are read from `samples/manifest.json` (external bytes, not in Git)
 | entities and reference keys        | [research/ENTITY-CONTEXT.md](../research/ENTITY-CONTEXT.md), [research/OP18-REFERENCE-KEYS.md](../research/OP18-REFERENCE-KEYS.md), [research/OP18-SUPPLY-TARGETS.md](../research/OP18-SUPPLY-TARGETS.md) |
 | executable analysis (addresses)    | [REA-NOTES-59638.md](../research/REA-NOTES-59638.md)                            |
 | research provenance                | [research/INDEX.md](../research/INDEX.md)                             |
-| current-build experiment and Phase 2 | [research/current-build/2026-10-28-controlled-experiment.md](../research/current-build/2026-10-28-controlled-experiment.md), [research/current-build/PHASE-2-HANDOFF.md](../research/current-build/PHASE-2-HANDOFF.md) |
+| current-build AAR evidence | [research/INDEX.md](../research/INDEX.md#current-build-revision-131544-original-engine-aar) |
 | priorities                         | [NEXT-STEPS.md](../NEXT-STEPS.md)                                 |
 | usage and API                      | [docs/USAGE.md](USAGE.md) |
 | onboarding and navigation          | [README.md](../README.md#capabilities) |
@@ -178,16 +176,14 @@ correction; an old note does not override the current code.
 ## Development checks
 
 [CONTRIBUTING.md](../CONTRIBUTING.md) owns setup, fixture requirements and CI commands.
-The portable preservation check verifies archived source copies and the cow.
-Maintained code and notes use regression tests, normal review and Git history. Historical
-verifiers remain available for reproducing the original audits. The
-[maintenance review](../research/maintenance/2026-10-28-development-review.md#repository-rationalization-2026-10-28)
-explains the retired blanket freeze and current preservation boundaries.
+The preservation check verifies the cow byte-for-byte. Code and notes rely on
+regression tests, review and Git history. Retired research is verified in its
+external archive ([research/INDEX.md](../research/INDEX.md#archive)).
 
 ## Evidence conventions
 
 This is the documentation's authoritative reading guide for classifications.
-[AGENTS.md](../AGENTS.md) specifies the operational evidence requirements;
+[CONTRIBUTING.md](../CONTRIBUTING.md) specifies the operational evidence requirements;
 historical notes retain the vocabulary they originally used.
 
 ### Structure, confidence and meaning are separate
