@@ -12,6 +12,12 @@ possible serializer. `opaque` is a structural label, not an interpretation statu
 No historical finding is promoted to general gameplay verification by the
 controlled experiment.
 
+## Revision-131544 AAR clock research (2026-11-02)
+
+[Clock computation and capture targets](current-build/2026-11-02-aar-clock.md)
+records the build-matched counter-to-float path and damage-module timestamp store.
+Runtime clock origin, live unit identities and causal kills remain unresolved.
+
 ## Revision-131544 Frida and data-flow research (2026-10-29)
 
 [Two-trace observations](current-build/2026-10-29-frida-observations.md) document
