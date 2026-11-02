@@ -12,6 +12,14 @@ different hook sets produced the same 28 impacts.
 Repository cleanup is frozen as of 2026-11-02 (PRs #19–#21). Work now returns to
 understanding the game; change structure only when a game question requires it.
 
+## Release status
+
+The evidence-bounded AAR is **complete**:
+[AAR release](research/current-build/2026-11-02-aar-release.md) pins inputs,
+commands, output hashes, the static scoring model and every unknown. A fully
+runtime-verified AAR is a separate task that needs explicit VM authorization;
+its gaps are listed in that note's section 10.
+
 ## Canonical AAR workflow
 
 1. Run an authorized playback with `instrumentation/wgrd_frida.py`,

@@ -11,8 +11,11 @@ sys.path.insert(0, str(ROOT))
 from wgrd_unit_data import FILES  # noqa: E402
 
 
-def main():
-    destination = ROOT / 'work/public-units/wargame-data'
+DEFAULT_DESTINATION = ROOT / 'work/public-units/wargame-data'
+
+
+def main(destination=DEFAULT_DESTINATION):
+    destination = Path(destination)
     manifest = json.loads((ROOT / 'research/public-unit-sources.json').read_text())
     records = {r['path']: r for r in manifest['files'] if r['repo'] == 'ResidentMario/wargame-data'}
     for name in FILES:
