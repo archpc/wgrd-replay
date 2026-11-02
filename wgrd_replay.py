@@ -278,12 +278,12 @@ def _decode_command(cursor, slot):
     Returning None is not an error here: the caller marks the block "unresolved"
     and stops. Each branch reads fields in the creator's order. Field names are
     storage offsets (obj_XX), not game meanings. Layouts were recovered from build
-    59638 only (AGENTS.md section 5).
+    59638 only (CONTRIBUTING.md).
     """
     start = cursor.offset
     # DRAGON (layout trust): these layouts were recovered from build 59638 only. A replay
     # from another build can split to the exact byte count and still carry different
-    # field meanings. Exact consumption proves structure, not semantics (AGENTS.md 7).
+    # field meanings. Exact consumption proves structure, not semantics (CONTRIBUTING.md).
     #                                /\                     /\
     #                               /  \                   /  \
     #                              / |  \                 / |  \

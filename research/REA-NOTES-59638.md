@@ -168,7 +168,7 @@ Complete instruction traces, failure exits, limitations and evidence IDs:
 [Command layouts](COMMAND-LAYOUTS.md).
 Canonical REA 6.7.0 MCP/Rizin Evidence: research/evidence/. No new Ghidra import,
 target execution, global config change, or sample/binary redistribution.
-[Census](coverage.json) is reproduced by research/coverage.py.
+Census (archived: `research/coverage.json`) is reproduced by research/coverage.py.
 
 ## Timeline milestone: execution handlers
 

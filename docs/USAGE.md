@@ -19,7 +19,7 @@ destination before Python starts. Output can contain player names and chat.
 
 In one Windows 11 experiment, the game saved a `.wargamerpl2` file under the
 user's `Saved Games\EugenSystems\WarGame3` directory. See the
-[experiment's provenance](../research/current-build/2026-10-28-controlled-experiment.md#controlled-recording).
+experiment's provenance (archived: `research/current-build/2026-10-28-controlled-experiment.md`).
 Look in your Windows profile's Saved Games folder first; its location can differ
 if the folder is redirected. You can also search for `*.wargamerpl2`.
 

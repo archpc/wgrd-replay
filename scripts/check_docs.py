@@ -4,7 +4,6 @@
 Document-relative links, images and reference definitions are checked, including
 angle targets and titles. Fenced/inline code, backtick prose, external URLs,
 absolute paths and fragments are excluded. This is not a full Markdown parser.
-The historical prose-path diagnostic remains in research/maintenance/check_links.py.
 """
 from pathlib import Path
 import posixpath

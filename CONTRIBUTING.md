@@ -1,28 +1,45 @@
 # Contributing
 
 Use Python **3.13–3.15** from the repository root. Runtime and tests use only the
-standard library; there is no package installation or mandatory formatter.
-[The change guide](docs/ARCHITECTURE.md#change-guide) maps changes to modules and tests;
-[AGENTS.md](AGENTS.md) records repository operating rules.
+standard library; there is no package installation or mandatory formatter. The
+[change guide](docs/ARCHITECTURE.md#change-guide) maps changes to modules and
+tests. Read [FORMAT.md](FORMAT.md) before changing binary acceptance or output
+semantics. [NEXT-STEPS.md](NEXT-STEPS.md) owns priorities.
 
-## Change boundaries
+## Rules
 
-- Use a focused branch, preserve unrelated work, stage paths explicitly, review
-  the diff, and never force-push over concurrent work.
-- Preserve public APIs, CLI flags, JSON keys, raw bytes, ordering, exact consumption
-  and build qualifications. Reproduce decoder bugs with synthetic fixtures; compare
-  outputs on authenticated samples for a refactor.
-- Leave the ASCII cow in `wgrd_orders.py` byte-for-byte unchanged.
-- Preserve historical evidence and negative results. Add dated corrections and
-  update the current reference; do not hand-edit generated coverage JSON.
+- **Do not edit, move, reformat or delete the ASCII cow in `wgrd_orders.py`.**
+- Do not add runtime dependencies. Preserve public APIs, CLI flags, output keys,
+  ordering and raw-byte fields. Add semantic keys beside neutral fields rather
+  than renaming them.
+- Container violations raise `ReplayFormatError`. Malformed command blocks keep
+  their diagnostics, and timeline export rejects them. Require exact command
+  counts and byte consumption; never guess boundaries or truncate. A structural
+  fit proves boundaries, not meaning.
+- CLI JSON is strict: non-finite values become explicit `nonfinite` objects via
+  `wgrd_replay.json_safe`.
+- Preserve build qualifications and unknown outcomes. Verified layouts apply to
+  build 59638; other builds use inference.
+- **Git:** use a focused branch, one writer per checkout, and explicit staging
+  (no `git add .` or `-A`). Review the diff. Never force-push or rewrite
+  published history, and do not merge without authorization.
+- **Artifacts:** never commit secrets, private player data, replay bytes, game
+  binaries or bulk dumps. Replay bytes are untrusted: use the strict decoder.
+- **Runtime:** executable analysis is static unless runtime work is explicitly
+  authorized. Notes and plans never authorize launching the game or operating a VM.
 
-For research, search [the index](research/INDEX.md) first. State a falsifiable
-claim, identify executable and sample hashes, cite addresses/bytes, add a failing
-reproducer and tests, then update [FORMAT.md](FORMAT.md) or
-[architecture](docs/ARCHITECTURE.md). Follow its
-[evidence conventions](docs/ARCHITECTURE.md#evidence-conventions).
-Keep game binaries, replay bytes, private metadata and bulk dumps outside Git.
-VM/game operation requires explicit authorization; historical plans do not grant it.
+## Research
+
+Search [the evidence index](research/INDEX.md) first; do not repeat completed
+analysis without a new question. State a falsifiable hypothesis. Identify the
+executable build and SHA-256 before static analysis, and never assume an
+installed executable matches 59638. Cite addresses and bytes or evidence records,
+sample hashes, the reproduction command and tests. Separate observations from
+proposed meanings, following the
+[evidence conventions](docs/ARCHITECTURE.md#evidence-conventions). Correct
+findings with dated notes, then update FORMAT/architecture and the index. Keep
+bulk outputs in the ignored `work/`. Retire research only into the verified
+external archive ([research/INDEX.md](research/INDEX.md#archive)).
 
 ## Test and verify
 
@@ -37,17 +54,20 @@ python3 -B scripts/check_preservation.py
 git diff --check
 ```
 
-Use `-p 'test_corpus.py'` with discovery for one test module. CI runs full discovery
-on 3.13, 3.14 and 3.15, plus one quality job for syntax, Ruff, links and preservation.
-Actions are SHA-pinned, permissions read-only, credentials not persisted, and
-jobs bounded by timeouts. Each job checks that it left the tracked tree unchanged.
-Ruff checks E9/F defects without formatting; one archived probe has a documented
-F821 exception in [ruff.toml](ruff.toml).
+- **One module:** add `-p 'test_corpus.py'` to discovery.
+- **CI:** full discovery on 3.13, 3.14 and 3.15, plus a quality job for syntax,
+  Ruff (E9/F only), document links and the cow. Actions are SHA-pinned with
+  read-only permissions, and each job checks that the tracked tree is unchanged.
+- **Docs check:** validates explicit Markdown links relative to each document.
+  It ignores code, prose paths, URLs and fragments. Stage new Markdown files
+  before running it.
+- **Reporting:** give the interpreter, actual results and skip reasons. A skip
+  is missing coverage, not a pass. For a parser change, check the available
+  authenticated samples. For a refactor, compare outputs.
 
-The public unit test fixture is mandatory: the fetcher verifies four pinned
-files and fails on download/checksum errors. Cached inputs are rechecked.
-Missing private replay/executable tests skip explicitly; present altered evidence
-fails. A green public CI run does not validate private samples.
+The public unit fixture is mandatory: the fetcher verifies four pinned files.
+Missing private replay or executable inputs skip explicitly; present but altered
+inputs fail. A green public CI run does not validate private samples.
 
 | Variable | External artifact | Default |
 |---|---|---|
@@ -57,31 +77,14 @@ fails. A green public CI run does not validate private samples.
 | `WGRD_UNIT_DATA` | Required pinned public fixture directory | `work/public-units/wargame-data` |
 | `WGRD_CORPUS_DIR` | All 71 pinned archive replays in [offline corpus manifest](samples/offline-corpus-manifest.json) | Unset: private corpus tests skip; supplied missing/altered inputs fail |
 
-The CLI's `--unit-data` is separate: the committed build-59638 index allows offline
-enrichment without the public fixture. Run summary/timeline exports on an available
-authenticated replay using [usage examples](docs/USAGE.md). Report the interpreter,
-actual test results, skip reasons, available corpus, and validation limits.
+The CLI's `--unit-data` is separate: the committed build-59638 index allows
+offline enrichment without the public fixture.
 
-## Documentation and preservation
+## Where documentation goes
 
-Keep usage in [the usage guide](docs/USAGE.md), wire layouts in
-[FORMAT.md](FORMAT.md), implementation/status contracts in
-[architecture](docs/ARCHITECTURE.md), and historical investigations in
-[research](research/INDEX.md). Link explanations instead of duplicating them.
-
-The offline link check validates explicit Markdown links against tracked paths,
-relative to each document. It ignores code examples, prose paths, external URLs
-and fragments; it is not a full Markdown parser. Stage new Markdown paths
-explicitly before running it. The old prose-path diagnostic remains available at
-`research/maintenance/check_links.py`; its warnings are not CI failures.
-
-The portable preservation check covers archived source copies and the cow.
-Maintained research scripts and notes are editable: use normal review and
-regression tests, with Git history retaining earlier versions. Intentional archive
-or inventory changes receive ordinary diff review. Preserve original observations
-when adding corrections; no special hash-waiver process is required.
-
-Historical manifests/verifiers remain available as optional audit records, not
-CI requirements. They can report old script mismatches or absent private `work/`
-outputs. The [maintenance review](research/maintenance/2026-10-28-development-review.md#repository-rationalization-2026-10-28)
-records why the old blanket freeze was retired.
+Usage goes in [docs/USAGE.md](docs/USAGE.md), wire layouts in
+[FORMAT.md](FORMAT.md) and implementation/status contracts in
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). Evidence goes in
+[research/](research/INDEX.md) and status in [NEXT-STEPS.md](NEXT-STEPS.md).
+Link instead of duplicating. Do not hand-edit generated outputs; regenerate them
+with [their scripts](docs/ARCHITECTURE.md#4-generated-files-and-their-scripts).

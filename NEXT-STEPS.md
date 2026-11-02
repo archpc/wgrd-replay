@@ -80,6 +80,5 @@ config or exporter profile before the run is authorized.
 - Static NDF types do not establish ownership or outcomes.
 - This file grants no VM authorization.
 
-Current counts and scripts: [architecture](docs/ARCHITECTURE.md#4-generated-files-and-their-scripts).
-Earlier narratives: Git history and the
-[2026-10-28 archive](research/NEXT-STEPS-2026-10-28.md).
+Generated outputs and scripts: [architecture](docs/ARCHITECTURE.md#4-generated-files-and-their-scripts).
+Earlier priorities and narratives: [research archive](research/INDEX.md#archive).

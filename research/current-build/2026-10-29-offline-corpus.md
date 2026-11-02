@@ -32,7 +32,7 @@ archive recordings by SHA-256, size, literal Version and command count. Product
 attribution follows the earlier census's Red Dragon version-family/map evidence;
 a digest establishes identity, not publisher authenticity. The other 28 recovered
 older-title recordings are outside this task. Six earlier reference inputs are
-identified by hash in the [measured summary](2026-10-29-corpus-summary.json).
+identified by hash in the measured summary (archived: `research/current-build/2026-10-29-corpus-summary.json`).
 
 ## Archive 119: recorded slots are IDs, not dense indices
 

@@ -94,35 +94,20 @@ class PartialPrivateCorpus(unittest.TestCase):
 
 
 class PreservationChecks(unittest.TestCase):
-    def test_archive_integrity_and_cow_without_freezing_research(self):
-        import json
+    def test_cow_is_checked_byte_for_byte(self):
         import shutil
         from unittest.mock import patch
         check = load_script('check_preservation')
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            inventory = 'research/maintenance/work-artifacts-manifest.json'
-            copies = json.loads((ROOT / inventory).read_text())
-            archives = [e['copied_to'] for e in copies['entries'] if e.get('copied_to')]
-            for path in [inventory, 'wgrd_orders.py', *archives]:
-                dest = root / path
-                dest.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copyfile(ROOT / path, dest)
-            # Ordinary scripts, notes and inventory formatting can change freely.
-            (root / 'research/op0c_layout.py').write_text('# edited research script\n')
-            (root / 'research/INDEX.md').write_text('# updated notes\n')
-            (root / inventory).write_text(json.dumps(copies))
+            shutil.copyfile(ROOT / 'wgrd_orders.py', root / 'wgrd_orders.py')
             with patch.object(check, 'ROOT', root):
                 self.assertEqual(check.problems(), [])
-                for path in [archives[0], 'wgrd_orders.py']:
-                    target = root / path
-                    original = target.read_bytes()
-                    target.write_bytes(original.replace(b'(oo)', b'(xx)') if path == 'wgrd_orders.py'
-                                       else original + b'\n')
-                    self.assertTrue(check.problems(), path)
-                    target.write_bytes(original)
-                (root / archives[0]).unlink()
-                self.assertTrue(check.problems(), 'missing archived evidence')
+                target = root / 'wgrd_orders.py'
+                target.write_bytes(target.read_bytes().replace(b'(oo)', b'(xx)'))
+                self.assertEqual(check.problems(), ['cow changed: wgrd_orders.py'])
+                target.unlink()
+                self.assertEqual(check.problems(), ['cow missing: wgrd_orders.py'])
 
 
 class MarkdownLinkSemantics(unittest.TestCase):

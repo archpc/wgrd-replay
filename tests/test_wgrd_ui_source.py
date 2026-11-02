@@ -1,10 +1,9 @@
-"""Offline source contracts for the Windows helper; not runtime tests."""
+"""Offline source contracts for instrumentation/WgrdUi.cs; guest compilation is separate."""
 from pathlib import Path
-import hashlib
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
-HELPER = ROOT / "research/current-build/tools/WgrdUi.cs"
+HELPER = ROOT / "instrumentation/WgrdUi.cs"
 
 
 class WgrdUiSourceContracts(unittest.TestCase):
@@ -13,11 +12,6 @@ class WgrdUiSourceContracts(unittest.TestCase):
         for name in ("Capture", "CaptureRight", "CaptureOnly"):
             self.assertRegex(source, rf"public static string {name}\(.*?"
                              r"String\.IsNullOrWhiteSpace\(file\).*?throw.*?CaptureAction")
-
-    def test_historical_v2_source_matches_experiment_digest(self):
-        path = ROOT / "research/current-build/history/WgrdUi-v2.cs"
-        self.assertEqual(hashlib.sha256(path.read_bytes()).hexdigest(),
-                         "27d754195dc6f7ad701ede32b240e91f8e4fa35a5ff3768b71f5034c58f124df")
 
     def test_original_capture_entry_points_remain_in_source(self):
         source = HELPER.read_text(encoding="utf-8")
@@ -70,6 +64,31 @@ class WgrdUiSourceContracts(unittest.TestCase):
                 rf"public static string {name}\(int x,int y\).*?"
                 rf"if\(x<0 \|\| y<0\) throw.*?CaptureAction\(null,x,y,{right}\)",
             )
+
+
+    def test_client_input_has_geometry_process_and_focus_guards(self):
+        text = HELPER.read_text(encoding="utf-8")
+        self.assertIn("public static string ClickClient(", text)
+        self.assertIn("GetClientRect", text)
+        self.assertIn("ClientToScreen", text)
+        self.assertIn("GetWindowThreadProcessId", text)
+        self.assertIn("expectedWidth", text)
+        self.assertIn("expectedPid", text)
+        self.assertIn("WaitForeground", text)
+        self.assertIn("SendInput", text)
+
+    def test_input_only_methods_do_not_capture_or_use_fixed_focus_sleep(self):
+        text = HELPER.read_text(encoding="utf-8")
+        self.assertIn("public static string Key(", text)
+        start = text.index("public static string WindowState(")
+        stop = text.index("public static string Capture(", start)
+        block = text[start:stop]
+        self.assertNotIn("CopyFromScreen", block)
+        self.assertNotIn("Thread.Sleep(600)", block)
+        self.assertIn("Stopwatch.StartNew()", block)
+        self.assertIn("timeoutMs", block)
+        self.assertIn("input_attempted", block)
+
 
 
 if __name__ == "__main__":
