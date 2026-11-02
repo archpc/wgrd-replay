@@ -123,6 +123,24 @@ Written exclusively to `…/aar-v3-20261102T082918Z/runtime-aar-v3/`:
 anchor changes, clock epochs, identity report), `chronology.md` (adds a position
 section with per-observation line/hash references and a change list).
 
+## Independent interval review
+
+A read-only independent reconstruction, without importing the exporter, checked
+all 153 transitions against the pinned raw trace. Every interval matched the
+outer bounds of both observations; no negative spans, epoch-boundary crossings,
+line-coverage violations, anchor-byte mismatches or decoded-vector mismatches
+were found. The review also reproduced the 459 clock samples and two observed
+receiver epochs. Source SHA-256:
+`458008accd4b7d40b9e063970979681f7332670f49811e42872d0e58708e4619`.
+The private review artifact digest is
+`287a8b5f71070713829595fe89eb4e897d57a036b76ab3ae1edc9a2a5ae2e3a4`.
+
+The interval-level missing-bound/epoch-change fallback has no dedicated test;
+this is a documented coverage gap, not evidence that it was exercised by the
+real trace. No tests were rerun for this review. The implementation commit had
+already been published before the later explicit review gate; this review is
+post-commit, not represented as pre-commit approval.
+
 ## Tests
 
 The lead review added two portable regressions for transition-time coverage and
