@@ -467,6 +467,16 @@ def _rt_pairs(grouped, name, profile):
         key = (record.get("thread_id"), record.get("call_id"))
         _require(key not in leaves, "duplicate %s leave:%d" % (name, line_number))
         leaves[key] = (line_number, record)
+    if profile["name"] == "runtime-v4" and name == RUNTIME_V4_HOOK:
+        # The high-frequency tick hook can still be inside a call at detach.
+        # Only this hook may drop its last enter, and only one; the frame join
+        # then works from the completed intervals and reports the gap.
+        without_leave = set(enters) - set(leaves)
+        _require(not (set(leaves) - set(enters)), "%s leave without enter" % name)
+        _require(len(without_leave) <= 1, "%s has %d unpaired enters"
+                 % (name, len(without_leave)))
+        for key in without_leave:
+            enters.pop(key)
     _require(set(enters) == set(leaves), "%s missing pair: enters=%d leaves=%d"
              % (name, len(enters), len(leaves)))
     pairs = []
@@ -553,9 +563,16 @@ def _rt_validate_header(rows, profile):
         _require(entries[name].get("executable") is True,
                  "identity address not executable for %s" % name)
 
-    for key in ("suppressed", "callback_errors", "stale_frames", "stack_mismatches",
-                "outstanding_threads"):
+    for key in ("suppressed", "callback_errors", "stale_frames", "stack_mismatches"):
         _require(summary.get(key) == 0, "summary failure:%s=%r" % (key, summary.get(key)))
+    # V4 adds a high-frequency tick hook. One thread can still be inside it at
+    # detach; every event hook must stay fully paired, which is checked against
+    # the rows in _rt_attach_frame_correlation before any join is emitted.
+    outstanding = summary.get("outstanding_threads")
+    if profile["name"] == "runtime-v4":
+        _require(outstanding in (0, 1), "summary failure:outstanding_threads=%r" % (outstanding,))
+    else:
+        _require(outstanding == 0, "summary failure:outstanding_threads=%r" % (outstanding,))
     for key in ("gate_read_failures", "gate_ambiguities", "gate_suspended_threads"):
         # The V3 capture summary omits the gate counters; when present they
         # must be zero, and the V2 profile continues to require them.
@@ -581,7 +598,11 @@ def _rt_check_counts(summary, pairs_by_hook, profile):
         stride = profile["hooks"][name]["sample_every"]
         total = counts[name]
         if stride == 1:
-            _require(total == len(pairs), "%s count %d != paired %d"
+            # V4's tick hook may report one enter whose leave never arrived at
+            # detach; that single tail is already excluded from the pairs.
+            allowance = 1 if (profile["name"] == "runtime-v4"
+                              and name == RUNTIME_V4_HOOK) else 0
+            _require(total == len(pairs) + allowance, "%s count %d != paired %d"
                      % (name, total, len(pairs)))
         else:
             expected = (total - 1) // stride + 1 if total else 0
@@ -591,7 +612,10 @@ def _rt_check_counts(summary, pairs_by_hook, profile):
             _require(pairs[-1][0] == (len(pairs) - 1) * stride + 1,
                      "%s last sampled ordinal mismatch" % name)
             _require(pairs[-1][0] <= total, "%s sampled ordinal exceeds count" % name)
-    _require(summary.get("emitted") == 2 * total_enters,
+    # A lone tick-hook enter without a leave explains exactly one missing record.
+    tail = 1 if (profile["name"] == "runtime-v4"
+                 and summary.get("outstanding_threads") == 1) else 0
+    _require(summary.get("emitted") == 2 * total_enters + tail,
              "summary emitted %r != enter+leave records %d"
              % (summary.get("emitted"), 2 * total_enters))
     return total_enters
@@ -850,7 +874,12 @@ def _rt_anchor_read(record, source, offset, size, phase, where, mask, mask_offse
     data = _rt_bytes(read, where, False)
     _require(len(data) == 12, "anchor read is not 12 bytes at %s" % where)
     raw_pointer = read.get("raw_pointer")
-    _require(isinstance(raw_pointer, str), "anchor read has no raw pointer at %s" % where)
+    if not isinstance(raw_pointer, str):
+        # A successful read without a retained pointer cannot be turned into an
+        # observation; record the missing evidence instead of inventing a chain.
+        return {"status": "position_read_failed", "reason": "no_raw_pointer",
+                "raw_hex": None, "sha256": None, "xyz": None,
+                "raw_pointer": None, "target": None, "size": size}
     pointer = _address(raw_pointer, where + ":raw_pointer")
     applied = read.get("applied_mask")
     _require(isinstance(applied, str) and _norm_mask(applied) == mask,
@@ -1204,11 +1233,20 @@ def _rt_extract(rows, source_name, source_sha256, line_count, index, index_name,
 
     check_by_ordinal = {item[0]: item for item in checks}
     check_by_call_id = {item[2].get("call_id"): item for item in checks}
+    # V4's tick hook sits between event callbacks on the stack, so a destroy's
+    # nearest recorded parent can be the tick call rather than the destruction
+    # check. That is recorded as an interrupted link, never guessed.
+    tick_call_ids = {item[2].get("call_id")
+                     for item in pairs_by_hook.get(RUNTIME_V4_HOOK, ())}
     destroys_by_parent = {}
     lifecycle_destroys = []
     cleanup_destroys = []
     for ordinal, enter_line, enter, leave_line, leave in destroys:
         parent = enter.get("parent_call_id")
+        parent_link = "recorded"
+        if parent in tick_call_ids:
+            parent = None
+            parent_link = "interrupted_by_tick_hook"
         return_address = enter.get("return_address")
         arguments = enter.get("args")
         _require(isinstance(arguments, list) and len(arguments) == 1,
@@ -1223,6 +1261,7 @@ def _rt_extract(rows, source_name, source_sha256, line_count, index, index_name,
             "ordinal": ordinal,
             "call_id": enter.get("call_id"),
             "parent_call_id": parent,
+            "parent_link": parent_link,
             "parent_recorded": enter.get("parent_recorded") is True,
             "return_address": return_address,
             "argument_raw": arguments[0],
@@ -1237,14 +1276,18 @@ def _rt_extract(rows, source_name, source_sha256, line_count, index, index_name,
             "header_identical_enter_leave": header == leave_header,
         }
         if return_address == RUNTIME_DESTROY_LIFECYCLE_RETURN:
-            _require(record["parent_recorded"], "lifecycle destroy has no recorded parent")
-            _require(parent in check_by_call_id,
-                     "lifecycle destroy parent is not a destruction check")
+            if parent_link == "interrupted_by_tick_hook":
+                record["lifecycle_parent"] = "unresolved_tick_hook_interposed"
+            else:
+                _require(record["parent_recorded"], "lifecycle destroy has no recorded parent")
+                _require(parent in check_by_call_id,
+                         "lifecycle destroy parent is not a destruction check")
             _require(record["argument_raw"] == "0x1",
                      "unexpected lifecycle destroy argument %r" % record["argument_raw"])
             lifecycle_destroys.append(record)
-            _require(parent not in destroys_by_parent, "two destroys for one check")
-            destroys_by_parent[parent] = record
+            if parent is not None:
+                _require(parent not in destroys_by_parent, "two destroys for one check")
+                destroys_by_parent[parent] = record
         elif return_address == RUNTIME_DESTROY_CLEANUP_RETURN:
             _require(parent is None, "cleanup destroy unexpectedly has a parent")
             _require(record["argument_raw"] == "0x6",
@@ -2116,7 +2159,21 @@ def _rt_attach_frame_correlation(manifest, rows):
     hook = RUNTIME_V4_HOOK
     if not any(row.get("hook") == hook for row in rows):
         return manifest
+    unpaired = {}
+    for row in rows:
+        name = row.get("hook")
+        if not name:
+            continue
+        if row.get("event") == "enter":
+            unpaired[name] = unpaired.get(name, 0) + 1
+        elif row.get("event") == "leave":
+            unpaired[name] = unpaired.get(name, 0) - 1
+    leftovers = {name: count for name, count in unpaired.items() if count}
+    _require(set(leftovers) <= {hook}, "unpaired call outside the tick hook: %r" % (leftovers,))
     joins, summary = correlate_tick_frames(rows, manifest.get("events") or ())
+    summary["unpaired_calls"] = leftovers
+    summary["unpaired_note"] = (
+        "unpaired calls are confined to the tick hook; no event hook lost a pair")
     for event in manifest.get("events") or ():
         join = joins.get(event.get("ordinal"))
         if join is None:

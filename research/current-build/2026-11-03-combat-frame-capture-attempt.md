@@ -1,6 +1,8 @@
 # Revision 131544: attempted frame-indexed combat capture (bounded session)
 
-Status: **incomplete experiment**. The instrumentation and offline join are
+Status: **superseded for the capture goal** by
+[frame-indexed combat events](2026-11-03-combat-frames-captured.md). Kept as the
+record of the failed window plan. Original status: incomplete experiment. The instrumentation and offline join are
 implemented and tested, but **no combat event was captured with a frame index**.
 This note records what the session actually produced, why it stopped short, and
 the smallest next step. It does not claim a battle timeline.

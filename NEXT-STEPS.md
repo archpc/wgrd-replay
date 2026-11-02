@@ -47,7 +47,7 @@ the structural authority. The recipe is in the
 | `TIAKillGameplayMessage` | lifecycle only, not kill credit | causal chain §4 |
 | Kill table / kill points (debrief) | source = `TTeam` stats `+0x64`/`+0x70` (static); UI binding unresolved | causal chain §10 |
 | Weapon identity | static: entry `+0x00` is the firing `TAmmunition` descriptor; 2092 unique GUIDs indexed. **Not yet observed** | causal chain §9 |
-| Movement / tactical events | **open**: position anchors are raw, uncalibrated | [position AAR](research/current-build/2026-11-02-position-aar.md) |
+| Movement / tactical events | **open**: position anchors are raw, uncalibrated; this capture produced 0 anchor changes | [position AAR](research/current-build/2026-11-02-position-aar.md) |
 | Frame → simulation time | static: one frame per 0.2 s tick; origin = replay load | [frame consumption](research/current-build/2026-11-02-frame-clock-consumption.md) |
 | Recorded order apply path | static: `TNetworkActionGiveOrderStandard` slot 1 `0xb2be30`; outcome unknown | frame consumption §3 |
 | Frame/tick clock | observed: 5.00 frames/s, ticks 1:1 with frames, integer difference 10 or 11 (boundary unresolved) | [frame/tick capture](research/current-build/2026-11-02-frame-tick-capture.md) |
