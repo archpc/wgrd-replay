@@ -56,15 +56,44 @@ envelope named after it, for example `decompile-0xcf97ad.json`.
    mode-2 entry when module `+0x248` is non-zero. That explains the zero calls
    seen at `0xc4cba0`. It is not on the AAR path.
 
+6. **Ownership.** `0xa72ae0` is `add ecx,0x24; call 0xb00700; mov eax,[eax+0x5c]`
+   (byte-checked). So owner `+0x24` is a reference to a type-2 owning object,
+   and that object's `+0x5c` is the team number used for `TargetTeamNumber`.
+   `0xb7aba0` compares two such `+0x5c` values before granting experience. In
+   the retained trace all six VTT-323s carry `0x00020005`; both Merkavas and
+   cleanup handle 0 carry `0x00020004`.
+7. **`Killed` consumers.** `0xa938f0` (`TEventInfoManagerModule`) subscribes
+   with the filter `Killed == 1`, `TargetTeamNumber == own team` and `Target`
+   present, with callback `0xa951a0`. `0xbfcde0` subscribes to `Killed == 0`
+   with `DamagesType == 2`. These are the in-game event notifications. The
+   debrief kill-stats UI is built by `0x1248620`/`0x1248b50`
+   (`TUIWargame2OutGameDebriefKillStatsLine`, vtable `0x1a06e64`) and
+   `0x12478f3` (`...KillStats`, vtable `0x1a06eb0`). Its data provider is still
+   unlocated. `0x12585b0`, the only `EG_KILLS` reference, formats career
+   profile statistics alongside `EG_VICTLVL` and `EG_WINSTRK`; it is not
+   per-battle scoring. The debrief corroborates the AAR but is not on the
+   causal path. A scored kill stays unconfirmed until its provider is found
+   or captured.
+8. **Actor company (H3).** The replay actor `0xC0000066`'s validation GUID
+   `00000000050000000300000014040000` is exactly the descriptor of
+   `Company_Merkava_IIIB_Baz` (node 51786), whose default member is
+   `Unit_Merkava_IIIB_Baz` (19537). The runtime Merkava owners have keys
+   `0xC0000067`/`0xC0000068`, and no owner-class object has key `0x66`. The
+   company-to-unit link itself is not runtime-observed
+   (`tests/test_aar_hypotheses.py`).
+
 ## Consequences for the AAR
 
 - Exporter source roles become `engine_credited_damage_source` with confidence
   `static_xp_credit_and_producer_dataflow`. Null source arguments stay
   `unresolved_owner`.
 - The retained traces already capture `Killed` (the check's AL), `Damages`,
-  `DamagesType` and `Target`. Team numbers are not captured.
-- Still open: the debrief kill table (`TUIWargame2OutGameDebriefKillStats`)
-  data source, exact weapon identity, and `R`'s full layout.
+  `DamagesType` and `Target`. The exporter emits `killed_token`, a static
+  mapping of the observed AL; no captured message and no confirmed scored kill.
+  It also emits a per-unit `owning_object_ref`. Team numbers are not captured,
+  so no player, faction or team is assigned.
+- Still open: the debrief data provider, exact weapon identity, `R`'s full
+  layout, and runtime proof of the company-to-unit link.
 
 ## Reproduction
 

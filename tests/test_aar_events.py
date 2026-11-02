@@ -125,6 +125,20 @@ class RuntimeProfileTests(unittest.TestCase):
             source_counts[key] = source_counts.get(key, 0) + 1
         self.assertEqual(source_counts, {"0x54b14220": 10, "0x50397c20": 7, "0x0": 11})
 
+    def test_runtime_owning_refs_and_killed_token_levels(self):
+        refs = {unit["handle_u32"]: unit["owning_object_ref"]["raw"]
+                for unit in self.manifest["units"]}
+        self.assertEqual({refs[handle] for handle in (31, 32, 33, 34, 39, 40)},
+                         {"0x00020005"})
+        self.assertEqual({refs[handle] for handle in (0, 74, 75)}, {"0x00020004"})
+        self.assertNotIn("ownership", self.manifest)
+        for item in self.manifest["damage_lifecycle_observations"]:
+            token = item["killed_token"]
+            self.assertTrue(token["value"])
+            self.assertEqual(token["level"], "static_mapping_of_observed_check_al")
+            self.assertFalse(token["combat_message_captured"])
+            self.assertFalse(token["scored_kill_confirmed"])
+
     def test_runtime_check_uses_al_low_byte_not_upper_eax(self):
         events = self.manifest["events"]
         lethal = [event for event in events if event["check"]["al_u8"] == 1]
