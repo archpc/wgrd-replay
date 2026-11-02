@@ -35,9 +35,9 @@ the structural authority. The recipe is in the
 | Target/source unit types | observed + static index join | [unit data](research/current-build/2026-11-02-unit-data.md) |
 | Threshold → `Killed` token and owner destroy | observed AL and nested destroy; Killed = AL by static mapping. The message itself is not captured. Exported as `killed_token` | causal chain §3 |
 | Owning object per unit | observed owner `+0x24` ref, static meaning; exported as `owning_object_ref`. No player, faction or team assigned | causal chain §6 |
-| Scored kill | **open**: not independently confirmed | causal chain §7 |
+| Scored kill | static chain closed to `TTeam` stats (`0xc95040`→`+0x210/+0x214`→`0xb9b680`→`0xb6a570`). **Not observed** | causal chain §10 |
 | `TIAKillGameplayMessage` | lifecycle only, not kill credit | causal chain §4 |
-| Kill table / kill points (debrief) | corroboration only; provider not located | causal chain §7 |
+| Kill table / kill points (debrief) | source = `TTeam` stats `+0x64`/`+0x70` (static); UI binding unresolved | causal chain §10 |
 | Weapon identity | static: entry `+0x00` is the firing `TAmmunition` descriptor; 2092 unique GUIDs indexed. **Not yet observed** | causal chain §9 |
 | Movement / tactical events | **open**: position anchors are raw, uncalibrated | [position AAR](research/current-build/2026-11-02-position-aar.md) |
 
@@ -66,8 +66,10 @@ ammunition index (causal chain §9). No new hook is needed. Add `0xc52de0` only
 `within` the apply hook, replacing the 1-in-997 sample. Hook `0xa72ae0` (or read owning object `+0x5c`) to
 capture team numbers. Drop
 `frame_apply_candidate`, the order/reference hooks and the clock sampler.
-Locate the debrief kill-stats provider statically first. Do not write the
-config or exporter profile before the run is authorized.
+For scored kills: hook `0xb6a570` (args: victim descriptor, victim owner,
+shooter descriptor, value) and `0xb9b680` enter (read victim module
+`+0x210`/`+0x214`). Read impact `arg3` `+0x0c` for the credited team object.
+Do not write the config or exporter profile before the run is authorized.
 
 ## Other priorities
 

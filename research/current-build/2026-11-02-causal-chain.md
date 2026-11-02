@@ -69,12 +69,11 @@ envelope named after it, for example `decompile-0xcf97ad.json`.
    with `DamagesType == 2`. These are the in-game event notifications. The
    debrief kill-stats UI is built by `0x1248620`/`0x1248b50`
    (`TUIWargame2OutGameDebriefKillStatsLine`, vtable `0x1a06e64`) and
-   `0x12478f3` (`...KillStats`, vtable `0x1a06eb0`). Its data provider is still
-   unlocated. `0x12585b0`, the only `EG_KILLS` reference, formats career
+   `0x12478f3` (`...KillStats`, vtable `0x1a06eb0`). Its data source is the `TTeam`
+   statistics of section 10; the binding-to-UI path is unresolved. `0x12585b0`, the only `EG_KILLS` reference, formats career
    profile statistics alongside `EG_VICTLVL` and `EG_WINSTRK`; it is not
    per-battle scoring. The debrief corroborates the AAR but is not on the
-   causal path. A scored kill stays unconfirmed until its provider is found
-   or captured.
+   causal path.
 8. **Actor company (H3).** The replay actor `0xC0000066`'s validation GUID
    `00000000050000000300000014040000` is exactly the descriptor of
    `Company_Merkava_IIIB_Baz` (node 51786), whose default member is
@@ -99,6 +98,47 @@ envelope named after it, for example `decompile-0xcf97ad.json`.
    it. `0xc9f910`'s `param_4` is the entry, and both traces show
    `arg3 - ecx = 0x10` (25 calls) or `0x84` (3 calls), so entry `+0x00` lies
    inside the damage module's inline entry storage.
+10. **Kill-scoring chain.** All links are byte-checked in
+   `tests/test_aar_kill_scoring.py`.
+    - *Store.* For each entry, `0xc95040` loads `esi = entry+0x0c` (`0xc95121`)
+      and `eax = entry+0x10` (`0xc95188`), and passes `entry+0x10` as `arg2` of
+      the apply call (`0xc951e6`/`0xc951fd`, vtable `+0x98` = `0xc9f910`). After a
+      nonzero result it stores `module+0x214 = entry+0x0c` and
+      `module+0x210 = entry+0x10` (`0xc95292`/`0xc95298`). `ShooterTeamNumber` is
+      `[esi+0x5c]` (`0xc9534b`). So `+0x214` is the shooter's team object and
+      `+0x210` the shooter's unit descriptor. If entry flag `+0x50` bit 0 is set,
+      `esi` is replaced by an allied team or a default. These are last-hit fields,
+      overwritten by each nonzero hit.
+    - *Credit.* `0xb9b680` is `sipTUniteGamePlay` vtable `+0x3c`. It reads the
+      victim's damage module `+0x214`/`+0x210` (`0xb9b86c`/`0xb9b875`), computes a
+      value from the victim descriptor (`+0xdc`, its `+0xe4` field), and splits it
+      across the credited team (in game mode 10, also its allies). For each
+      credited team it calls `0xb6a570` on `team[+0x134]` (`0xb7a4a0`). The
+      victim's team gets `0xb6a630`.
+    - *Statistics.* `0xb6a570` adds the value to `+0x70[shooter descriptor]`,
+      increments `+0x64[victim descriptor]` and `+0x24` (the total), and
+      increments `+0x1c` or `+0x20` by a victim flag. It also adds the value to
+      `+0x30` and to per-category arrays `+0xcc`/`+0xe0` (category from
+      descriptor `+0xa8`). `0xb6a630` increments `+0x58[victim descriptor]` and
+      `+0x28` and adds the value to `+0x2c`/`+0xb8`. The Python binding
+      `TTeam.GetStatsDescriptorsKilled` (`0xa4a2d0`) returns `team[+0x134]+0x64`.
+    - *Invocation.* `0xa79680` (vtable `+0x48`) calls `+0x3c`. The owner-destroy
+      function `0xa75c70` calls `+0x48` directly only when unit `+0x20 == -1`.
+      Otherwise it posts `TIAKillGameplayMessage` (`0xafe9f0`).
+    - *Kinds.* These are distinct: kill counts (`+0x64`, `+0x24`), kill value
+      (`+0x70`, `+0x30`), losses (`+0x58`, `+0x28`), XP (`0xc9f910`'s
+      `ExperienceMessage`, a separate path), and debrief display.
+    - *Retained traces.* All 28 impact calls in both traces return to
+      `0xc95200`, so `arg2` is `entry+0x10`. Every `arg2` is a
+      `TUniteAuSolDescriptor`. At the three lethal checks, the last `arg2` GUID
+      joins `Unit_Merkava_IIIB_Baz`. All six observed owner destroys have
+      `+0x20 != -1`, so they took the message branch. The traces observe no store,
+      credit or statistics call. **No scored kill is observed.**
+    - *Unresolved edges.* (a) `TIAKillGameplayMessage` consumer → `0xa79680`;
+      (b) whether the `0xc95292` store ran for the lethal hits (it requires a
+      nonzero result); (c) `entry+0x0c` for the observed entries, which is not
+      read; (d) score conditions in `0xb9b680` (mode switch, `0xb7abf0`) for this
+      match; (e) Python debrief → `GetStatsDescriptorsKilled` → kill-table UI.
 
 ## Consequences for the AAR
 
@@ -113,7 +153,9 @@ envelope named after it, for example `decompile-0xcf97ad.json`.
 - Weapon identity needs one indirect read of `[arg3]` on the existing impact
   hook, joined by GUID to the ammunition index. Until it is captured, events
   keep `weapon` in `not_claimed`.
-- Still open: the debrief data provider, runtime weapon observation, `R`'s full
+- Scored kills: the static chain to `TTeam` statistics is closed (section 10).
+  The exporter still claims none; no trace observes `0xb9b680` or `0xb6a570`.
+- Still open: section 10's edges (a)–(e), runtime weapon observation, `R`'s full
   layout, and runtime proof of the company-to-unit link.
 
 ## Reproduction
