@@ -760,3 +760,79 @@ class PositionTransitionTiming(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class FrameCorrelationTests(unittest.TestCase):
+    """Mechanics of joining event lines to tick-hook frame brackets."""
+
+    HOOK = "tick_step"
+
+    def _tick_rows(self, call_id, enter, leave, frame_in, frame_out):
+        def make(event, stamp, frame):
+            return {"event": event, "hook": self.HOOK, "call_id": call_id,
+                    "timestamp_utc": stamp,
+                    "reads": [
+                        {"source": "ecx", "phase": event, "offset": 108, "size": 4,
+                         "result": {"ok": True, "hex": struct.pack("<I", frame).hex()}},
+                        {"source": "ecx", "phase": event, "offset": 165, "size": 1,
+                         "result": {"ok": True, "hex": "01"}},
+                    ]}
+        return [make("enter", enter, frame_in), make("leave", leave, frame_out)]
+
+    def _marker(self, stamp, hook="impact_apply_candidate"):
+        return {"event": "enter", "hook": hook, "call_id": 9999,
+                "timestamp_utc": stamp, "reads": []}
+
+    def test_event_inside_a_tick_call_keeps_both_frame_edges(self):
+        rows = self._tick_rows(1, "2026-01-01T00:00:00.000Z", "2026-01-01T00:00:00.010Z", 40, 41)
+        rows.append(self._marker("2026-01-01T00:00:00.005Z"))
+        joins, summary = aar.correlate_tick_frames(rows, [{"ordinal": 1, "refs": {"enter_line": "L3"}}])
+        join = joins[1]
+        self.assertEqual(join["status"], "inside_tick_call")
+        self.assertEqual((join["frame_low"], join["frame_high"]), (40, 41))
+        self.assertEqual(join["bracket_before_seconds"], 0.0)
+        self.assertEqual(summary["status_counts"], {"inside_tick_call": 1})
+
+    def test_event_between_close_calls_is_bracketed_to_one_frame(self):
+        rows = self._tick_rows(1, "2026-01-01T00:00:00.000Z", "2026-01-01T00:00:00.002Z", 40, 40)
+        rows += self._tick_rows(2, "2026-01-01T00:00:00.100Z", "2026-01-01T00:00:00.102Z", 40, 41)
+        rows.append(self._marker("2026-01-01T00:00:00.050Z"))
+        joins, _ = aar.correlate_tick_frames(rows, [{"ordinal": 1, "refs": {"enter_line": "L5"}}])
+        join = joins[1]
+        self.assertEqual(join["status"], "bracketed")
+        self.assertEqual((join["frame_low"], join["frame_high"]), (40, 40))
+        self.assertAlmostEqual(join["bracket_before_seconds"], 0.048, places=6)
+        self.assertAlmostEqual(join["bracket_after_seconds"], 0.05, places=6)
+
+    def test_wide_gap_and_missing_side_stay_unresolved(self):
+        rows = self._tick_rows(1, "2026-01-01T00:00:00.000Z", "2026-01-01T00:00:00.002Z", 40, 40)
+        rows += self._tick_rows(2, "2026-01-01T00:00:05.000Z", "2026-01-01T00:00:05.002Z", 41, 41)
+        rows.append(self._marker("2026-01-01T00:00:02.000Z"))
+        rows.append(self._marker("2026-01-01T00:00:09.000Z"))
+        events = [{"ordinal": 1, "refs": {"enter_line": "L5"}},
+                  {"ordinal": 2, "refs": {"enter_line": "L6"}}]
+        joins, summary = aar.correlate_tick_frames(rows, events)
+        self.assertEqual(joins[1]["status"], "wide_bracket")
+        self.assertEqual(joins[1]["frame_low"], 40)
+        self.assertEqual(joins[2]["status"], "unbracketed")
+        self.assertIsNone(joins[2]["frame_low"])
+        self.assertEqual(summary["status_counts"], {"unbracketed": 1, "wide_bracket": 1})
+
+    def test_no_tick_hook_leaves_manifest_untouched(self):
+        manifest = {"events": [{"ordinal": 1, "time": {"frame": None}}]}
+        rows = [self._marker("2026-01-01T00:00:00.000Z")]
+        self.assertIs(aar._rt_attach_frame_correlation(manifest, rows), manifest)
+        self.assertNotIn("frame_correlation", manifest)
+
+    def test_supersedes_the_naive_frame_hypothesis(self):
+        rows = self._tick_rows(1, "2026-01-01T00:00:00.000Z", "2026-01-01T00:00:00.002Z", 7, 7)
+        rows.append(self._marker("2026-01-01T00:00:00.001Z"))
+        manifest = {"events": [{"ordinal": 1, "refs": {"enter_line": "L3"},
+                                "time": {"replay_frame_hypothesis": {"value": 35,
+                                                                     "status": "hypothesis_0p2s_per_replay_frame"}}}]}
+        aar._rt_attach_frame_correlation(manifest, rows)
+        event = manifest["events"][0]
+        self.assertEqual(event["time"]["replay_frame_hypothesis"]["status"],
+                         "superseded_by_tick_frame_correlation")
+        self.assertEqual(event["time"]["frame_correlation"]["frame_low"], 7)
+        self.assertEqual(manifest["frame_correlation"]["tick_intervals"], 1)

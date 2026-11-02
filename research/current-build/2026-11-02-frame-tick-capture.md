@@ -93,10 +93,13 @@ bounds                              = [(frame - 11) * 0.2, (frame - 10) * 0.2]
 with provenance `single_capture_statistic`. No universal offset is applied to
 other replays; each replay would need its own observation.
 
-## Result 5: the phase hook never fired
+## Result 5: the phase hook did not fire in this window
 
 `0xab4780` produced **0** calls in 481.8 s, including the whole load sequence
-and 462 s of playback. It is not the deployment→battle transition path for a
+and 462 s of playback. A later session saw it fire once during replay
+(`0x2`, tick 2905); see the
+[combat frame attempt](2026-11-03-combat-frame-capture-attempt.md). "Never
+called" was too strong. It is not the deployment→battle transition path for a
 replay, or it is not reached in this window. The previously retained single
 observation with argument `0x2` remains a single sample; battle start is still
 unresolved and no phase timeline is claimed.

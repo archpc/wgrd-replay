@@ -51,7 +51,7 @@ the structural authority. The recipe is in the
 | Frame → simulation time | static: one frame per 0.2 s tick; origin = replay load | [frame consumption](research/current-build/2026-11-02-frame-clock-consumption.md) |
 | Recorded order apply path | static: `TNetworkActionGiveOrderStandard` slot 1 `0xb2be30`; outcome unknown | frame consumption §3 |
 | Frame/tick clock | observed: 5.00 frames/s, ticks 1:1 with frames, integer difference 10 or 11 (boundary unresolved) | [frame/tick capture](research/current-build/2026-11-02-frame-tick-capture.md) |
-| Battle start / phase boundary | **unknown**: `0xab4780` never called in 481.8 s of load and playback | frame/tick capture §5 |
+| Battle start / phase boundary | **unknown**: `0xab4780` fired once during replay (arg `0x2`, tick 2905); one sample is not a timeline | [combat attempt](research/current-build/2026-11-03-combat-frame-capture-attempt.md) |
 
 ## Hypotheses (tested, not proven)
 
