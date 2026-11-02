@@ -203,6 +203,11 @@ candidate descriptor at return-object+0x28, and captures clock getter calls only
 inside selected roots. `frame_apply_candidate` at `0xb2b310` records two raw
 arguments; the caller at `0xb3dccd` passes the decoded frame and command object.
 The relationship between a runtime counter and replay frame remains unresolved.
+The phase-change candidate at `0xab4780` records its raw type argument, the
+GameplayServices counter, phase-manager header and three named flags on both
+sides. Its tail target `0x6d17e0` stores the argument at manager+0x0c. Native
+configuration contains deployment type 1 and wargame type 2, but their use by this
+live manager and any battle-clock zero require the planned runtime capture.
 
 The first expanded capture had 28 impact calls, 28 threshold checks and six
 owner/lifecycle calls, with no suppressed events or callback/stack errors. It did
