@@ -40,6 +40,16 @@ verified milestones are indexed in [research](research/INDEX.md):
   The complete guest evidence export is hash-verified; source-owner provenance
   remains a separate static research thread.
 
+The task-private ANSI watcher prototype is staged in the guest with matching
+host/guest hashes, but it has not been armed and no live file-open witness has
+been collected. The freshly launched game reached the Eugen login screen after the recovery/AutoSettings prompts
+were declined or cancelled; no configuration recovery or graphics benchmark was
+requested. No offline/skip control was detected. Pause the live probe for manual
+login: do not enter credentials, change the profile, or treat menu counters as
+login proof. The 13-file follow-up guest export is hash-verified on the Mac;
+no watcher is running. Revalidate process/UI identity and arm the bounded watcher
+before opening Profile/Replay after authorization is restored.
+
 Next: target the engine's imported CreateFileA path for an actual file-open witness,
 validate phase/clock mapping and
 the full replay cycle only when a specific live experiment is ready, corroborate
