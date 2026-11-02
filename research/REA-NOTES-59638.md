@@ -65,7 +65,7 @@ FUN_010b9500 (reads one chunk; Ghidra pseudocode, one decompiler):
 5. visitor->vtbl[+8](tag, fieldA, base+tell(), length): payload passed raw, no decoding here.
 6. seek(+length, relative).
 7. If this[5] != 0 and tell() >= this[5]: finalize SHA-224 and compare 28 bytes with the
-   0x1c block read in the header (this[3]); visitor->vtbl[+0xc](../match). Whether a mismatch
+   0x1c block read in the header (this[3]); visitor->vtbl[+0xc](match). Whether a mismatch
    is fatal is UNKNOWN. What this[5] holds (end offset? declared size?) is UNKNOWN.
 
 Byte-level confirmation (Python, all 3 samples): file[0x0C:0x28] == SHA-224(file[0x28:EOF]).
