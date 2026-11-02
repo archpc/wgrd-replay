@@ -16,6 +16,9 @@ controlled experiment.
 
 [Clock computation and capture targets](current-build/2026-11-02-aar-clock.md)
 records the build-matched counter-to-float path and damage-module timestamp store.
+The current
+[guarded Win32 input and read-only state observer](current-build/2026-11-02-state-observer.md)
+separates counter motion from the independently named engine `GameEnded` flag.
 Runtime clock origin, live unit identities and causal kills remain unresolved.
 
 ## Revision-131544 Frida and data-flow research (2026-10-29)
