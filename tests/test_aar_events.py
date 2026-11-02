@@ -60,6 +60,11 @@ class RuntimeProfileTests(unittest.TestCase):
             cls.rows, RUNTIME_TRACE.name, aar.RUNTIME_TRACE_SHA256, len(cls.rows),
             cls.index, RUNTIME_INDEX.name, aar.RUNTIME_INDEX_SHA256)
 
+    def test_descriptor_captured_at_lists_each_impact_once(self):
+        refs = [ref for item in self.manifest["descriptor_joins"] for ref in item["captured_at"]]
+        self.assertEqual(len(refs), len(set(refs)))
+        self.assertEqual(len(refs), len(self.manifest["events"]))
+
     def runtime_extract(self, rows, index=None, name=None, sha=None):
         return aar.extract_runtime(
             rows, name or RUNTIME_TRACE.name, sha or aar.RUNTIME_TRACE_SHA256,

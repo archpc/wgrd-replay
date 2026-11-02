@@ -9,6 +9,9 @@ the player's commands. Combat outcomes exist only when the engine re-executes
 them. Playback is deterministic at the observed boundary: two captures with
 different hook sets produced the same 28 impacts.
 
+Repository cleanup is frozen as of 2026-11-02 (PRs #19–#21). Work now returns to
+understanding the game; change structure only when a game question requires it.
+
 ## Canonical AAR workflow
 
 1. Run an authorized playback with `instrumentation/wgrd_frida.py`,

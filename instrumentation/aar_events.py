@@ -1299,12 +1299,8 @@ def _rt_extract(rows, source_name, source_sha256, line_count, index, index_name,
                      "arg1+0x28 != arg2 at %s" % where)
             source_status = "readable"
 
-        target_read = _rt_read_record(enter, "arg2", 0, 128, "enter", where)
-        arg2_bytes = _rt_bytes(target_read, where, False)
-        arg2_guid = arg2_bytes[0x0c:0x1c].hex()
-        arg2_token = arg2_bytes[0x60:0x68].hex()
+        # arg2's descriptor bytes were recorded once per impact above.
         arg2_address = int(arguments[2], 16)
-        _rt_descriptor_bytes(descriptor_bucket, arg2_address, arg2_guid, arg2_token, where)
 
         lookup = unit_lookup_by_handle.get(handle)
         _require(lookup is not None,
