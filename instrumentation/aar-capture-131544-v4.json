@@ -1,0 +1,292 @@
+{
+  "revision": "131544",
+  "sha256": "5eaa6d6168c9570ff9789bffb3b2cc16fd908be61263b12fcc1e8b2f09efc75d",
+  "module": "wargame3.exe",
+  "ghidra_base": "0x400000",
+  "hooks": [
+    {
+      "name": "impact_apply_candidate",
+      "va": "0xc9f910",
+      "args": 5,
+      "sample_every": 1,
+      "reads": [
+        {
+          "source": "ecx",
+          "offset": 0,
+          "size": 16,
+          "phase": "enter"
+        },
+        {
+          "source": "ecx",
+          "offset": 400,
+          "size": 96,
+          "phase": "both"
+        },
+        {
+          "source": "ecx",
+          "offset": 4,
+          "size": 128,
+          "phase": "enter",
+          "indirect": true
+        },
+        {
+          "source": "arg1",
+          "offset": 0,
+          "size": 128,
+          "phase": "enter"
+        },
+        {
+          "source": "arg2",
+          "offset": 0,
+          "size": 128,
+          "phase": "enter"
+        }
+      ]
+    },
+    {
+      "name": "destruction_check_candidate",
+      "va": "0xc9bf20",
+      "args": 1,
+      "sample_every": 1,
+      "reads": [
+        {
+          "source": "ecx",
+          "offset": 0,
+          "size": 16,
+          "phase": "enter"
+        },
+        {
+          "source": "ecx",
+          "offset": 400,
+          "size": 96,
+          "phase": "both"
+        }
+      ]
+    },
+    {
+      "name": "owner_destroy_candidate",
+      "va": "0xa75c70",
+      "args": 1,
+      "sample_every": 1,
+      "reads": [
+        {
+          "source": "ecx",
+          "offset": 0,
+          "size": 128,
+          "phase": "both"
+        },
+        {
+          "source": "ecx",
+          "offset": 40,
+          "size": 128,
+          "phase": "enter",
+          "indirect": true
+        },
+        {
+          "source": "ecx",
+          "offset": 228,
+          "size": 12,
+          "phase": "enter",
+          "indirect": true,
+          "indirect_mask": "FFFFFFFC",
+          "indirect_offset": 48
+        }
+      ]
+    },
+    {
+      "name": "clock_sample_candidate",
+      "va": "0xaaedf0",
+      "args": 0,
+      "sample_every": 997,
+      "reads": [
+        {
+          "source": "ecx",
+          "offset": 208,
+          "size": 4,
+          "phase": "enter"
+        }
+      ]
+    },
+    {
+      "name": "order_request_wrapper",
+      "va": "0xb2be30",
+      "args": 2,
+      "sample_every": 1,
+      "reads": [
+        {
+          "source": "ecx",
+          "offset": 4,
+          "size": 20,
+          "phase": "enter"
+        },
+        {
+          "source": "ecx",
+          "offset": 88,
+          "size": 4,
+          "phase": "enter"
+        },
+        {
+          "source": "ecx",
+          "offset": 208,
+          "size": 36,
+          "phase": "enter"
+        }
+      ]
+    },
+    {
+      "name": "reference_remap",
+      "va": "0xae4830",
+      "args": 1,
+      "sample_every": 1,
+      "reads": [
+        {
+          "source": "arg0",
+          "offset": 0,
+          "size": 4,
+          "phase": "enter"
+        },
+        {
+          "source": "retval",
+          "offset": 0,
+          "size": 4,
+          "phase": "leave"
+        }
+      ],
+      "within": [
+        "order_request_wrapper"
+      ]
+    },
+    {
+      "name": "reference_lookup",
+      "va": "0xae48d0",
+      "args": 2,
+      "sample_every": 1,
+      "reads": [
+        {
+          "source": "retval",
+          "offset": 0,
+          "size": 128,
+          "phase": "leave"
+        },
+        {
+          "source": "retval",
+          "offset": 40,
+          "size": 128,
+          "phase": "leave",
+          "indirect": true
+        }
+      ],
+      "within": [
+        "order_request_wrapper"
+      ]
+    },
+    {
+      "name": "owner_lookup_candidate",
+      "va": "0xc52de0",
+      "args": 0,
+      "sample_every": 997,
+      "reads": [
+        {
+          "source": "ecx",
+          "offset": 8,
+          "size": 4,
+          "phase": "enter"
+        },
+        {
+          "source": "retval",
+          "offset": 0,
+          "size": 128,
+          "phase": "leave"
+        },
+        {
+          "source": "retval",
+          "offset": 40,
+          "size": 128,
+          "phase": "leave",
+          "indirect": true
+        },
+        {
+          "source": "retval",
+          "offset": 228,
+          "size": 12,
+          "phase": "leave",
+          "indirect": true,
+          "indirect_mask": "FFFFFFFC",
+          "indirect_offset": 48
+        }
+      ]
+    },
+    {
+      "name": "frame_apply_candidate",
+      "va": "0xb2b310",
+      "args": 2,
+      "sample_every": 1,
+      "reads": []
+    },
+    {
+      "name": "phase_change_candidate",
+      "va": "0xab4780",
+      "args": 1,
+      "sample_every": 1,
+      "reads": [
+        {
+          "source": "ecx",
+          "offset": 208,
+          "size": 4,
+          "phase": "both"
+        },
+        {
+          "source": "ecx",
+          "offset": 56,
+          "size": 16,
+          "phase": "both",
+          "indirect": true
+        },
+        {
+          "source": "ecx",
+          "offset": 32,
+          "size": 4,
+          "phase": "both"
+        }
+      ]
+    },
+    {
+      "name": "tick_step",
+      "va": "0xb34060",
+      "args": 1,
+      "sample_every": 1,
+      "reads": [
+        {
+          "source": "ecx",
+          "offset": 104,
+          "size": 4,
+          "phase": "both"
+        },
+        {
+          "source": "ecx",
+          "offset": 108,
+          "size": 4,
+          "phase": "both"
+        },
+        {
+          "source": "ecx",
+          "offset": 160,
+          "size": 1,
+          "phase": "both"
+        },
+        {
+          "source": "ecx",
+          "offset": 164,
+          "size": 1,
+          "phase": "both"
+        },
+        {
+          "source": "ecx",
+          "offset": 165,
+          "size": 1,
+          "phase": "both"
+        }
+      ]
+    }
+  ]
+}

@@ -23,6 +23,9 @@ Status codes: **S** reproduction script, **T** regression tests, **E** static-an
 | Native positions (V3) | [position AAR](current-build/2026-11-02-position-aar.md) | same |
 | Build-matched unit index | [unit data](current-build/2026-11-02-unit-data.md) | `research/aar_unit_index.py`, `tests/test_aar_unit_index.py` |
 | Engine state and guarded guest input | [engine state](current-build/2026-11-02-engine-state.md) | `instrumentation/state_observe.py`, `instrumentation/WgrdUi.cs` |
+| Replay frame consumption and the 0.2 s simulation tick | [frame consumption](current-build/2026-11-02-frame-clock-consumption.md) | `wgrd_timeline_report.py`, `tests/test_timeline_report.py` |
+| Frame/tick/battle clock, bounded playback | [frame/tick capture](current-build/2026-11-02-frame-tick-capture.md) | `instrumentation/frameclock-131544.json` |
+| Frame-indexed combat events (runtime-v4) | [combat frames](current-build/2026-11-03-combat-frames-captured.md) | `instrumentation/aar-capture-131544-v4.json`, `tests/test_aar_events.py` |
 | Offline corpus and order queue on the current executable | [offline corpus](current-build/2026-10-29-offline-corpus.md) | `research/offline_corpus.py`, `tests/test_offline_corpus.py` |
 | Clock and actor hypotheses (H1-H3) | [NEXT-STEPS.md](../NEXT-STEPS.md) | `tests/test_aar_hypotheses.py` |
 

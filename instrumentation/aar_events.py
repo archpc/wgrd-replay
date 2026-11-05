@@ -322,6 +322,53 @@ RUNTIME_PROFILE_V3 = {
     ),
 }
 
+# ---------------------------------------------------------------------------
+# Additive V4 profile: V3 plus the tick/frame step hook.
+#
+# `0xb34060` is the per-tick step: it accumulates seconds, consumes one 0.2 s
+# quantum and advances the manager frame index (+0x6c) by exactly one. Hooking
+# its entry/leave with the entry-time manager pointer gives, for any later
+# callback, the frame interval it fell inside and the wall-time distance to the
+# bracketing calls. It does not give an exact interleaving guarantee, so every
+# join carries its bracket and a status; a wide bracket stays unresolved.
+# ---------------------------------------------------------------------------
+
+RUNTIME_V4_SCHEMA = "wgrd-aar-runtime-v4/1"
+RUNTIME_V4_HOOK = "tick_step"
+RUNTIME_V4_BRACKET_TOLERANCE_SECONDS = 1.0
+RUNTIME_V4_HOOK_SPECS = {name: dict(spec) for name, spec in RUNTIME_V3_HOOK_SPECS.items()}
+RUNTIME_V4_HOOK_SPECS[RUNTIME_V4_HOOK] = {
+    "va": "0xb34060", "args": 1, "sample_every": 1,
+    "reads": (("ecx", 104, 4, "both", False),   # +0x68 accumulator seconds
+              ("ecx", 108, 4, "both", False),   # +0x6c frame index
+              ("ecx", 160, 1, "both", False),   # +0xa0
+              ("ecx", 164, 1, "both", False),   # +0xa4
+              ("ecx", 165, 1, "both", False)),  # +0xa5 replay byte
+    "masks": {},
+}
+RUNTIME_V4_CAPTURE_CONFIG = {
+    "file": "aar-capture-131544-v4.json",
+    "sha256": "ab7810a27470d37b9571241ed60f507d4deeaaef87101fc8f3d2b8c0a5752de1",
+}
+# The run reuses the retained capture-era controller pair unchanged.
+RUNTIME_V4_CAPTURE_SOURCE_PINS = RUNTIME_CAPTURE_SOURCE_PINS
+
+RUNTIME_PROFILE_V4 = {
+    "name": "runtime-v4",
+    "schema": RUNTIME_V4_SCHEMA,
+    "capture_config_pin": RUNTIME_V4_CAPTURE_CONFIG,
+    "capture_source_pins": RUNTIME_V4_CAPTURE_SOURCE_PINS,
+    "hooks": RUNTIME_V4_HOOK_SPECS,
+    "position_hooks": RUNTIME_PROFILE_V3["position_hooks"],
+    "extra_limitations": RUNTIME_PROFILE_V3["extra_limitations"] + (
+        "Frame joins come from one tick hook's entry/leave reads; an event is "
+        "assigned an exact frame only when it lies inside a tick call or between "
+        "two calls closer than the tolerance, otherwise its frame stays a bracket.",
+        "The frame/tick difference is carried as observed integers (10 or 11); no "
+        "midpoint is applied and no battle start is derived.",
+    ),
+}
+
 
 def _norm_mask(value):
     return value.lower().replace("0x", "")
@@ -329,7 +376,7 @@ def _norm_mask(value):
 
 def _rt_profile(name):
     profiles = {profile["name"]: profile for profile in
-                (RUNTIME_PROFILE_V2, RUNTIME_PROFILE_V3)}
+                (RUNTIME_PROFILE_V2, RUNTIME_PROFILE_V3, RUNTIME_PROFILE_V4)}
     _require(name in profiles, "unknown profile %r" % name)
     return profiles[name]
 
@@ -341,7 +388,7 @@ def _rt_detect_profile(rows):
     hooks = starts[0].get("hooks")
     _require(isinstance(hooks, list), "start record has no hooks")
     names = {hook.get("name") for hook in hooks}
-    for profile in (RUNTIME_PROFILE_V2, RUNTIME_PROFILE_V3):
+    for profile in (RUNTIME_PROFILE_V4, RUNTIME_PROFILE_V3, RUNTIME_PROFILE_V2):
         if names == set(profile["hooks"]):
             return profile
     raise AarTraceError("unknown hook profile: %s"
@@ -420,6 +467,16 @@ def _rt_pairs(grouped, name, profile):
         key = (record.get("thread_id"), record.get("call_id"))
         _require(key not in leaves, "duplicate %s leave:%d" % (name, line_number))
         leaves[key] = (line_number, record)
+    if profile["name"] == "runtime-v4" and name == RUNTIME_V4_HOOK:
+        # The high-frequency tick hook can still be inside a call at detach.
+        # Only this hook may drop its last enter, and only one; the frame join
+        # then works from the completed intervals and reports the gap.
+        without_leave = set(enters) - set(leaves)
+        _require(not (set(leaves) - set(enters)), "%s leave without enter" % name)
+        _require(len(without_leave) <= 1, "%s has %d unpaired enters"
+                 % (name, len(without_leave)))
+        for key in without_leave:
+            enters.pop(key)
     _require(set(enters) == set(leaves), "%s missing pair: enters=%d leaves=%d"
              % (name, len(enters), len(leaves)))
     pairs = []
@@ -506,9 +563,16 @@ def _rt_validate_header(rows, profile):
         _require(entries[name].get("executable") is True,
                  "identity address not executable for %s" % name)
 
-    for key in ("suppressed", "callback_errors", "stale_frames", "stack_mismatches",
-                "outstanding_threads"):
+    for key in ("suppressed", "callback_errors", "stale_frames", "stack_mismatches"):
         _require(summary.get(key) == 0, "summary failure:%s=%r" % (key, summary.get(key)))
+    # V4 adds a high-frequency tick hook. One thread can still be inside it at
+    # detach; every event hook must stay fully paired, which is checked against
+    # the rows in _rt_attach_frame_correlation before any join is emitted.
+    outstanding = summary.get("outstanding_threads")
+    if profile["name"] == "runtime-v4":
+        _require(outstanding in (0, 1), "summary failure:outstanding_threads=%r" % (outstanding,))
+    else:
+        _require(outstanding == 0, "summary failure:outstanding_threads=%r" % (outstanding,))
     for key in ("gate_read_failures", "gate_ambiguities", "gate_suspended_threads"):
         # The V3 capture summary omits the gate counters; when present they
         # must be zero, and the V2 profile continues to require them.
@@ -534,7 +598,11 @@ def _rt_check_counts(summary, pairs_by_hook, profile):
         stride = profile["hooks"][name]["sample_every"]
         total = counts[name]
         if stride == 1:
-            _require(total == len(pairs), "%s count %d != paired %d"
+            # V4's tick hook may report one enter whose leave never arrived at
+            # detach; that single tail is already excluded from the pairs.
+            allowance = 1 if (profile["name"] == "runtime-v4"
+                              and name == RUNTIME_V4_HOOK) else 0
+            _require(total == len(pairs) + allowance, "%s count %d != paired %d"
                      % (name, total, len(pairs)))
         else:
             expected = (total - 1) // stride + 1 if total else 0
@@ -544,7 +612,10 @@ def _rt_check_counts(summary, pairs_by_hook, profile):
             _require(pairs[-1][0] == (len(pairs) - 1) * stride + 1,
                      "%s last sampled ordinal mismatch" % name)
             _require(pairs[-1][0] <= total, "%s sampled ordinal exceeds count" % name)
-    _require(summary.get("emitted") == 2 * total_enters,
+    # A lone tick-hook enter without a leave explains exactly one missing record.
+    tail = 1 if (profile["name"] == "runtime-v4"
+                 and summary.get("outstanding_threads") == 1) else 0
+    _require(summary.get("emitted") == 2 * total_enters + tail,
              "summary emitted %r != enter+leave records %d"
              % (summary.get("emitted"), 2 * total_enters))
     return total_enters
@@ -803,7 +874,12 @@ def _rt_anchor_read(record, source, offset, size, phase, where, mask, mask_offse
     data = _rt_bytes(read, where, False)
     _require(len(data) == 12, "anchor read is not 12 bytes at %s" % where)
     raw_pointer = read.get("raw_pointer")
-    _require(isinstance(raw_pointer, str), "anchor read has no raw pointer at %s" % where)
+    if not isinstance(raw_pointer, str):
+        # A successful read without a retained pointer cannot be turned into an
+        # observation; record the missing evidence instead of inventing a chain.
+        return {"status": "position_read_failed", "reason": "no_raw_pointer",
+                "raw_hex": None, "sha256": None, "xyz": None,
+                "raw_pointer": None, "target": None, "size": size}
     pointer = _address(raw_pointer, where + ":raw_pointer")
     applied = read.get("applied_mask")
     _require(isinstance(applied, str) and _norm_mask(applied) == mask,
@@ -1157,11 +1233,20 @@ def _rt_extract(rows, source_name, source_sha256, line_count, index, index_name,
 
     check_by_ordinal = {item[0]: item for item in checks}
     check_by_call_id = {item[2].get("call_id"): item for item in checks}
+    # V4's tick hook sits between event callbacks on the stack, so a destroy's
+    # nearest recorded parent can be the tick call rather than the destruction
+    # check. That is recorded as an interrupted link, never guessed.
+    tick_call_ids = {item[2].get("call_id")
+                     for item in pairs_by_hook.get(RUNTIME_V4_HOOK, ())}
     destroys_by_parent = {}
     lifecycle_destroys = []
     cleanup_destroys = []
     for ordinal, enter_line, enter, leave_line, leave in destroys:
         parent = enter.get("parent_call_id")
+        parent_link = "recorded"
+        if parent in tick_call_ids:
+            parent = None
+            parent_link = "interrupted_by_tick_hook"
         return_address = enter.get("return_address")
         arguments = enter.get("args")
         _require(isinstance(arguments, list) and len(arguments) == 1,
@@ -1176,6 +1261,7 @@ def _rt_extract(rows, source_name, source_sha256, line_count, index, index_name,
             "ordinal": ordinal,
             "call_id": enter.get("call_id"),
             "parent_call_id": parent,
+            "parent_link": parent_link,
             "parent_recorded": enter.get("parent_recorded") is True,
             "return_address": return_address,
             "argument_raw": arguments[0],
@@ -1190,14 +1276,18 @@ def _rt_extract(rows, source_name, source_sha256, line_count, index, index_name,
             "header_identical_enter_leave": header == leave_header,
         }
         if return_address == RUNTIME_DESTROY_LIFECYCLE_RETURN:
-            _require(record["parent_recorded"], "lifecycle destroy has no recorded parent")
-            _require(parent in check_by_call_id,
-                     "lifecycle destroy parent is not a destruction check")
+            if parent_link == "interrupted_by_tick_hook":
+                record["lifecycle_parent"] = "unresolved_tick_hook_interposed"
+            else:
+                _require(record["parent_recorded"], "lifecycle destroy has no recorded parent")
+                _require(parent in check_by_call_id,
+                         "lifecycle destroy parent is not a destruction check")
             _require(record["argument_raw"] == "0x1",
                      "unexpected lifecycle destroy argument %r" % record["argument_raw"])
             lifecycle_destroys.append(record)
-            _require(parent not in destroys_by_parent, "two destroys for one check")
-            destroys_by_parent[parent] = record
+            if parent is not None:
+                _require(parent not in destroys_by_parent, "two destroys for one check")
+                destroys_by_parent[parent] = record
         elif return_address == RUNTIME_DESTROY_CLEANUP_RETURN:
             _require(parent is None, "cleanup destroy unexpectedly has a parent")
             _require(record["argument_raw"] == "0x6",
@@ -1921,6 +2011,182 @@ def _rt_unit_histories(events, lookup_by_handle, lookup_samples, descriptor_buck
     return units
 
 
+def _rt_utc_seconds(value):
+    """Parse the trace's ISO-8601 UTC timestamp into epoch seconds."""
+    text = str(value).replace("Z", "+00:00")
+    return datetime.datetime.fromisoformat(text).timestamp()
+
+
+def _rt_read_bytes(row, offset, phase=None):
+    for read in row.get("reads") or ():
+        if read.get("offset") != offset:
+            continue
+        if phase is not None and read.get("phase") != phase:
+            continue
+        result = read.get("result") or {}
+        if result.get("ok") is True and result.get("hex"):
+            return bytes.fromhex(result["hex"])
+    return None
+
+
+def _rt_raw_u32(raw):
+    return struct.unpack("<I", raw)[0] if raw else None
+
+
+def _rt_tick_intervals(rows, hook=RUNTIME_V4_HOOK):
+    """Pair the tick hook's enter/leave reads into frame intervals.
+
+    Each interval carries the frame index read at entry and at leave plus the
+    UTC seconds of both edges. Frames only change inside such an interval, so an
+    event outside every interval has a constant frame between the neighbouring
+    calls; the distance to those calls is the join's real uncertainty.
+    """
+    enters = {}
+    leaves = {}
+    for row in rows:
+        if row.get("hook") != hook:
+            continue
+        if row.get("event") == "enter":
+            enters[row.get("call_id")] = row
+        elif row.get("event") == "leave":
+            leaves[row.get("call_id")] = row
+    intervals = []
+    for call_id, enter in enters.items():
+        leave = leaves.get(call_id)
+        if leave is None:
+            continue
+        frame_enter = _rt_raw_u32(_rt_read_bytes(enter, 108))
+        frame_leave = _rt_raw_u32(_rt_read_bytes(leave, 108))
+        if frame_enter is None or frame_leave is None:
+            continue
+        intervals.append({
+            "call_id": call_id,
+            "enter_seconds": _rt_utc_seconds(enter["timestamp_utc"]),
+            "leave_seconds": _rt_utc_seconds(leave["timestamp_utc"]),
+            "frame_enter": frame_enter,
+            "frame_leave": frame_leave,
+            "replay_byte": (_rt_read_bytes(enter, 165) or b"\x00")[0],
+        })
+    intervals.sort(key=lambda item: item["enter_seconds"])
+    return intervals
+
+
+def correlate_tick_frames(rows, events, tolerance_s=RUNTIME_V4_BRACKET_TOLERANCE_SECONDS):
+    """Join each event line to the tick intervals that bracket it.
+
+    Returns ``(joins, summary)``. A join is exact only when the event line lies
+    inside a tick call or strictly between two calls no farther apart than the
+    tolerance; otherwise ``frame_low``/``frame_high`` stay a bracket and the
+    status says why. No nearest-timestamp substitution is used.
+    """
+    intervals = _rt_tick_intervals(rows)
+    starts = [item["enter_seconds"] for item in intervals]
+    joins = {}
+    counts = {}
+    for event in events:
+        refs = event.get("refs") or {}
+        line_ref = refs.get("enter_line") or refs.get("destroy_enter_line") or ""
+        digits = "".join(ch for ch in str(line_ref) if ch.isdigit())
+        if not digits:
+            joins[event.get("ordinal")] = {"status": "no_line_reference"}
+            counts["no_line_reference"] = counts.get("no_line_reference", 0) + 1
+            continue
+        index = int(digits) - 1
+        if not 0 <= index < len(rows):
+            joins[event.get("ordinal")] = {"status": "line_out_of_range"}
+            counts["line_out_of_range"] = counts.get("line_out_of_range", 0) + 1
+            continue
+        when = _rt_utc_seconds(rows[index]["timestamp_utc"])
+        position = bisect.bisect_right(starts, when)
+        previous = intervals[position - 1] if position else None
+        following = intervals[position] if position < len(intervals) else None
+        if previous is not None and previous["enter_seconds"] <= when <= previous["leave_seconds"]:
+            join = {
+                "status": "inside_tick_call",
+                "frame_low": previous["frame_enter"],
+                "frame_high": previous["frame_leave"],
+                "bracket_before_seconds": 0.0,
+                "bracket_after_seconds": 0.0,
+                "tick_call_id": previous["call_id"],
+                "replay_byte": previous["replay_byte"],
+            }
+        elif previous is None or following is None:
+            join = {
+                "status": "unbracketed",
+                "frame_low": None,
+                "frame_high": None,
+                "bracket_before_seconds": (round(when - previous["leave_seconds"], 6)
+                                           if previous else None),
+                "bracket_after_seconds": (round(following["enter_seconds"] - when, 6)
+                                          if following else None),
+            }
+        else:
+            before = when - previous["leave_seconds"]
+            after = following["enter_seconds"] - when
+            join = {
+                "status": ("bracketed" if before <= tolerance_s and after <= tolerance_s
+                           else "wide_bracket"),
+                "frame_low": previous["frame_leave"],
+                "frame_high": previous["frame_leave"],
+                "bracket_before_seconds": round(before, 6),
+                "bracket_after_seconds": round(after, 6),
+                "tick_call_id": previous["call_id"],
+                "next_tick_call_id": following["call_id"],
+                "replay_byte": previous["replay_byte"],
+            }
+        if join["frame_low"] is not None:
+            join["estimated_deterministic_seconds_bounds"] = [
+                round((join["frame_low"] - 11) * 0.2, 3),
+                round((join["frame_high"] - 10) * 0.2, 3),
+            ]
+        join["event_utc"] = rows[index]["timestamp_utc"]
+        joins[event.get("ordinal")] = join
+        counts[join["status"]] = counts.get(join["status"], 0) + 1
+    summary = {
+        "hook": RUNTIME_V4_HOOK,
+        "tick_intervals": len(intervals),
+        "tolerance_seconds": tolerance_s,
+        "status_counts": dict(sorted(counts.items())),
+        "basis": "tick_hook_entry_leave_frame_reads",
+        "note": "A bracketed frame is exact only within the recorded bracket; "
+                "wide or unbracketed joins stay unresolved.",
+    }
+    return joins, summary
+
+
+def _rt_attach_frame_correlation(manifest, rows):
+    """Attach tick-frame joins to every event that has one."""
+    hook = RUNTIME_V4_HOOK
+    if not any(row.get("hook") == hook for row in rows):
+        return manifest
+    unpaired = {}
+    for row in rows:
+        name = row.get("hook")
+        if not name:
+            continue
+        if row.get("event") == "enter":
+            unpaired[name] = unpaired.get(name, 0) + 1
+        elif row.get("event") == "leave":
+            unpaired[name] = unpaired.get(name, 0) - 1
+    leftovers = {name: count for name, count in unpaired.items() if count}
+    _require(set(leftovers) <= {hook}, "unpaired call outside the tick hook: %r" % (leftovers,))
+    joins, summary = correlate_tick_frames(rows, manifest.get("events") or ())
+    summary["unpaired_calls"] = leftovers
+    summary["unpaired_note"] = (
+        "unpaired calls are confined to the tick hook; no event hook lost a pair")
+    for event in manifest.get("events") or ():
+        join = joins.get(event.get("ordinal"))
+        if join is None:
+            continue
+        time_block = event.setdefault("time", {})
+        time_block["frame_correlation"] = join
+        if "replay_frame_hypothesis" in time_block:
+            time_block["replay_frame_hypothesis"]["status"] = (
+                "superseded_by_tick_frame_correlation")
+    manifest["frame_correlation"] = summary
+    return manifest
+
+
 def extract_runtime(rows, source_name, source_sha256, line_count, index,
                     index_name, index_sha256, profile=None):
     """Recompute the runtime manifest from parsed rows and a parsed index.
@@ -1930,8 +2196,9 @@ def extract_runtime(rows, source_name, source_sha256, line_count, index,
     """
     if isinstance(profile, str):
         profile = _rt_profile(profile)
-    return _rt_extract(rows, source_name, source_sha256, line_count, index,
-                       index_name, index_sha256, profile)
+    manifest = _rt_extract(rows, source_name, source_sha256, line_count, index,
+                           index_name, index_sha256, profile)
+    return _rt_attach_frame_correlation(manifest, rows)
 
 
 def _rt_verify_capture_sources(directory, profile=None):
@@ -1943,7 +2210,7 @@ def _rt_verify_capture_sources(directory, profile=None):
     for name, expected in pins.items():
         path = Path(directory) / name
         actual = hashlib.sha256(path.read_bytes()).hexdigest() if path.exists() else None
-        if profile["name"] == "runtime-v3":
+        if profile["name"] in ("runtime-v3", "runtime-v4"):
             _require(actual is not None, "capture source missing: %s" % name)
         _require(actual is None or actual == expected,
                  "capture source sha256 mismatch: %s" % name)
@@ -1962,6 +2229,7 @@ def extract_runtime_file(trace_path, index_path,
         profile = _rt_profile(profile)
     manifest = _rt_extract(rows, name, digest, line_count, index, index_name,
                            index_sha256, profile)
+    manifest = _rt_attach_frame_correlation(manifest, rows)
     resolved = profile or _rt_detect_profile(rows)
     records = _rt_verify_capture_sources(Path(trace_path).parent / "capture-sources",
                                          resolved)
@@ -2282,6 +2550,19 @@ def write_runtime_outputs(manifest, out_dir):
                                     if key != "events"}),
         "chronology.md": render_runtime_chronology(manifest),
     }
+    if "frame_correlation" in manifest:
+        payloads["combat_frames.json"] = _json_text({
+            "schema": "wgrd-aar-combat-frames/1",
+            "source": manifest["source"],
+            "profile": manifest.get("profile"),
+            "frame_correlation": manifest["frame_correlation"],
+            "events": [{"ordinal": event.get("ordinal"),
+                        "kind": event.get("kind"),
+                        "line_ref": event.get("line_ref"),
+                        "frame_correlation": (event.get("time") or {}).get("frame_correlation")}
+                       for event in manifest.get("events") or ()],
+            "limitations": manifest["limitations"],
+        })
     if "position_observations" in manifest:
         payloads["positions.json"] = _json_text({
             "schema": RUNTIME_V3_POSITIONS_SCHEMA,
@@ -2313,7 +2594,8 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("trace", help="path to the raw runtime JSONL trace")
     parser.add_argument("--out", required=True, help="events output directory")
-    parser.add_argument("--profile", choices=("runtime", "runtime-v3"), default="runtime",
+    parser.add_argument("--profile", choices=("runtime", "runtime-v3", "runtime-v4"),
+                        default="runtime",
                         help="trace profile (default: runtime)")
     parser.add_argument("--runtime", action="store_true",
                         help="compatibility alias for --profile runtime")
@@ -2328,7 +2610,7 @@ def main(argv=None):
         return 2
     selected = args.profile
     expect_trace = args.expect_sha256
-    if expect_trace is None:
+    if expect_trace is None and selected != "runtime-v4":
         expect_trace = (RUNTIME_V3_TRACE_SHA256 if selected == "runtime-v3"
                         else RUNTIME_TRACE_SHA256)
     try:

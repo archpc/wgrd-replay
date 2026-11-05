@@ -760,3 +760,129 @@ class PositionTransitionTiming(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class FrameCorrelationTests(unittest.TestCase):
+    """Mechanics of joining event lines to tick-hook frame brackets."""
+
+    HOOK = "tick_step"
+
+    def _tick_rows(self, call_id, enter, leave, frame_in, frame_out):
+        def make(event, stamp, frame):
+            return {"event": event, "hook": self.HOOK, "call_id": call_id,
+                    "timestamp_utc": stamp,
+                    "reads": [
+                        {"source": "ecx", "phase": event, "offset": 108, "size": 4,
+                         "result": {"ok": True, "hex": struct.pack("<I", frame).hex()}},
+                        {"source": "ecx", "phase": event, "offset": 165, "size": 1,
+                         "result": {"ok": True, "hex": "01"}},
+                    ]}
+        return [make("enter", enter, frame_in), make("leave", leave, frame_out)]
+
+    def _marker(self, stamp):
+        # A plain event line: no hook, so it cannot disturb pairing checks.
+        return {"event": "enter", "call_id": 9999, "timestamp_utc": stamp, "reads": []}
+
+    def test_event_inside_a_tick_call_keeps_both_frame_edges(self):
+        rows = self._tick_rows(1, "2026-01-01T00:00:00.000Z", "2026-01-01T00:00:00.010Z", 40, 41)
+        rows.append(self._marker("2026-01-01T00:00:00.005Z"))
+        joins, summary = aar.correlate_tick_frames(rows, [{"ordinal": 1, "refs": {"enter_line": "L3"}}])
+        join = joins[1]
+        self.assertEqual(join["status"], "inside_tick_call")
+        self.assertEqual((join["frame_low"], join["frame_high"]), (40, 41))
+        self.assertEqual(join["bracket_before_seconds"], 0.0)
+        self.assertEqual(summary["status_counts"], {"inside_tick_call": 1})
+
+    def test_event_between_close_calls_is_bracketed_to_one_frame(self):
+        rows = self._tick_rows(1, "2026-01-01T00:00:00.000Z", "2026-01-01T00:00:00.002Z", 40, 40)
+        rows += self._tick_rows(2, "2026-01-01T00:00:00.100Z", "2026-01-01T00:00:00.102Z", 40, 41)
+        rows.append(self._marker("2026-01-01T00:00:00.050Z"))
+        joins, _ = aar.correlate_tick_frames(rows, [{"ordinal": 1, "refs": {"enter_line": "L5"}}])
+        join = joins[1]
+        self.assertEqual(join["status"], "bracketed")
+        self.assertEqual((join["frame_low"], join["frame_high"]), (40, 40))
+        self.assertAlmostEqual(join["bracket_before_seconds"], 0.048, places=6)
+        self.assertAlmostEqual(join["bracket_after_seconds"], 0.05, places=6)
+
+    def test_wide_gap_and_missing_side_stay_unresolved(self):
+        rows = self._tick_rows(1, "2026-01-01T00:00:00.000Z", "2026-01-01T00:00:00.002Z", 40, 40)
+        rows += self._tick_rows(2, "2026-01-01T00:00:05.000Z", "2026-01-01T00:00:05.002Z", 41, 41)
+        rows.append(self._marker("2026-01-01T00:00:02.000Z"))
+        rows.append(self._marker("2026-01-01T00:00:09.000Z"))
+        events = [{"ordinal": 1, "refs": {"enter_line": "L5"}},
+                  {"ordinal": 2, "refs": {"enter_line": "L6"}}]
+        joins, summary = aar.correlate_tick_frames(rows, events)
+        self.assertEqual(joins[1]["status"], "wide_bracket")
+        self.assertEqual(joins[1]["frame_low"], 40)
+        self.assertEqual(joins[2]["status"], "unbracketed")
+        self.assertIsNone(joins[2]["frame_low"])
+        self.assertEqual(summary["status_counts"], {"unbracketed": 1, "wide_bracket": 1})
+
+    def test_no_tick_hook_leaves_manifest_untouched(self):
+        manifest = {"events": [{"ordinal": 1, "time": {"frame": None}}]}
+        rows = [self._marker("2026-01-01T00:00:00.000Z")]
+        self.assertIs(aar._rt_attach_frame_correlation(manifest, rows), manifest)
+        self.assertNotIn("frame_correlation", manifest)
+
+    def test_supersedes_the_naive_frame_hypothesis(self):
+        rows = self._tick_rows(1, "2026-01-01T00:00:00.000Z", "2026-01-01T00:00:00.002Z", 7, 7)
+        rows.append(self._marker("2026-01-01T00:00:00.001Z"))
+        manifest = {"events": [{"ordinal": 1, "refs": {"enter_line": "L3"},
+                                "time": {"replay_frame_hypothesis": {"value": 35,
+                                                                     "status": "hypothesis_0p2s_per_replay_frame"}}}]}
+        aar._rt_attach_frame_correlation(manifest, rows)
+        event = manifest["events"][0]
+        self.assertEqual(event["time"]["replay_frame_hypothesis"]["status"],
+                         "superseded_by_tick_frame_correlation")
+        self.assertEqual(event["time"]["frame_correlation"]["frame_low"], 7)
+        self.assertEqual(manifest["frame_correlation"]["tick_intervals"], 1)
+
+
+class CombatFrameCaptureTests(unittest.TestCase):
+    """V4 export: every combat callback carries a bounded replay frame."""
+
+    TRACE = Path(os.environ.get(
+        "WGRD_AAR_V4_TRACE",
+        Path.home() / ".hermes" / "artifacts" / "wgrd-replay"
+        / "combat-frames-20261103" / "run07" / "run-07.jsonl"))
+    SHA256 = "acb8ecdc9f264c2784590180e1b316822a3ade6db13cd3c4969c9046f90d6f21"
+
+    @classmethod
+    def setUpClass(cls):
+        if not cls.TRACE.exists() or not RUNTIME_INDEX.exists():
+            raise unittest.SkipTest("v4 combat trace/unit index unavailable")
+        cls.rows = aar.parse_trace(cls.TRACE.read_bytes())
+        cls.index = json.loads(RUNTIME_INDEX.read_text(encoding="utf-8"))
+        cls.manifest = aar.extract_runtime(
+            cls.rows, cls.TRACE.name, cls.SHA256, len(cls.rows), cls.index,
+            RUNTIME_INDEX.name, aar.RUNTIME_INDEX_SHA256, "runtime-v4")
+
+    def test_every_impact_carries_an_inside_tick_frame(self):
+        events = self.manifest["events"]
+        self.assertEqual(len(events), 28)
+        for event in events:
+            join = event["time"]["frame_correlation"]
+            self.assertEqual(join["status"], "inside_tick_call")
+            self.assertEqual(join["bracket_before_seconds"], 0.0)
+            self.assertEqual(join["frame_high"] - join["frame_low"], 1)
+        self.assertEqual(events[0]["time"]["frame_correlation"]["frame_low"], 4042)
+        self.assertEqual(events[-1]["time"]["frame_correlation"]["frame_low"], 4165)
+
+    def test_engine_seconds_fall_inside_the_derived_bounds(self):
+        for event in self.manifest["events"]:
+            observed = event["time"]["deterministic_time_seconds"]
+            low, high = event["time"]["frame_correlation"]["estimated_deterministic_seconds_bounds"]
+            self.assertGreaterEqual(observed, low - 1e-6)
+            self.assertLessEqual(observed, high + 1e-6)
+
+    def test_summary_reports_only_the_tick_tail_as_unpaired(self):
+        correlation = self.manifest["frame_correlation"]
+        self.assertEqual(correlation["status_counts"], {"inside_tick_call": 28})
+        self.assertEqual(correlation["unpaired_calls"], {"tick_step": 1})
+
+    def test_lifecycle_destroys_keep_their_frames(self):
+        destroys = [event for event in self.manifest["events"]
+                    if (event.get("destruction") or {}).get("kind") == "damage_lifecycle"]
+        self.assertEqual(len(destroys), 3)
+        frames = [event["time"]["frame_correlation"]["frame_low"] for event in destroys]
+        self.assertEqual(frames, [4042, 4043, 4164])

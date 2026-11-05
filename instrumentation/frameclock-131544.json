@@ -1,0 +1,41 @@
+{
+  "revision": "131544",
+  "sha256": "5eaa6d6168c9570ff9789bffb3b2cc16fd908be61263b12fcc1e8b2f09efc75d",
+  "module": "wargame3.exe",
+  "ghidra_base": "0x400000",
+  "hooks": [
+    {
+      "name": "tick_step",
+      "va": "0xb34060",
+      "args": 1,
+      "sample_every": 1,
+      "reads": [
+        {"source": "ecx", "offset": 104, "size": 4, "phase": "both"},
+        {"source": "ecx", "offset": 108, "size": 4, "phase": "both"},
+        {"source": "ecx", "offset": 160, "size": 1, "phase": "both"},
+        {"source": "ecx", "offset": 164, "size": 1, "phase": "both"},
+        {"source": "ecx", "offset": 165, "size": 1, "phase": "both"}
+      ]
+    },
+    {
+      "name": "clock_tick_sample",
+      "va": "0xaaedf0",
+      "args": 0,
+      "sample_every": 97,
+      "reads": [
+        {"source": "ecx", "offset": 208, "size": 4, "phase": "enter"}
+      ]
+    },
+    {
+      "name": "phase_store",
+      "va": "0xab4780",
+      "args": 1,
+      "sample_every": 1,
+      "reads": [
+        {"source": "arg0", "offset": 0, "size": 4, "phase": "enter"},
+        {"source": "ecx", "offset": 32, "size": 3, "phase": "both"},
+        {"source": "ecx", "offset": 52, "size": 4, "phase": "both"}
+      ]
+    }
+  ]
+}
