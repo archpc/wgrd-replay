@@ -93,9 +93,10 @@ def main(argv: list[str] | None = None) -> int:
             continue
         print(f"  func 0x{f[0]:08x}-0x{f[1]:08x} size={f[1]-f[0]} vtable_owner={at.name(f[0])}")
         calls = at.callers(image, f[0])
-        if args.validate:
+        if args.validate and calls:
             oracle = RizinOracle(args.exe, args.rizin, args.afl)
-            calls = [c for c in calls if oracle.confirm_call(c, f[0])]
+            verdicts = oracle.confirm_calls([(c, f[0]) for c in calls])
+            calls = [c for c in calls if verdicts.get(c)]
         print(f"  callers={len(calls)}")
         for site in calls[: args.max_callers]:
             cf = at.func_at(site)

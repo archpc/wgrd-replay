@@ -102,27 +102,49 @@ class TestRttiResolver(unittest.TestCase):
 
 
 class TestTunableMap(unittest.TestCase):
-    LISTING = [
+    STORES = [
         "            0x00b91b0b      movss xmm0, dword [edi+0x1b4]\n",
         "            0x00b91b13      mov   eax, dword [0x1da4048]               ; [0x1da4048:4]=0x20265f4\n",
         "            0x00b91b18      movss dword [0x2026348], xmm0\n",
         "            0x00b9214f      movzx eax, byte [edi+0x270]\n",
         "            0x00b92156      mov   byte [0x20263a1], al\n",
-        "            0x00b9215b      movzx eax, byte [edi+0x271]\n",
-        "            0x00b92162      mov   byte [0x20263a2], al\n",
+    ]
+    REGISTRY = [
+        "            0x00b94129      push  0x1ec                                ; 492\n",
+        "            0x00b9412e      push  0x00\n",
+        "            0x00b94130      push  str.DefaultDifficulty\n",
+        "            0x00b94135      call  0x544050\n",
+        "            0x00b94211      push  0x2b8                                ; 696\n",
+        "            0x00b94216      push  0x00\n",
+        "            0x00b94218      push  str.BonusDissimulationDesUnites\n",
     ]
 
     def test_pairs_load_with_store_across_intervening_instruction(self):
-        mapping = ai_tunable_map.parse(self.LISTING)
-        self.assertEqual(mapping[0x1B4][0]["global"],
-                         "0x02026348")
+        mapping = ai_tunable_map.parse_stores(self.STORES)
+        self.assertEqual(mapping[0x1B4][0]["global"], "0x02026348")
         self.assertEqual(mapping[0x270][0]["global"], "0x020263a1")
-        self.assertEqual(mapping[0x270][0]["width"], "byte")
         self.assertEqual(mapping[0x1B4][0]["store_site"], "0x00b91b18")
 
+    def test_store_register_must_match_the_load(self):
+        listing = [
+            "            0x00b9202f      mov   eax, dword [edi+0x264]\n",
+            "            0x00b92035      mov   dword [0x2026390], ecx\n",
+            "            0x00b9203b      mov   dword [0x2026394], eax\n",
+        ]
+        mapping = ai_tunable_map.parse_stores(listing)
+        self.assertEqual(mapping[0x264][0]["global"], "0x02026394")
+
+    def test_registry_pairs_offset_with_name(self):
+        table = ai_tunable_map.parse_registry(self.REGISTRY)
+        self.assertEqual(table[0x1EC], "DefaultDifficulty")
+        self.assertEqual(table[0x2B8], "BonusDissimulationDesUnites")
+
+    def test_registry_honours_address_bounds(self):
+        table = ai_tunable_map.parse_registry(self.REGISTRY, lo=None, hi=0xB94200)
+        self.assertEqual(set(table), {0x1EC})
+
     def test_no_pair_without_store(self):
-        mapping = ai_tunable_map.parse(self.LISTING[:1])
-        self.assertEqual(mapping, {})
+        self.assertEqual(ai_tunable_map.parse_stores(self.STORES[:1]), {})
 
 
 class TestDispXrefs(unittest.TestCase):
@@ -141,7 +163,7 @@ class TestDispXrefs(unittest.TestCase):
         hits = ai_field_xrefs.find_disp_xrefs(image, 0x271)
         self.assertEqual(len(hits), 1)
         self.assertEqual(hits[0]["base"], "[edi]")
-        self.assertEqual(hits[0]["site"], base + 1)
+        self.assertEqual(hits[0]["site"], base)          # instruction start
 
     def test_ebp_disp32_is_a_valid_base(self):
         base = 0x400000
@@ -155,7 +177,7 @@ class TestDispXrefs(unittest.TestCase):
         hits = ai_field_xrefs.find_disp_xrefs(image, 0x271)
         self.assertEqual(len(hits), 1)
         self.assertEqual(hits[0]["base"], "[ebp]")
-        self.assertEqual(hits[0]["site"], base + 1)
+        self.assertEqual(hits[0]["site"], base)          # instruction start
 
     def test_sib_follows_modrm(self):
         base = 0x400000
@@ -170,7 +192,52 @@ class TestDispXrefs(unittest.TestCase):
         hits = ai_field_xrefs.find_disp_xrefs(image, 0x271)
         self.assertEqual(len(hits), 1)
         self.assertEqual(hits[0]["base"], "[edi+ecx*4]")
-        self.assertEqual(hits[0]["site"], base + 1)
+        self.assertEqual(hits[0]["site"], base)          # instruction start
+
+
+    def test_two_byte_0f_opcode_is_accepted(self):
+        base = 0x400000
+        # movzx eax, byte [edi+0x270]: 0F B6 87 <disp32>. The byte before the
+        # ModRM is the second opcode byte, not a single-byte opcode.
+        body = bytes([0x0F, 0xB6, 0x87]) + struct.pack("<I", 0x270)
+        image = ai_rtti.Image(imagebase=base, size_of_image=0x2000, sections=[
+            ai_rtti.Section(name=".text", va=base, vsize=len(body), data=body,
+                            characteristics=ai_rtti.IMAGE_SCN_MEM_EXECUTE),
+        ])
+        hits = ai_field_xrefs.find_disp_xrefs(image, 0x270)
+        self.assertEqual(len(hits), 1)
+        self.assertEqual(hits[0]["site"], base)          # instruction start
+        self.assertEqual(hits[0]["base"], "[edi]")
+
+    def test_sib_ebp_base_is_not_no_base(self):
+        base = 0x400000
+        # mov edx, [ebp+ecx*4+0x270]: modrm 0x94 (mod=10, rm=4), sib 0x8d
+        # (scale=2, index=ecx, base=5). With mod != 0, base=5 means EBP.
+        body = bytes([0x8B, 0x94, 0x8D]) + struct.pack("<I", 0x270)
+        image = ai_rtti.Image(imagebase=base, size_of_image=0x2000, sections=[
+            ai_rtti.Section(name=".text", va=base, vsize=len(body), data=body,
+                            characteristics=ai_rtti.IMAGE_SCN_MEM_EXECUTE),
+        ])
+        hits = ai_field_xrefs.find_disp_xrefs(image, 0x270)
+        self.assertEqual(len(hits), 1)
+        self.assertEqual(hits[0]["base"], "[ebp+ecx*4]")
+
+
+class TestOracle(unittest.TestCase):
+    def test_confirm_requires_instruction_start_and_operand(self):
+        oracle = ai_field_xrefs.RizinOracle("unused")
+        oracle._funcs = [(0x1000, 0x1100)]
+        oracle._listing = {0x1010: "movzx eax, byte [edi+0x270]"}
+        self.assertTrue(oracle.confirm_many([(0x1010, 0x270)])[0x1010][0])
+        self.assertFalse(oracle.confirm_many([(0x1011, 0x270)])[0x1011][0])
+        self.assertFalse(oracle.confirm_many([(0x1010, 0x271)])[0x1010][0])
+
+    def test_confirm_calls_checks_mnemonic_and_target(self):
+        oracle = ai_field_xrefs.RizinOracle("unused")
+        oracle._funcs = [(0x2000, 0x2100)]
+        oracle._listing = {0x2010: "call 0x10828a5"}
+        self.assertTrue(oracle.confirm_calls([(0x2010, 0x10828A5)])[0x2010])
+        self.assertFalse(oracle.confirm_calls([(0x2010, 0x1082800)])[0x2010])
 
 
 class TestLedger(unittest.TestCase):
@@ -194,7 +261,7 @@ class TestLedger(unittest.TestCase):
 
     def test_tunable_globals_cover_the_named_fields(self):
         globals_map = json.loads(TUNABLE_GLOBALS.read_text())
-        self.assertEqual(len(globals_map), 65)
+        self.assertEqual(len(globals_map), 144)
         expected = {
             "0x01f0": "0x02026360",
             "0x01fc": "0x02026364",

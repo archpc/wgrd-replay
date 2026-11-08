@@ -9,10 +9,11 @@
     "imagebase": "0x00400000",
     "pdb": {
       "present": false,
-      "guid": "db6b159c652c9342b1950b30b1b8c179",
+      "guid": "db6b159c652c934291b50b30b1b8c179",
       "age": 1,
       "path": "C:\\Data\\GitlabBuild\\Nu8Q8jzE\\0\\eugen\\Slayer\\Bin\\WarGame.Final.Win32.pdb",
-      "note": "Reference only. Not symbol-rich: 1128 COFF symbols, nearly all TPoolAllocation statics. Names come from RTTI."
+      "note": "Reference only. Not symbol-rich: 1128 COFF symbols, nearly all TPoolAllocation statics. Names come from RTTI.",
+      "guid_note": "raw CodeView bytes at file offset 0x18625c8; quoted as bytes to avoid field-order ambiguity"
     }
   },
   "status_legend": {
@@ -22,71 +23,6 @@
     "not-examined": "identified in RTTI, not analysed in this pass",
     "refuted": "a specific hypothesis contradicted by observed bytes"
   },
-  "field_names": {
-    "0x01c4": "Color_02_Red",
-    "0x01c8": "Color_03_Teal",
-    "0x01cc": "Color_04_Purple",
-    "0x01dc": "PalierVictoireTotale",
-    "0x01e0": "PalierVictoireMajeure",
-    "0x01e4": "PalierVictoireMineure",
-    "0x01e8": "DefaultGameType",
-    "0x01ec": "DefaultDifficulty",
-    "0x01f0": "StockDeviseSupplementaireFacile",
-    "0x01f4": "MultiplicateurSeuilPinnedEtMortJoueurFacile",
-    "0x01f8": "MultiplicateurSeuilPinnedEtMortIAFacile",
-    "0x01fc": "StockDeviseSupplementaireMoyen",
-    "0x0200": "MultiplicateurSeuilPinnedEtMortJoueurMoyen",
-    "0x0204": "MultiplicateurSeuilPinnedEtMortIAMoyen",
-    "0x0208": "StockDeviseSupplementaireDifficile",
-    "0x020c": "MultiplicateurSeuilPinnedEtMortJoueurDifficile",
-    "0x0210": "MultiplicateurSeuilPinnedEtMortIADifficile",
-    "0x0214": "MultiplicateurDegatInfligeParLeJoueur_Facile",
-    "0x0218": "MultiplicateurDegatInfligeParLeJoueur_Moyen",
-    "0x021c": "MultiplicateurDegatInfligeParLeJoueur_Difficile",
-    "0x0220": "InstantMergeMaxDistance",
-    "0x0224": "QteDeviseParCamion",
-    "0x0228": "ForceAffichageCercleVision",
-    "0x022c": "FumigeneTimeout",
-    "0x0230": "FumigeneAlphaGhost",
-    "0x0234": "FumigeneMaxCount",
-    "0x0238": "EliminationWarningsDuration",
-    "0x023c": "FxRuseHeight",
-    "0x0240": "FxRuseSpacing",
-    "0x0244": "MultiplicateurMetreRTSVersDistanceFeedbackTactique",
-    "0x0248": "DelayBeforeNewMinimapWarning",
-    "0x024c": "AverageOnPeriod",
-    "0x0250": "SeedForIAStrat",
-    "0x025c": "MinPysicalDamageForAirToGroundAttackWitoutAP",
-    "0x0264": "BonusIAMoneyForSkirmish",
-    "0x0268": "VisibilityMemoTimer",
-    "0x0270": "IgnoreInvisibleUnit",
-    "0x0271": "InfluenceMapAlwaysKnowAllUnits",
-    "0x0272": "DeplacementPionsIAGroupes",
-    "0x0274": "PlaneSuperiority",
-    "0x0278": "InterceptorFactorForPlaneSuperiority",
-    "0x027c": "MultiroleFactorForPlaneSuperiority",
-    "0x0280": "NbAvionMaxParCibleAvantEquilibrage",
-    "0x0284": "RepartitionAvionAntiship",
-    "0x0288": "GroundAttackFactorForPlaneSuperiority",
-    "0x028c": "MaxDelayBeforeEvacuation",
-    "0x0290": "MinDelayBeforeEvacuation",
-    "0x0294": "OneRecoForXCaptures",
-    "0x0298": "OneRecoForXAttacks",
-    "0x029c": "UseNumberOfUnitsInAntiBoatStrike",
-    "0x02a0": "FactorForPlaneScoreInAntiBoatStrike",
-    "0x02a4": "StopBoatBeforeDanger",
-    "0x02a8": "RatioSupplyHealth",
-    "0x02ac": "RatioSupplyAmmoAndFuel",
-    "0x02b0": "RatioSupplyToStartAMission",
-    "0x02b4": "SupplyHealthForBoat",
-    "0x02b5": "SupplyFuelForBoat",
-    "0x02b6": "VisionParams_Default_Check3DMLos",
-    "0x02b8": "BonusDissimulationDesUnitesIntervientPourLeurEtatDeStealth",
-    "0x02bc": "FileExtension",
-    "0x02c0": "SimulatedSecondsInOneFrame",
-    "0x02c4": "StrategicAttackCanAffectAttacker",
-    "0x02c5": "UseZoneWithMostPointsForAlamo"
-  },
   "claims": [
     {
       "id": "P1",
@@ -95,7 +31,7 @@
       "claim": "Target is PE32 i386 with the pinned SHA-256; no PDB is available; RTTI is complete and is the only name source.",
       "evidence": [
         "rizin iI: bintype pe, bits 32, lang msvc, baddr 0x400000",
-        "RSDS at file offset 0x18625c8, guid db6b159c652c9342b1950b30b1b8c179, age 1",
+        "RSDS at file offset 0x18625c8, guid bytes db6b159c 652c9342 91b5 0b30 b1b8c179, age 1",
         "scripts/ai_rtti.py --slot-map: 2962 IA-namespace names, 2311 resolved, 5378 slots"
       ],
       "falsifier": "A PDB is found matching that GUID and age, or the image base/section table differs from the recorded values."
@@ -104,21 +40,21 @@
       "id": "P2",
       "axis": "meta",
       "status": "proven",
-      "claim": "The gameplay-tunables descriptor registers 76 (offset, name) pairs, including difficulty-indexed economy fields and separately named player/IA pinned-death multipliers.",
+      "claim": "The gameplay-constants registration function 0xb934b0-0xb947ac registers 160 (offset, name) pairs, including difficulty-indexed economy fields and separately named player/IA pinned-death multipliers.",
       "evidence": [
-        "registration call sites 0x00b94011-0x00b94909, one push <offset> / push 0 / push str.<name> triple each",
-        "field_names table in this ledger"
+        "registration call sites inside 0xb934b0-0xb947ac",
+        "ai-field-registry.json (generated by scripts/ai_tunable_map.py --mode registry)"
       ],
-      "falsifier": "Disassembly of the registration block does not show the listed offset/name triples."
+      "falsifier": "The bounded listing does not produce those offset/name triples, or a field is registered outside that function."
     },
     {
       "id": "P3",
       "axis": "meta",
       "status": "proven",
-      "claim": "Loader 0x00b914c0-0x00b921c1 copies 65 of those fields into fixed globals, so consumers are reachable by absolute-address xref without a PDB.",
+      "claim": "Loader 0x00b914c0-0x00b921c1 copies 144 of the registered fields into fixed globals, so consumers are reachable by absolute-address xref without a PDB.",
       "evidence": [
-        "scripts/ai_tunable_map.py over a Rizin listing of that function",
-        "ai-tunable-globals.json (65 entries) with load and store site per field"
+        "scripts/ai_tunable_map.py --mode stores over that function's listing",
+        "ai-tunable-globals.json (144 entries with load and store site)"
       ],
       "falsifier": "A field store in that range does not target the recorded global."
     },
@@ -175,12 +111,12 @@
       "id": "S2",
       "axis": "economy",
       "status": "suspected",
-      "claim": "BonusIAMoneyForSkirmish (0x02026390) is an AI-only skirmish money bonus.",
+      "claim": "BonusIAMoneyForSkirmish is named as a skirmish money term for the AI. No consumer was located, so neither its recipient nor its effect is established.",
       "evidence": [
         "name in the registration table at offset 0x0264",
         "store at 0x00b92035"
       ],
-      "missing": "No absolute-address reader exists; a base-pointer reader was not located.",
+      "missing": "No reader found by absolute address; a base-pointer reader was not located.",
       "falsifier": "The field is read by a path that applies to both teams identically, or it is unused."
     },
     {
@@ -227,7 +163,7 @@
     {
       "id": "E1",
       "kind": "offline-static",
-      "prediction": "The 76 registered names appear in NDF with values; StockDeviseSupplementaireFacile > 0; InfluenceMapAlwaysKnowAllUnits in {0,1}.",
+      "prediction": "The 160 registered names appear in NDF with values; StockDeviseSupplementaireFacile > 0; InfluenceMapAlwaysKnowAllUnits in {0,1}.",
       "falsifier": "Names absent, or value domain contradicts the access width in code."
     },
     {
@@ -248,5 +184,7 @@
       "prediction": "Under no exemption, AI and player units consume identical ammo/fuel for identical orders.",
       "falsifier": "AI consumption is lower for the same orders."
     }
-  ]
+  ],
+  "field_registry_file": "ai-field-registry.json",
+  "field_registry_note": "160 (offset, name) pairs registered by the gameplay-constants function 0xb934b0-0xb947ac"
 }

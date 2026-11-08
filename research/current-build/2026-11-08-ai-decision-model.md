@@ -20,8 +20,11 @@ the other.
   `win64` directory. Address math therefore uses 4-byte pointers and
   `ImageBase + section RVA`, with ImageBase `0x00400000`.
 * A **PDB is referenced but absent**. Debug directory: CodeView `RSDS` at file
-  offset `0x18625c8`, GUID `db6b159c652c9342b1950b30b1b8c179`, age 1, path
+  offset `0x18625c8`, raw GUID bytes `db6b159c 652c9342 91b5 0b30 b1b8c179`,
+  age 1, path
   `C:\Data\GitlabBuild\Nu8Q8jzE\0\eugen\Slayer\Bin\WarGame.Final.Win32.pdb`.
+  The GUID is quoted as bytes on purpose: the first three fields are stored
+  little-endian, so a "canonical" GUID string invites a field-order mistake.
   No `.pdb` exists in the artifact tree, the Steam data directory, or the
   local analysis directories. **The binary is not symbol-rich**: the COFF
   symbol table holds 1128 entries, almost all `TPoolAllocation::_sPoolStorage`
@@ -46,10 +49,16 @@ Verified chain example (bytes checked in Rizin, not inferred):
 
 ## 2. Gameplay tunables: the field table
 
-A descriptor-registration block at `0x00b94011`–`0x00b94909` pushes
-`(offset, name)` pairs for the gameplay-constant class. 76 pairs were
-recovered mechanically (`scripts/ai_field_xrefs.py` plus the registration
-listing). Fields that matter to this investigation:
+The gameplay-constants registration function `0x00b934b0`–`0x00b947ac`
+(prologue and `ret` verified) pushes `(offset, name)` pairs, three pushes per
+field: offset, zero, name token. **160 pairs** fall inside that function,
+recovered by `scripts/ai_tunable_map.py --mode registry` and committed as
+`ai-field-registry.json`. Bound the parse to the function: the same listing run
+past `0x00b947ac` picks up the *next* function's unit-descriptor fields
+(`TypeUnitValue`, `MotherCountry`, `Training`, `CIWS`, …), which is how an
+earlier draft of this note reported a wrong count and range.
+
+Fields that matter to this investigation:
 
 | offset | name | axis |
 |---|---|---|
@@ -84,9 +93,11 @@ benefits.
 
 ## 3. Loader: fields become fixed Globals
 
-One function, `0x00b914c0`–`0x00b921c1` (prologue and epilogue verified in
-Rizin), copies 65 of those fields from the descriptor into fixed global
-addresses. Selected mappings (`scripts/ai_field_xrefs.py` cannot see these;
+One function, `0x00b914c0`–`0x00b921c1` (prologue, `ret`, and Rizin's own
+`method.Eugen::IA::TTunableConstante.virtual_28` flag all agree on the extent),
+copies **144** of the 160 registered fields from the descriptor into fixed
+global addresses. Rizin only names it after `af @ 0x00b914c0`; `aaa` alone
+leaves the region as a gap, so a name-free listing under-reports coverage. Selected mappings (`scripts/ai_field_xrefs.py` cannot see these;
 they were extracted from the store listing and are reproduced in the ledger):
 
 | field | source offset | global |
@@ -103,7 +114,8 @@ they were extracted from the store listing and are reproduced in the ledger):
 
 This is the useful structural result: these are **plain globals**, so their
 consumers can be found by absolute-address xref with no type information and no
-PDB. The full 65-entry table is in `ai-findings-ledger.json`.
+PDB. The full 144-entry table is in `ai-tunable-globals.json`, with the load and
+store site for each field.
 
 ## 4. Economy axis
 
@@ -162,7 +174,8 @@ forbids.
 ### 4.2 `BonusIAMoneyForSkirmish`
 
 The name states a skirmish-scoped AI money bonus. Its global `0x02026390` has
-exactly one code reference, the loader store at `0x00b92036`. No absolute
+exactly one code reference, the loader store at `0x00b92035` (`mov dword
+[0x02026390], eax`). No absolute
 reader exists. That is not proof of absence: a reader may use a base pointer
 plus displacement (for example a `0x02026340`-based block that reads `+0x50`).
 No such base reference was found for the surrounding block either, so the
@@ -186,9 +199,11 @@ In the influence-map update loop (Rizin function `0x01082680`, instruction
 
 Semantics: with the flag at 0, a unit enters the influence map only when its
 visibility byte is set. With the flag at 1, the visibility test is bypassed and
-every unit in the iteration contributes influence. That is a **fog-of-war
-bypass for the AI's influence map**, gated by a data field rather than
-hard-coded.
+every unit in the iteration contributes influence. That is a **visibility
+bypass inside the influence-map update**, gated by a data field rather than
+hard-coded. Subsystem ownership is not established: the containing function
+`0x01082680` has one caller, `0x010528f0`, not yet attributed to a class, so
+"the AI's influence map" would be an inference this note does not make.
 
 This does not make it a cheat. Whether it is an advantage depends entirely on
 the shipped value of `InfluenceMapAlwaysKnowAllUnits`, which is not readable
@@ -268,8 +283,8 @@ authority for status. Summary:
 | id | claim | axis | status |
 |---|---|---|---|
 | P1 | Build is PE32 i386, SHA-256 pinned; PDB absent; RTTI complete | meta | proven |
-| P2 | 76 gameplay-tunable fields registered with offsets | meta | proven |
-| P3 | 65 fields copied to fixed globals by `0x00b914c0` | meta | proven |
+| P2 | 160 gameplay-tunable fields registered with offsets by `0x00b934b0` | meta | proven |
+| P3 | 144 of them copied to fixed globals by `0x00b914c0` | meta | proven |
 | P4 | Difficulty 1/2/3 selects stock + threshold + damage blocks; neutral = 0/1.0 | economy | proven |
 | P5 | `InfluenceMapAlwaysKnowAllUnits` gates the influence-map visibility test | information | proven (path); enablement unresolved |
 | P6 | `IgnoreInvisibleUnit` is consulted in visibility bookkeeping | information | proven (read only) |
@@ -293,7 +308,7 @@ authorised yet; E3 and E4 require explicit VM authorisation, and no experiment
 may touch multiplayer.
 
 **E1 — Decode the NDF tunables table (offline).**
-Parse `NDF_Win.dat` for the gameplay-constant class. Prediction: the 76
+Parse `NDF_Win.dat` for the gameplay-constant class. Prediction: the 160
 registered names appear with values; `StockDeviseSupplementaireFacile > 0` and
 `InfluenceMapAlwaysKnowAllUnits ∈ {0,1}`. Falsifier: fields absent, or a value
 outside the domain implied by the code (e.g. a float where the code reads a
@@ -308,7 +323,7 @@ same replay, which would indicate incomplete vision logging rather than a
 cheat — record which.
 
 **E3 — Global read at runtime (needs authorisation).**
-Read the 65 globals and `+0x270..+0x27c` after world init on each difficulty.
+Read the 144 globals and `+0x270..+0x27c` after world init on each difficulty.
 Prediction table (Hard as shipped): stock > 0, player damage multiplier < 1.0,
 IA threshold != 1.0, all others 1.0. Falsifier: all globals equal to the
 neutral defaults on every difficulty, which would mean the table is inert in
@@ -335,14 +350,25 @@ rizin -q -e scr.color=0 -c 'pd 40 @ 0x01082870' <exe>
 rizin -q -e scr.color=0 -c 'pd 26 @ 0x00b92110' <exe>
 ```
 
-Disp-xref hits are candidates. `--validate` keeps only sites that Rizin decodes
-as instruction starts whose operand text shows the displacement, and caller
-scanning applies the same boundary test to `call` instructions. Two decoder
-defects were found and fixed while adding it: the SIB form had ModRM and SIB
-swapped, and `[ebp+disp32]` (ModRM mod=10, rm=5) was rejected as an absolute
-address. Both are pinned by tests. The `0x270`/`0x271` globals cited above are
-read through *absolute* addresses (`0x020263a1`, `0x020263a2`), so those
-findings never depended on the displacement decoder.
+Disp-xref hits are candidates. Reported `site` values are instruction starts,
+not ModRM bytes, and `--validate` keeps only sites whose entry in Rizin's
+function disassembly shows the displacement. Boundary checks use `pdfj` on a
+function Rizin actually analysed; where no function covers the site the tool
+creates one at the preceding `0xCC` padding run (`af @ anchor`). A linear `pdj`
+sweep is not a boundary oracle: it desynchronises into `invalid` bytes partway
+through the loader and then rejects true hits.
+
+Three decoder defects were found and fixed while building this:
+
+1. the SIB form read the SIB byte as the ModRM (byte order is opcode, ModRM,
+   SIB, disp32);
+2. `[ebp+disp32]` (ModRM mod=10, rm=5) was rejected as an absolute address;
+3. two-byte `0F` opcodes were unhandled, so the exact loader instruction
+   `0F B6 87 …` (`movzx eax, byte [edi+0x270]`) never became a candidate.
+
+All three are pinned by tests. The `0x270`/`0x271` globals cited above are read
+through *absolute* addresses (`0x020263a1`, `0x020263a2`), so those findings
+never depended on the displacement decoder at all.
 
 `tests/test_ai_rtti.py` pins the chain on a synthetic fixture and on the real
 binary when the artifact is present (skipped, not failed, when absent).
