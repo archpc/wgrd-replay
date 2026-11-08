@@ -131,6 +131,7 @@ class RizinOracle:
         self.image = image
         self._funcs: list[tuple[int, int]] | None = None
         self._listing: dict[int, str] = {}
+        self._loaded: set[int] = set()
 
     def _run(self, commands: list[str]) -> str:
         args = [self.rizin, "-q", "-e", "scr.color=0", "-e", "scr.colour=0"]
@@ -165,7 +166,7 @@ class RizinOracle:
     def load(self, addresses: list[int]) -> None:
         """Disassemble the containing functions of *addresses* in one process."""
         wanted = sorted({fn for fn in (self.function_of(a) for a in addresses)
-                         if fn is not None and fn not in self._listing})
+                         if fn is not None and fn not in self._loaded})
         orphans = sorted({a for a in addresses if self.function_of(a) is None})
         anchors = {}
         for va in orphans:
@@ -201,6 +202,8 @@ class RizinOracle:
             except (KeyError, TypeError, AttributeError):
                 pass
             i = end
+        self._loaded.update(wanted)
+        self._loaded.update(anchors)
 
     def _padding_anchor(self, va: int, limit: int = 0x2000) -> int | None:
         """Start of the int3 padding run immediately preceding *va*, if any.

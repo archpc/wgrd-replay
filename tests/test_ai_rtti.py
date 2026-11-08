@@ -11,6 +11,7 @@ import struct
 import sys
 import unittest
 from pathlib import Path
+from unittest import mock
 
 REPO = Path(__file__).resolve().parents[1]
 SCRIPTS = REPO / "scripts"
@@ -227,23 +228,30 @@ class TestOracle(unittest.TestCase):
     def test_confirm_requires_instruction_start_and_operand(self):
         oracle = ai_field_xrefs.RizinOracle("unused")
         oracle._funcs = [(0x1000, 0x1100)]
+        oracle._loaded = {0x1000}          # never shell out to rizin in a unit test
         oracle._listing = {0x1010: "movzx eax, byte [edi+0x270]"}
-        self.assertTrue(oracle.confirm_many([(0x1010, 0x270)])[0x1010][0])
-        self.assertFalse(oracle.confirm_many([(0x1011, 0x270)])[0x1011][0])
-        self.assertFalse(oracle.confirm_many([(0x1010, 0x271)])[0x1010][0])
+        # A unit test must never shell out; the runners have no rizin.
+        with mock.patch("subprocess.run", side_effect=AssertionError("rizin invoked")):
+            self.assertTrue(oracle.confirm_many([(0x1010, 0x270)])[0x1010][0])
+            self.assertFalse(oracle.confirm_many([(0x1011, 0x270)])[0x1011][0])
+            self.assertFalse(oracle.confirm_many([(0x1010, 0x271)])[0x1010][0])
 
     def test_confirm_rejects_immediate_with_same_value(self):
         oracle = ai_field_xrefs.RizinOracle("unused")
         oracle._funcs = [(0x1000, 0x1100)]
+        oracle._loaded = {0x1000}
         oracle._listing = {0x1010: "mov eax, 0x270"}
-        self.assertFalse(oracle.confirm_many([(0x1010, 0x270)])[0x1010][0])
+        with mock.patch("subprocess.run", side_effect=AssertionError("rizin invoked")):
+            self.assertFalse(oracle.confirm_many([(0x1010, 0x270)])[0x1010][0])
 
     def test_confirm_calls_checks_mnemonic_and_target(self):
         oracle = ai_field_xrefs.RizinOracle("unused")
         oracle._funcs = [(0x2000, 0x2100)]
+        oracle._loaded = {0x2000}
         oracle._listing = {0x2010: "call 0x10828a5"}
-        self.assertTrue(oracle.confirm_calls([(0x2010, 0x10828A5)])[0x2010])
-        self.assertFalse(oracle.confirm_calls([(0x2010, 0x1082800)])[0x2010])
+        with mock.patch("subprocess.run", side_effect=AssertionError("rizin invoked")):
+            self.assertTrue(oracle.confirm_calls([(0x2010, 0x10828A5)])[0x2010])
+            self.assertFalse(oracle.confirm_calls([(0x2010, 0x1082800)])[0x2010])
 
 
 class TestLedger(unittest.TestCase):
