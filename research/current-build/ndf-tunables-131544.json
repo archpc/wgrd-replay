@@ -1,0 +1,134 @@
+{
+  "schema": "wgrd-ndf-tunables/1",
+  "generated": "2026-11-08",
+  "archive": {
+    "path": "Data/WarGame/PC/131544/NDF_Win.dat",
+    "sha256": "172e481d80b4e07c057b43b758191e389e5f79b34d0e566357f768a1e2be151b"
+  },
+  "blob": {
+    "path": "pc/ndf/patchable/gfx/gdconstanteoriginal.ndfbin",
+    "offset": "0x250000",
+    "size": 5841,
+    "stored_sha256": "e8e7faf3d43119ef2a06fba6a9da3392"
+  },
+  "decompressed_sha256": "4d9285186d95ab0e2939e386f52b6510fbe1d4753c1ded2eeea64b3d270b08d2",
+  "rev_equivalence": {
+    "identical_blob_builds": [
+      "59638",
+      "130278",
+      "131544"
+    ],
+    "note": "decompressed blob is byte-identical across these revisions"
+  },
+  "values": {
+    "IgnoreInvisibleUnit": {
+      "type": "bool",
+      "value": true,
+      "class": "TTunableConstante"
+    },
+    "BonusIAMoneyForSkirmish": {
+      "type": "i32",
+      "value": 500,
+      "class": "TTunableConstante"
+    },
+    "StockDeviseSupplementaireFacile": {
+      "type": "i32",
+      "value": 72,
+      "class": "TTunableConstante"
+    },
+    "DefaultDifficulty": {
+      "type": "i32",
+      "value": 2,
+      "class": "TTunableConstante"
+    },
+    "VisibilityMemoTimer": {
+      "type": "i32",
+      "value": 30,
+      "class": "TTunableConstante"
+    },
+    "MultiplicateurSeuilPinnedEtMortJoueurFacile": {
+      "type": "f32",
+      "value": 1.5,
+      "class": "TTunableConstante"
+    },
+    "MultiplicateurSeuilPinnedEtMortIAFacile": {
+      "type": "f32",
+      "value": 0.75,
+      "class": "TTunableConstante"
+    },
+    "MultiplicateurSeuilPinnedEtMortJoueurMoyen": {
+      "type": "f32",
+      "value": 1.0,
+      "class": "TTunableConstante"
+    },
+    "MultiplicateurSeuilPinnedEtMortIAMoyen": {
+      "type": "f32",
+      "value": 1.0,
+      "class": "TTunableConstante"
+    },
+    "MultiplicateurSeuilPinnedEtMortJoueurDifficile": {
+      "type": "f32",
+      "value": 0.75,
+      "class": "TTunableConstante"
+    },
+    "MultiplicateurSeuilPinnedEtMortIADifficile": {
+      "type": "f32",
+      "value": 1.25,
+      "class": "TTunableConstante"
+    },
+    "MultiplicateurDegatInfligeParLeJoueur_Facile": {
+      "type": "f32",
+      "value": 1.0,
+      "class": "TTunableConstante"
+    },
+    "MultiplicateurDegatInfligeParLeJoueur_Moyen": {
+      "type": "f32",
+      "value": 1.0,
+      "class": "TTunableConstante"
+    },
+    "MultiplicateurDegatInfligeParLeJoueur_Difficile": {
+      "type": "f32",
+      "value": 1.0,
+      "class": "TTunableConstante"
+    },
+    "IncomeMultiplierInPercent": {
+      "type": "list",
+      "value": [
+        0,
+        60,
+        80,
+        100,
+        120,
+        140
+      ],
+      "class": "TWargameTunableConstante"
+    },
+    "DefaultIncomeMultiplierIndex": {
+      "type": "u32",
+      "value": 3,
+      "class": "TWargameTunableConstante"
+    },
+    "TimeBeforeEarningCommandPoints": {
+      "type": "f32",
+      "value": 4.0,
+      "class": "TWargameTunableConstante"
+    },
+    "TimeBeforeEarningConquestPoints": {
+      "type": "f32",
+      "value": 4.0,
+      "class": "TWargameTunableConstante"
+    }
+  },
+  "absent_but_queried": [
+    "InfluenceMapAlwaysKnowAllUnits",
+    "StockDeviseSupplementaireMoyen",
+    "StockDeviseSupplementaireDifficile",
+    "QteDeviseParCamion"
+  ],
+  "status": {
+    "IgnoreInvisibleUnit": "shipped true; read at 0x020263a1, consumer 0x01037775",
+    "InfluenceMapAlwaysKnowAllUnits": "absent from shipped data; effective constructor default unresolved",
+    "BonusIAMoneyForSkirmish": "ships 500; no consumer located in WarGame3.exe",
+    "StockDeviseSupplementaireFacile": "72; only Easy variant defined"
+  }
+}

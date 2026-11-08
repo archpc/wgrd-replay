@@ -31,6 +31,16 @@ Status codes: **S** reproduction script, **T** regression tests, **E** static-an
 
 The 2026-10-28 controlled recording ("Oshkosh Incident") report is archived. Its screenshots are in the GitHub release `oshkosh-incident-2026-10-28-v1`. Its playback regression manifest is still maintained: [`samples/cross-build-manifest.json`](../samples/cross-build-manifest.json), checked by `tests/test_cross_build_corpus.py`.
 
+## Effective NDF values (build 131544)
+
+Read-only extraction with `wgrd_cons_parsers` plus an ndfbin reader ported from
+the open-source modding suite. Answers which AI economy/information values the
+shipped data actually contains.
+
+| Topic | Note | Code and tests |
+|---|---|---|
+| Shipped tunable values, revision equivalence, absence evidence | [NDF effective values](current-build/2026-11-08-ndf-effective-values.md); data [ndf-tunables-131544.json](current-build/ndf-tunables-131544.json) | `scripts/ndf_read.py`, `tests/test_ndf_read.py` |
+
 ## Format and decoder evidence (build 59638)
 
 | Subject | Canonical note | Repro / tests | Status |
