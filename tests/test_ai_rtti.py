@@ -143,6 +143,35 @@ class TestDispXrefs(unittest.TestCase):
         self.assertEqual(hits[0]["base"], "[edi]")
         self.assertEqual(hits[0]["site"], base + 1)
 
+    def test_ebp_disp32_is_a_valid_base(self):
+        base = 0x400000
+        # mov ecx, [ebp+0x271]: modrm 0xad is mod=10, rm=5. With mod=10 rm=5
+        # means EBP base; rejecting it would drop real locals-derived reads.
+        body = bytes([0x8B, 0xAD]) + struct.pack("<I", 0x271)
+        image = ai_rtti.Image(imagebase=base, size_of_image=0x2000, sections=[
+            ai_rtti.Section(name=".text", va=base, vsize=len(body), data=body,
+                            characteristics=ai_rtti.IMAGE_SCN_MEM_EXECUTE),
+        ])
+        hits = ai_field_xrefs.find_disp_xrefs(image, 0x271)
+        self.assertEqual(len(hits), 1)
+        self.assertEqual(hits[0]["base"], "[ebp]")
+        self.assertEqual(hits[0]["site"], base + 1)
+
+    def test_sib_follows_modrm(self):
+        base = 0x400000
+        # mov eax, [edi+ecx*4+0x271]: modrm 0x84 (mod=10, rm=4), then SIB 0x8f
+        # (scale=2, index=ecx, base=edi), then disp32. The ModRM must be read at
+        # the byte before the SIB, not at the SIB itself.
+        body = bytes([0x8B, 0x84, 0x8F]) + struct.pack("<I", 0x271)
+        image = ai_rtti.Image(imagebase=base, size_of_image=0x2000, sections=[
+            ai_rtti.Section(name=".text", va=base, vsize=len(body), data=body,
+                            characteristics=ai_rtti.IMAGE_SCN_MEM_EXECUTE),
+        ])
+        hits = ai_field_xrefs.find_disp_xrefs(image, 0x271)
+        self.assertEqual(len(hits), 1)
+        self.assertEqual(hits[0]["base"], "[edi+ecx*4]")
+        self.assertEqual(hits[0]["site"], base + 1)
+
 
 class TestLedger(unittest.TestCase):
     def test_ledger_is_consistent(self):

@@ -19,6 +19,7 @@ import struct
 import sys
 
 from ai_rtti import load_pe32
+from ai_field_xrefs import RizinOracle
 
 
 def load_functions(path: str) -> list[tuple[int, int, str]]:
@@ -73,6 +74,9 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--slotmap", required=True)
     ap.add_argument("--va", action="append", required=True)
     ap.add_argument("--max-callers", type=int, default=12)
+    ap.add_argument("--validate", action="store_true",
+                    help="confirm call sites on Rizin instruction boundaries")
+    ap.add_argument("--rizin", default="rizin")
     args = ap.parse_args(argv)
 
     image = load_pe32(args.exe)
@@ -89,6 +93,9 @@ def main(argv: list[str] | None = None) -> int:
             continue
         print(f"  func 0x{f[0]:08x}-0x{f[1]:08x} size={f[1]-f[0]} vtable_owner={at.name(f[0])}")
         calls = at.callers(image, f[0])
+        if args.validate:
+            oracle = RizinOracle(args.exe, args.rizin, args.afl)
+            calls = [c for c in calls if oracle.confirm_call(c, f[0])]
         print(f"  callers={len(calls)}")
         for site in calls[: args.max_callers]:
             cf = at.func_at(site)

@@ -86,6 +86,13 @@ shooter descriptor, value) and `0xb9b680` enter (read victim module
 `+0x210`/`+0x214`). Read impact `arg3` `+0x0c` for the credited team object.
 Do not write the config or exporter profile before the run is authorized.
 
+## AI decision model (static thread, no VM authorization)
+
+Mechanisms are mapped, shipped values are not. Next milestone: recover effective
+NDF values (`NDF_Win.dat` encoding unresolved) and trace influence-map output
+into AI order generation. Keep economy and information as separate questions.
+See the [AI decision model](research/current-build/2026-11-08-ai-decision-model.md).
+
 ## Other priorities
 
 1. Request usefulness: filters, reference history and request summaries on the

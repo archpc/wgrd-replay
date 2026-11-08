@@ -151,8 +151,13 @@ Consequences that are proven by bytes:
 Not established: what object `esi` is, which team reads `+0x270`, and whether
 the stock bonus is paid to the AI, the player, or both. The caller set is
 small — `0x00babf40` and `TWorld` vtable slot 2 at `0x00bae820` — so this is a
-short, well-defined next trace. **Status: suspected advantage, not a proven
-cheat.**
+short, well-defined next trace.
+
+**Status: a difficulty-selected parameter, not a proven AI-only bonus.** The
+table groups `StockDeviseSupplementaire` with player/IA threshold multipliers;
+it does not say who receives the stock. Treating "difficulty affects economy"
+as "the AI gets extra money" would be exactly the conflation this split
+forbids.
 
 ### 4.2 `BonusIAMoneyForSkirmish`
 
@@ -187,8 +192,9 @@ hard-coded.
 
 This does not make it a cheat. Whether it is an advantage depends entirely on
 the shipped value of `InfluenceMapAlwaysKnowAllUnits`, which is not readable
-from the binary (see §7). Read it as "a designed, data-controlled omniscience
-lever", not as "the AI cheats".
+from the binary by this pass (see §7). Read it as "a designed, data-controlled
+omniscience lever", not as "the AI cheats". Status: **code path proven,
+shipped enablement unresolved.**
 
 ### 5.2 Per-unit visibility bookkeeping
 
@@ -217,8 +223,10 @@ visibility value.**
 No hard-coded omniscient targeting was observed. `TInfluenceMap` has one
 virtual slot (`0x01029750`); the visibility bypass lives in a non-virtual
 routine reached from higher-level AI updates, and every path found so far is
-flag-gated. Negative claim scope: **no unconditional visibility bypass was
-found in the regions examined** — not "no such path exists".
+flag-gated. This leaves **omniscient targeting unresolved, not refuted**: the
+absence of an unconditional bypass in the regions examined is weak evidence,
+because a 30 MB image was not exhaustively swept. Do not cite this section as a
+negative result.
 
 ## 6. Cheat-logic surface
 
@@ -235,13 +243,18 @@ conflate the two without a call trace.
 
 `Data/WarGame/PC/131544/NDF_Win.dat` (24 MB, SHA-256
 `172e481d80b4e07c057b43b758191e389e5f79b34d0e566357f768a1e2be151b`)
-carries the tunables values, but the archive text is not plaintext: none of
-`StockDeviseSupplementaire`, `InfluenceMapAlwaysKnowAllUnits`,
-`IgnoreInvisibleUnit`, `BonusIAMoneyForSkirmish`, or `GameplayConstantes`
-appears in its 90 753 extracted strings. The strings that do appear are paths
-(`edat`, `pc\ndf\`, `nonpatchable`, `luster`, `bootstrap`). Decoding the NDF
-container is therefore a prerequisite for any default-value claim, and no
-default is asserted here.
+should carry the tunables values, but none of `StockDeviseSupplementaire`,
+`InfluenceMapAlwaysKnowAllUnits`, `IgnoreInvisibleUnit`,
+`BonusIAMoneyForSkirmish`, or `GameplayConstantes` appears in its 90 753
+string-extraction hits. The strings that do appear are paths (`edat`,
+`pc\ndf\`, `nonpatchable`, `luster`, `bootstrap`).
+
+**The NDF encoding is unknown to this pass.** Absence from naive string
+extraction is consistent with compression, with tokenisation by hash, with
+encryption, or with a text encoding this extractor does not read. No
+assumption is made, and "compressed" is not asserted anywhere. Recovering the
+effective values is the next research milestone (§9, E1) and is a prerequisite
+for any default-value claim. No default is asserted here.
 
 This is the single largest limitation of this report. Every economy and
 information finding is a **mechanism** finding. None is yet a **shipped-value**
@@ -258,14 +271,16 @@ authority for status. Summary:
 | P2 | 76 gameplay-tunable fields registered with offsets | meta | proven |
 | P3 | 65 fields copied to fixed globals by `0x00b914c0` | meta | proven |
 | P4 | Difficulty 1/2/3 selects stock + threshold + damage blocks; neutral = 0/1.0 | economy | proven |
-| P5 | `InfluenceMapAlwaysKnowAllUnits` gates the influence-map visibility test | information | proven |
+| P5 | `InfluenceMapAlwaysKnowAllUnits` gates the influence-map visibility test | information | proven (path); enablement unresolved |
 | P6 | `IgnoreInvisibleUnit` is consulted in visibility bookkeeping | information | proven (read only) |
-| S1 | `StockDeviseSupplementaire*` pays a currency stock advantage | economy | suspected |
-| S2 | `BonusIAMoneyForSkirmish` pays an AI-only skirmish bonus | economy | suspected |
+| S1 | `StockDeviseSupplementaire*` is a difficulty-selected currency parameter; AI-only receipt not shown | economy | suspected |
+| S2 | `BonusIAMoneyForSkirmish` is named as a skirmish AI money term; receipt not shown | economy | suspected |
 | S3 | `IgnoreInvisibleUnit` direction favours the AI | information | unresolved |
-| U1 | Shipped values of all of the above | both | unresolved |
-| U2 | Reaction latency, ammo/fuel exemptions, deployment restrictions | mechanics | not examined |
-| U3 | `TCostComputer*` unit valuation | mechanics | not examined |
+| U1 | Omniscient targeting: AI acting on units the player cannot see | information | unresolved (not refuted) |
+| U2 | Reaction latency, ammo/fuel exemptions, deployment restrictions, `TCostComputer*` valuation | mechanics | not examined |
+
+Shipped values are not a claim but an open item (§7, §9 E1): without them, no
+row above can move from *suspected* to *proven cheat*.
 
 "proven" here means a direct read, write or branch at a cited address. It never
 means "the AI cheats". No cheating claim is promoted past *suspected* in this
@@ -313,10 +328,21 @@ All commands read the pinned binary only.
 ```
 python3 scripts/ai_rtti.py     --exe <exe> --slot-map --json slotmap.json
 python3 scripts/ai_rtti.py     --exe <exe> --class '.<name>' --slots 8
-python3 scripts/ai_field_xrefs.py --exe <exe> --disp 0x271 --disp 0x270
+python3 scripts/ai_field_xrefs.py --exe <exe> --disp 0x271 --disp 0x270 --validate --afl afl.txt
+python3 scripts/ai_attrib.py   --exe <exe> --afl afl.txt --slotmap slotmap.json --va 0x010828a5 --validate
+rizin -q -e scr.color=0 -c 'afl' <exe>          # save once for --afl
 rizin -q -e scr.color=0 -c 'pd 40 @ 0x01082870' <exe>
 rizin -q -e scr.color=0 -c 'pd 26 @ 0x00b92110' <exe>
 ```
+
+Disp-xref hits are candidates. `--validate` keeps only sites that Rizin decodes
+as instruction starts whose operand text shows the displacement, and caller
+scanning applies the same boundary test to `call` instructions. Two decoder
+defects were found and fixed while adding it: the SIB form had ModRM and SIB
+swapped, and `[ebp+disp32]` (ModRM mod=10, rm=5) was rejected as an absolute
+address. Both are pinned by tests. The `0x270`/`0x271` globals cited above are
+read through *absolute* addresses (`0x020263a1`, `0x020263a2`), so those
+findings never depended on the displacement decoder.
 
 `tests/test_ai_rtti.py` pins the chain on a synthetic fixture and on the real
 binary when the artifact is present (skipped, not failed, when absent).

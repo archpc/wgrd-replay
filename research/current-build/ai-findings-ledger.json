@@ -18,7 +18,7 @@
   "status_legend": {
     "proven": "direct read, write, or branch observed at the cited address in the pinned image",
     "suspected": "mechanism observed but shipped value, owning subsystem, or per-team consumer unresolved",
-    "unresolved": "code and names exist; semantics not established",
+    "unresolved": "code and names exist; the decisive fact (shipped value, owning subsystem, or per-team consumer) is not established",
     "not-examined": "identified in RTTI, not analysed in this pass",
     "refuted": "a specific hypothesis contradicted by observed bytes"
   },
@@ -138,13 +138,14 @@
       "id": "P5",
       "axis": "information",
       "status": "proven",
-      "claim": "InfluenceMapAlwaysKnowAllUnits (global 0x020263a2) gates the visibility test in the influence-map update: when set, units enter the influence accumulation without a visibility byte check.",
+      "claim": "InfluenceMapAlwaysKnowAllUnits (global 0x020263a2) gates the visibility test in the influence-map update path: when set, units enter the influence accumulation without a visibility byte check. The code path is proven; whether shipped data enables it is unresolved.",
       "evidence": [
         "0x010828a5 cmp byte [0x020263a2],0",
         "0x010828ac jnz to accumulation at 0x010828be",
         "0x010828ae-0x010828b8 visibility test and skip"
       ],
-      "falsifier": "The jump target does not reach the influence accumulation, or a second visibility test exists downstream on the same path."
+      "falsifier": "The jump target does not reach the influence accumulation, or a second visibility test exists downstream on the same path.",
+      "scope": "Code path only. Shipped value not readable from the binary; no runtime read performed."
     },
     {
       "id": "P6",
@@ -162,12 +163,12 @@
       "id": "S1",
       "axis": "economy",
       "status": "suspected",
-      "claim": "StockDeviseSupplementaire<Difficulty> pays a currency-stock advantage through the object at +0x270 initialised by 0x00bb2740.",
+      "claim": "StockDeviseSupplementaire<Difficulty> is a difficulty-selected currency-stock parameter written to +0x270 of the object initialised by 0x00bb2740. It is NOT proven to be an AI-only bonus, and no evidence yet shows which team receives it.",
       "evidence": [
         "0x00bb27ca / 0x00bb27ff / 0x00bb2834 store the three globals to [esi+0x270]",
         "callers: 0x00babf40 and TWorld vtable slot 2 (0x00bae820)"
       ],
-      "missing": "Owning object type at esi, per-team consumer of +0x270, and shipped values.",
+      "missing": "Owning object type at esi, the per-team consumer of +0x270, shipped values, and any evidence that the credit is AI-only rather than shared with the player.",
       "falsifier": "+0x270 is read only by display code, or the object is not instantiated for AI teams."
     },
     {
@@ -175,7 +176,10 @@
       "axis": "economy",
       "status": "suspected",
       "claim": "BonusIAMoneyForSkirmish (0x02026390) is an AI-only skirmish money bonus.",
-      "evidence": ["name in the registration table at offset 0x0264", "store at 0x00b92035"],
+      "evidence": [
+        "name in the registration table at offset 0x0264",
+        "store at 0x00b92035"
+      ],
       "missing": "No absolute-address reader exists; a base-pointer reader was not located.",
       "falsifier": "The field is read by a path that applies to both teams identically, or it is unused."
     },
@@ -184,20 +188,22 @@
       "axis": "information",
       "status": "unresolved",
       "claim": "IgnoreInvisibleUnit direction of effect (making the AI ignore unseen units vs. letting it consider them) is not established.",
-      "evidence": ["0x01037775 context"],
+      "evidence": [
+        "0x01037775 context"
+      ],
       "missing": "Consumer semantics and the meaning of the per-unit counter compared at 0x0103779b.",
       "falsifier": "A traced call path shows which side the branch favours."
     },
     {
-      "id": "R1",
+      "id": "U1",
       "axis": "information",
-      "status": "refuted",
-      "claim": "The AI has unconditional (hard-coded) omniscient targeting.",
+      "status": "unresolved",
+      "claim": "Omniscient AI targeting (acting on units the player cannot see) is not established. The only visibility bypass found is data-flag-gated, so targeting omniscience depends on a shipped value that has not been recovered.",
       "evidence": [
-        "the only visibility bypass found is data-flag-gated (P5)",
+        "InfluenceMapAlwaysKnowAllUnits gate at 0x010828a5 (P5) is conditional",
         "TInfluenceMap exposes one virtual slot (0x01029750) with no visibility bypass in it"
       ],
-      "scope": "Refuted for the regions examined. This is not a claim that no such path exists anywhere in a 30 MB image."
+      "scope": "Unresolved, not refuted. Absence of an unconditional bypass in the regions examined is not proof that none exists elsewhere in a 30 MB image."
     },
     {
       "id": "U2",
