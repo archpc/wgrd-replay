@@ -88,10 +88,15 @@ Do not write the config or exporter profile before the run is authorized.
 
 ## AI decision model (static thread, no VM authorization)
 
-Mechanisms are mapped, shipped values are not. Next milestone: recover effective
-NDF values (`NDF_Win.dat` encoding unresolved) and trace influence-map output
-into AI order generation. Keep economy and information as separate questions.
-See the [AI decision model](research/current-build/2026-11-08-ai-decision-model.md).
+Mechanisms are mapped and the shipped NDF values are recovered; see the
+[AI decision model](research/current-build/2026-11-08-ai-decision-model.md) and
+the [effective-values note](research/current-build/2026-11-08-ndf-effective-values.md).
+Keep economy and information as separate questions.
+
+Next milestone, two traces: the 500-point `BonusIAMoneyForSkirmish` into
+skirmish initialisation, and the pinned/death multipliers into suppression and
+destruction math. Anchors and negative results are in the
+[plan](research/current-build/2026-11-08-next-milestone-skirmish-traces.md).
 
 ## Other priorities
 
