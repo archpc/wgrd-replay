@@ -1,0 +1,190 @@
+{
+  "schema": "wgrd-ai-findings/1",
+  "generated": "2026-11-08",
+  "target": {
+    "file": "WarGame3.exe",
+    "sha256": "5eaa6d6168c9570ff9789bffb3b2cc16fd908be61263b12fcc1e8b2f09efc75d",
+    "revision": "131544",
+    "format": "PE32 i386 (x86, not x64)",
+    "imagebase": "0x00400000",
+    "pdb": {
+      "present": false,
+      "guid": "db6b159c652c934291b50b30b1b8c179",
+      "age": 1,
+      "path": "C:\\Data\\GitlabBuild\\Nu8Q8jzE\\0\\eugen\\Slayer\\Bin\\WarGame.Final.Win32.pdb",
+      "note": "Reference only. Not symbol-rich: 1128 COFF symbols, nearly all TPoolAllocation statics. Names come from RTTI.",
+      "guid_note": "raw CodeView bytes at file offset 0x18625c8; quoted as bytes to avoid field-order ambiguity"
+    }
+  },
+  "status_legend": {
+    "proven": "direct read, write, or branch observed at the cited address in the pinned image",
+    "suspected": "mechanism observed but shipped value, owning subsystem, or per-team consumer unresolved",
+    "unresolved": "code and names exist; the decisive fact (shipped value, owning subsystem, or per-team consumer) is not established",
+    "not-examined": "identified in RTTI, not analysed in this pass",
+    "refuted": "a specific hypothesis contradicted by observed bytes"
+  },
+  "claims": [
+    {
+      "id": "P1",
+      "axis": "meta",
+      "status": "proven",
+      "claim": "Target is PE32 i386 with the pinned SHA-256; no PDB is available; RTTI is complete and is the only name source.",
+      "evidence": [
+        "rizin iI: bintype pe, bits 32, lang msvc, baddr 0x400000",
+        "RSDS at file offset 0x18625c8, guid bytes db6b159c 652c9342 91b5 0b30 b1b8c179, age 1",
+        "scripts/ai_rtti.py --slot-map: 2962 IA-namespace names, 2311 resolved, 5378 slots"
+      ],
+      "falsifier": "A PDB is found matching that GUID and age, or the image base/section table differs from the recorded values."
+    },
+    {
+      "id": "P2",
+      "axis": "meta",
+      "status": "proven",
+      "claim": "The gameplay-constants registration function 0xb934b0-0xb947ac registers 167 (offset, name) pairs, including difficulty-indexed economy fields and separately named player/IA pinned-death multipliers.",
+      "evidence": [
+        "registration call sites inside 0xb934b0-0xb947ac",
+        "ai-field-registry.json (scripts/ai_tunable_map.py --mode registry from pdfj)"
+      ],
+      "falsifier": "The bounded listing does not produce those offset/name triples, or a field is registered outside that function."
+    },
+    {
+      "id": "P3",
+      "axis": "meta",
+      "status": "proven",
+      "claim": "Loader 0x00b914c0-0xb921c1 performs 168 stores to fixed globals; 164 pair a descriptor load with a store across 162 offsets, and 155 of the 167 registered fields reach a global that way. The other 12 are address-taken or packed/copied into a heap array.",
+      "evidence": [
+        "scripts/ai_tunable_map.py --mode stores from pdfj of 0x00b914c0",
+        "ai-tunable-globals.json (162 offsets with load and store site)"
+      ],
+      "falsifier": "A field store in that range does not target the recorded global."
+    },
+    {
+      "id": "P4",
+      "axis": "economy",
+      "status": "proven",
+      "claim": "Difficulty is a closed 1/2/3 enum at the economy initialiser: 1 selects the Facile block, 2 Moyen, 3 Difficile, and any other value selects an explicit neutral block (currency stock 0, three multipliers 1.0f). AI_VHARD is not a case here.",
+      "evidence": [
+        "0x00bb2775 movzx eax,[esp+0x1e]; three 'sub eax,1 / jz' at 0x00bb277a-0x00bb278b",
+        "0x00bb278d-0x00bb27b1 neutral defaults 0 / 0x3f800000 x3",
+        "0x00bb27c5, 0x00bb27fa, 0x00bb282f the three difficulty blocks"
+      ],
+      "falsifier": "A fourth difficulty case exists, or the neutral path writes a non-1.0 multiplier."
+    },
+    {
+      "id": "P5",
+      "axis": "information",
+      "status": "proven",
+      "claim": "InfluenceMapAlwaysKnowAllUnits (global 0x020263a2) gates the visibility test in the influence-map update path: when set, units enter the influence accumulation without a visibility byte check. The code path is proven; whether shipped data enables it is unresolved.",
+      "evidence": [
+        "0x010828a5 cmp byte [0x020263a2],0",
+        "0x010828ac jnz to accumulation at 0x010828be",
+        "0x010828ae-0x010828b8 visibility test and skip"
+      ],
+      "falsifier": "The jump target does not reach the influence accumulation, or a second visibility test exists downstream on the same path.",
+      "scope": "Code path only. Shipped value not readable from the binary; no runtime read performed."
+    },
+    {
+      "id": "P6",
+      "axis": "information",
+      "status": "proven",
+      "claim": "IgnoreInvisibleUnit (global 0x020263a1) is read in per-unit visibility bookkeeping, and the branch clamps a stored value to VisibilityMemoTimer (0x020263a4).",
+      "evidence": [
+        "0x01037775 cmp byte [0x020263a1],0",
+        "0x010377b8 cmp ecx,[0x020263a4]",
+        "0x010377be cmovl ecx,[0x020263a4]"
+      ],
+      "falsifier": "The flag branch does not reach the clamp, or the clamp uses a different global."
+    },
+    {
+      "id": "S1",
+      "axis": "economy",
+      "status": "suspected",
+      "claim": "StockDeviseSupplementaire<Difficulty> is a difficulty-selected currency-stock parameter written to +0x270 of the object initialised by 0x00bb2740. It is NOT proven to be an AI-only bonus, and no evidence yet shows which team receives it.",
+      "evidence": [
+        "0x00bb27ca / 0x00bb27ff / 0x00bb2834 store the three globals to [esi+0x270]",
+        "callers: 0x00babf40 and TWorld vtable slot 2 (0x00bae820)"
+      ],
+      "missing": "Owning object type at esi, the per-team consumer of +0x270, shipped values, and any evidence that the credit is AI-only rather than shared with the player.",
+      "falsifier": "+0x270 is read only by display code, or the object is not instantiated for AI teams."
+    },
+    {
+      "id": "S2",
+      "axis": "economy",
+      "status": "suspected",
+      "claim": "BonusIAMoneyForSkirmish is named as a skirmish money term for the AI. No consumer was located, so neither its recipient nor its effect is established.",
+      "evidence": [
+        "name in the registration table at offset 0x0264",
+        "store at 0x00b92035"
+      ],
+      "missing": "No reader found by absolute address; a base-pointer reader was not located.",
+      "falsifier": "The field is read by a path that applies to both teams identically, or it is unused."
+    },
+    {
+      "id": "S3",
+      "axis": "information",
+      "status": "unresolved",
+      "claim": "IgnoreInvisibleUnit direction of effect (making the AI ignore unseen units vs. letting it consider them) is not established.",
+      "evidence": [
+        "0x01037775 context"
+      ],
+      "missing": "Consumer semantics and the meaning of the per-unit counter compared at 0x0103779b.",
+      "falsifier": "A traced call path shows which side the branch favours."
+    },
+    {
+      "id": "U1",
+      "axis": "information",
+      "status": "unresolved",
+      "claim": "Omniscient AI targeting (acting on units the player cannot see) is not established. The only visibility bypass found is data-flag-gated, so targeting omniscience depends on a shipped value that has not been recovered.",
+      "evidence": [
+        "InfluenceMapAlwaysKnowAllUnits gate at 0x010828a5 (P5) is conditional",
+        "TInfluenceMap exposes one virtual slot (0x01029750) with no visibility bypass in it"
+      ],
+      "scope": "Unresolved, not refuted. Absence of an unconditional bypass in the regions examined is not proof that none exists elsewhere in a 30 MB image."
+    },
+    {
+      "id": "U2",
+      "axis": "mechanics",
+      "status": "not-examined",
+      "claim": "Reaction latency, ammunition/fuel exemptions, deployment restrictions and unit valuation.",
+      "evidence": [
+        "classes present: TIAStratThread, TModernWarfareUnitLogicFuelModule, TUnitLogicDataConsumptionModule, TDeploiementGamePhase, TCostComputer*"
+      ]
+    }
+  ],
+  "open_items": [
+    "Decode NDF_Win.dat for shipped tunable values (largest gap).",
+    "Identify the object type and per-team consumer of +0x270..+0x27c.",
+    "Locate the base-pointer reader of 0x02026390 (BonusIAMoneyForSkirmish).",
+    "Trace TCostComputer* valuation inputs.",
+    "Trace AI order latency via TIAStratThread.",
+    "Check whether AI ammo/fuel consumption differs from player consumption."
+  ],
+  "experiments": [
+    {
+      "id": "E1",
+      "kind": "offline-static",
+      "prediction": "The 167 registered names appear in NDF with values; StockDeviseSupplementaireFacile > 0; InfluenceMapAlwaysKnowAllUnits in {0,1}.",
+      "falsifier": "Names absent, or value domain contradicts the access width in code."
+    },
+    {
+      "id": "E2",
+      "kind": "offline-corpus",
+      "prediction": "With no information advantage active, no AI order targets a unit with zero prior vision in the same replay.",
+      "falsifier": "Orders resolve to units with no vision record at all (record as a logging gap before calling it a cheat)."
+    },
+    {
+      "id": "E3",
+      "kind": "runtime-requires-authorisation",
+      "prediction": "On Hard: stock > 0, player damage multiplier < 1.0, IA pinned threshold != 1.0, remaining fields 1.0.",
+      "falsifier": "All globals equal neutral defaults on every difficulty."
+    },
+    {
+      "id": "E4",
+      "kind": "runtime-requires-authorisation",
+      "prediction": "Under no exemption, AI and player units consume identical ammo/fuel for identical orders.",
+      "falsifier": "AI consumption is lower for the same orders."
+    }
+  ],
+  "field_registry_file": "ai-field-registry.json",
+  "field_registry_note": "167 (offset, name) pairs registered by the gameplay-constants function 0xb934b0-0xb947ac, parsed from analysed pdfj disassembly"
+}
