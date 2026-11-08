@@ -31,15 +31,15 @@ Status codes: **S** reproduction script, **T** regression tests, **E** static-an
 
 The 2026-10-28 controlled recording ("Oshkosh Incident") report is archived. Its screenshots are in the GitHub release `oshkosh-incident-2026-10-28-v1`. Its playback regression manifest is still maintained: [`samples/cross-build-manifest.json`](../samples/cross-build-manifest.json), checked by `tests/test_cross_build_corpus.py`.
 
-## Effective NDF values (build 131544)
+## AI decision model and difficulty parameters (build 131544)
 
-Read-only extraction with `wgrd_cons_parsers` plus an ndfbin reader ported from
-the open-source modding suite. Answers which AI economy/information values the
-shipped data actually contains.
+Static, read-only; no game launch. Economy and information are tracked as
+separate questions and are not used as evidence for each other.
 
 | Topic | Note | Code and tests |
 |---|---|---|
-| Shipped tunable values, revision equivalence, absence evidence | [NDF effective values](current-build/2026-11-08-ndf-effective-values.md); data [ndf-tunables-131544.json](current-build/ndf-tunables-131544.json) | `scripts/ndf_read.py`, `tests/test_ndf_read.py` |
+| AI tunables, difficulty economy block, influence-map visibility gate | [AI decision model](current-build/2026-11-08-ai-decision-model.md); ledger [ai-findings-ledger.json](current-build/ai-findings-ledger.json), globals [ai-tunable-globals.json](current-build/ai-tunable-globals.json) | `scripts/ai_rtti.py`, `scripts/ai_field_xrefs.py`, `scripts/ai_tunable_map.py`, `scripts/ai_attrib.py`, `tests/test_ai_rtti.py` |
+
 
 ## Format and decoder evidence (build 59638)
 
