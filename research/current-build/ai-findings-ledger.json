@@ -1,0 +1,246 @@
+{
+  "schema": "wgrd-ai-findings/1",
+  "generated": "2026-11-08",
+  "target": {
+    "file": "WarGame3.exe",
+    "sha256": "5eaa6d6168c9570ff9789bffb3b2cc16fd908be61263b12fcc1e8b2f09efc75d",
+    "revision": "131544",
+    "format": "PE32 i386 (x86, not x64)",
+    "imagebase": "0x00400000",
+    "pdb": {
+      "present": false,
+      "guid": "db6b159c652c9342b1950b30b1b8c179",
+      "age": 1,
+      "path": "C:\\Data\\GitlabBuild\\Nu8Q8jzE\\0\\eugen\\Slayer\\Bin\\WarGame.Final.Win32.pdb",
+      "note": "Reference only. Not symbol-rich: 1128 COFF symbols, nearly all TPoolAllocation statics. Names come from RTTI."
+    }
+  },
+  "status_legend": {
+    "proven": "direct read, write, or branch observed at the cited address in the pinned image",
+    "suspected": "mechanism observed but shipped value, owning subsystem, or per-team consumer unresolved",
+    "unresolved": "code and names exist; semantics not established",
+    "not-examined": "identified in RTTI, not analysed in this pass",
+    "refuted": "a specific hypothesis contradicted by observed bytes"
+  },
+  "field_names": {
+    "0x01c4": "Color_02_Red",
+    "0x01c8": "Color_03_Teal",
+    "0x01cc": "Color_04_Purple",
+    "0x01dc": "PalierVictoireTotale",
+    "0x01e0": "PalierVictoireMajeure",
+    "0x01e4": "PalierVictoireMineure",
+    "0x01e8": "DefaultGameType",
+    "0x01ec": "DefaultDifficulty",
+    "0x01f0": "StockDeviseSupplementaireFacile",
+    "0x01f4": "MultiplicateurSeuilPinnedEtMortJoueurFacile",
+    "0x01f8": "MultiplicateurSeuilPinnedEtMortIAFacile",
+    "0x01fc": "StockDeviseSupplementaireMoyen",
+    "0x0200": "MultiplicateurSeuilPinnedEtMortJoueurMoyen",
+    "0x0204": "MultiplicateurSeuilPinnedEtMortIAMoyen",
+    "0x0208": "StockDeviseSupplementaireDifficile",
+    "0x020c": "MultiplicateurSeuilPinnedEtMortJoueurDifficile",
+    "0x0210": "MultiplicateurSeuilPinnedEtMortIADifficile",
+    "0x0214": "MultiplicateurDegatInfligeParLeJoueur_Facile",
+    "0x0218": "MultiplicateurDegatInfligeParLeJoueur_Moyen",
+    "0x021c": "MultiplicateurDegatInfligeParLeJoueur_Difficile",
+    "0x0220": "InstantMergeMaxDistance",
+    "0x0224": "QteDeviseParCamion",
+    "0x0228": "ForceAffichageCercleVision",
+    "0x022c": "FumigeneTimeout",
+    "0x0230": "FumigeneAlphaGhost",
+    "0x0234": "FumigeneMaxCount",
+    "0x0238": "EliminationWarningsDuration",
+    "0x023c": "FxRuseHeight",
+    "0x0240": "FxRuseSpacing",
+    "0x0244": "MultiplicateurMetreRTSVersDistanceFeedbackTactique",
+    "0x0248": "DelayBeforeNewMinimapWarning",
+    "0x024c": "AverageOnPeriod",
+    "0x0250": "SeedForIAStrat",
+    "0x025c": "MinPysicalDamageForAirToGroundAttackWitoutAP",
+    "0x0264": "BonusIAMoneyForSkirmish",
+    "0x0268": "VisibilityMemoTimer",
+    "0x0270": "IgnoreInvisibleUnit",
+    "0x0271": "InfluenceMapAlwaysKnowAllUnits",
+    "0x0272": "DeplacementPionsIAGroupes",
+    "0x0274": "PlaneSuperiority",
+    "0x0278": "InterceptorFactorForPlaneSuperiority",
+    "0x027c": "MultiroleFactorForPlaneSuperiority",
+    "0x0280": "NbAvionMaxParCibleAvantEquilibrage",
+    "0x0284": "RepartitionAvionAntiship",
+    "0x0288": "GroundAttackFactorForPlaneSuperiority",
+    "0x028c": "MaxDelayBeforeEvacuation",
+    "0x0290": "MinDelayBeforeEvacuation",
+    "0x0294": "OneRecoForXCaptures",
+    "0x0298": "OneRecoForXAttacks",
+    "0x029c": "UseNumberOfUnitsInAntiBoatStrike",
+    "0x02a0": "FactorForPlaneScoreInAntiBoatStrike",
+    "0x02a4": "StopBoatBeforeDanger",
+    "0x02a8": "RatioSupplyHealth",
+    "0x02ac": "RatioSupplyAmmoAndFuel",
+    "0x02b0": "RatioSupplyToStartAMission",
+    "0x02b4": "SupplyHealthForBoat",
+    "0x02b5": "SupplyFuelForBoat",
+    "0x02b6": "VisionParams_Default_Check3DMLos",
+    "0x02b8": "BonusDissimulationDesUnitesIntervientPourLeurEtatDeStealth",
+    "0x02bc": "FileExtension",
+    "0x02c0": "SimulatedSecondsInOneFrame",
+    "0x02c4": "StrategicAttackCanAffectAttacker",
+    "0x02c5": "UseZoneWithMostPointsForAlamo"
+  },
+  "claims": [
+    {
+      "id": "P1",
+      "axis": "meta",
+      "status": "proven",
+      "claim": "Target is PE32 i386 with the pinned SHA-256; no PDB is available; RTTI is complete and is the only name source.",
+      "evidence": [
+        "rizin iI: bintype pe, bits 32, lang msvc, baddr 0x400000",
+        "RSDS at file offset 0x18625c8, guid db6b159c652c9342b1950b30b1b8c179, age 1",
+        "scripts/ai_rtti.py --slot-map: 2962 IA-namespace names, 2311 resolved, 5378 slots"
+      ],
+      "falsifier": "A PDB is found matching that GUID and age, or the image base/section table differs from the recorded values."
+    },
+    {
+      "id": "P2",
+      "axis": "meta",
+      "status": "proven",
+      "claim": "The gameplay-tunables descriptor registers 76 (offset, name) pairs, including difficulty-indexed economy fields and separately named player/IA pinned-death multipliers.",
+      "evidence": [
+        "registration call sites 0x00b94011-0x00b94909, one push <offset> / push 0 / push str.<name> triple each",
+        "field_names table in this ledger"
+      ],
+      "falsifier": "Disassembly of the registration block does not show the listed offset/name triples."
+    },
+    {
+      "id": "P3",
+      "axis": "meta",
+      "status": "proven",
+      "claim": "Loader 0x00b914c0-0x00b921c1 copies 65 of those fields into fixed globals, so consumers are reachable by absolute-address xref without a PDB.",
+      "evidence": [
+        "scripts/ai_tunable_map.py over a Rizin listing of that function",
+        "ai-tunable-globals.json (65 entries) with load and store site per field"
+      ],
+      "falsifier": "A field store in that range does not target the recorded global."
+    },
+    {
+      "id": "P4",
+      "axis": "economy",
+      "status": "proven",
+      "claim": "Difficulty is a closed 1/2/3 enum at the economy initialiser: 1 selects the Facile block, 2 Moyen, 3 Difficile, and any other value selects an explicit neutral block (currency stock 0, three multipliers 1.0f). AI_VHARD is not a case here.",
+      "evidence": [
+        "0x00bb2775 movzx eax,[esp+0x1e]; three 'sub eax,1 / jz' at 0x00bb277a-0x00bb278b",
+        "0x00bb278d-0x00bb27b1 neutral defaults 0 / 0x3f800000 x3",
+        "0x00bb27c5, 0x00bb27fa, 0x00bb282f the three difficulty blocks"
+      ],
+      "falsifier": "A fourth difficulty case exists, or the neutral path writes a non-1.0 multiplier."
+    },
+    {
+      "id": "P5",
+      "axis": "information",
+      "status": "proven",
+      "claim": "InfluenceMapAlwaysKnowAllUnits (global 0x020263a2) gates the visibility test in the influence-map update: when set, units enter the influence accumulation without a visibility byte check.",
+      "evidence": [
+        "0x010828a5 cmp byte [0x020263a2],0",
+        "0x010828ac jnz to accumulation at 0x010828be",
+        "0x010828ae-0x010828b8 visibility test and skip"
+      ],
+      "falsifier": "The jump target does not reach the influence accumulation, or a second visibility test exists downstream on the same path."
+    },
+    {
+      "id": "P6",
+      "axis": "information",
+      "status": "proven",
+      "claim": "IgnoreInvisibleUnit (global 0x020263a1) is read in per-unit visibility bookkeeping, and the branch clamps a stored value to VisibilityMemoTimer (0x020263a4).",
+      "evidence": [
+        "0x01037775 cmp byte [0x020263a1],0",
+        "0x010377b8 cmp ecx,[0x020263a4]",
+        "0x010377be cmovl ecx,[0x020263a4]"
+      ],
+      "falsifier": "The flag branch does not reach the clamp, or the clamp uses a different global."
+    },
+    {
+      "id": "S1",
+      "axis": "economy",
+      "status": "suspected",
+      "claim": "StockDeviseSupplementaire<Difficulty> pays a currency-stock advantage through the object at +0x270 initialised by 0x00bb2740.",
+      "evidence": [
+        "0x00bb27ca / 0x00bb27ff / 0x00bb2834 store the three globals to [esi+0x270]",
+        "callers: 0x00babf40 and TWorld vtable slot 2 (0x00bae820)"
+      ],
+      "missing": "Owning object type at esi, per-team consumer of +0x270, and shipped values.",
+      "falsifier": "+0x270 is read only by display code, or the object is not instantiated for AI teams."
+    },
+    {
+      "id": "S2",
+      "axis": "economy",
+      "status": "suspected",
+      "claim": "BonusIAMoneyForSkirmish (0x02026390) is an AI-only skirmish money bonus.",
+      "evidence": ["name in the registration table at offset 0x0264", "store at 0x00b92035"],
+      "missing": "No absolute-address reader exists; a base-pointer reader was not located.",
+      "falsifier": "The field is read by a path that applies to both teams identically, or it is unused."
+    },
+    {
+      "id": "S3",
+      "axis": "information",
+      "status": "unresolved",
+      "claim": "IgnoreInvisibleUnit direction of effect (making the AI ignore unseen units vs. letting it consider them) is not established.",
+      "evidence": ["0x01037775 context"],
+      "missing": "Consumer semantics and the meaning of the per-unit counter compared at 0x0103779b.",
+      "falsifier": "A traced call path shows which side the branch favours."
+    },
+    {
+      "id": "R1",
+      "axis": "information",
+      "status": "refuted",
+      "claim": "The AI has unconditional (hard-coded) omniscient targeting.",
+      "evidence": [
+        "the only visibility bypass found is data-flag-gated (P5)",
+        "TInfluenceMap exposes one virtual slot (0x01029750) with no visibility bypass in it"
+      ],
+      "scope": "Refuted for the regions examined. This is not a claim that no such path exists anywhere in a 30 MB image."
+    },
+    {
+      "id": "U2",
+      "axis": "mechanics",
+      "status": "not-examined",
+      "claim": "Reaction latency, ammunition/fuel exemptions, deployment restrictions and unit valuation.",
+      "evidence": [
+        "classes present: TIAStratThread, TModernWarfareUnitLogicFuelModule, TUnitLogicDataConsumptionModule, TDeploiementGamePhase, TCostComputer*"
+      ]
+    }
+  ],
+  "open_items": [
+    "Decode NDF_Win.dat for shipped tunable values (largest gap).",
+    "Identify the object type and per-team consumer of +0x270..+0x27c.",
+    "Locate the base-pointer reader of 0x02026390 (BonusIAMoneyForSkirmish).",
+    "Trace TCostComputer* valuation inputs.",
+    "Trace AI order latency via TIAStratThread.",
+    "Check whether AI ammo/fuel consumption differs from player consumption."
+  ],
+  "experiments": [
+    {
+      "id": "E1",
+      "kind": "offline-static",
+      "prediction": "The 76 registered names appear in NDF with values; StockDeviseSupplementaireFacile > 0; InfluenceMapAlwaysKnowAllUnits in {0,1}.",
+      "falsifier": "Names absent, or value domain contradicts the access width in code."
+    },
+    {
+      "id": "E2",
+      "kind": "offline-corpus",
+      "prediction": "With no information advantage active, no AI order targets a unit with zero prior vision in the same replay.",
+      "falsifier": "Orders resolve to units with no vision record at all (record as a logging gap before calling it a cheat)."
+    },
+    {
+      "id": "E3",
+      "kind": "runtime-requires-authorisation",
+      "prediction": "On Hard: stock > 0, player damage multiplier < 1.0, IA pinned threshold != 1.0, remaining fields 1.0.",
+      "falsifier": "All globals equal neutral defaults on every difficulty."
+    },
+    {
+      "id": "E4",
+      "kind": "runtime-requires-authorisation",
+      "prediction": "Under no exemption, AI and player units consume identical ammo/fuel for identical orders.",
+      "falsifier": "AI consumption is lower for the same orders."
+    }
+  ]
+}

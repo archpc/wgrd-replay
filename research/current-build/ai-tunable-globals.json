@@ -1,0 +1,522 @@
+{
+  "0x01b4": [
+    {
+      "global": "0x02026348",
+      "load_site": "0x00b91b0b",
+      "store_site": "0x00b91b18",
+      "width": "dword"
+    }
+  ],
+  "0x01b8": [
+    {
+      "global": "0x0202634c",
+      "load_site": "0x00b91b20",
+      "store_site": "0x00b91b28",
+      "width": "dword"
+    }
+  ],
+  "0x01d4": [
+    {
+      "global": "0x020264f8",
+      "load_site": "0x00b91d52",
+      "store_site": "0x00b91d58",
+      "width": "dword"
+    }
+  ],
+  "0x01d8": [
+    {
+      "global": "0x020264f0",
+      "load_site": "0x00b91e39",
+      "store_site": "0x00b91e3f",
+      "width": "dword"
+    }
+  ],
+  "0x01dc": [
+    {
+      "global": "0x02026350",
+      "load_site": "0x00b91e44",
+      "store_site": "0x00b91e51",
+      "width": "dword"
+    }
+  ],
+  "0x01e0": [
+    {
+      "global": "0x02026354",
+      "load_site": "0x00b91e59",
+      "store_site": "0x00b91e61",
+      "width": "dword"
+    }
+  ],
+  "0x01e4": [
+    {
+      "global": "0x02026358",
+      "load_site": "0x00b91e69",
+      "store_site": "0x00b91e71",
+      "width": "dword"
+    }
+  ],
+  "0x01e8": [
+    {
+      "global": "0x0202635c",
+      "load_site": "0x00b91e79",
+      "store_site": "0x00b91e7f",
+      "width": "dword"
+    }
+  ],
+  "0x01ec": [
+    {
+      "global": "0x01da3f08",
+      "load_site": "0x00b91e84",
+      "store_site": "0x00b91e8a",
+      "width": "dword"
+    }
+  ],
+  "0x01f0": [
+    {
+      "global": "0x02026360",
+      "load_site": "0x00b91e8f",
+      "store_site": "0x00b91e95",
+      "width": "dword"
+    }
+  ],
+  "0x01f4": [
+    {
+      "global": "0x01da3f0c",
+      "load_site": "0x00b91e9a",
+      "store_site": "0x00b91ea2",
+      "width": "dword"
+    }
+  ],
+  "0x01f8": [
+    {
+      "global": "0x01da3f10",
+      "load_site": "0x00b91eaa",
+      "store_site": "0x00b91eb2",
+      "width": "dword"
+    }
+  ],
+  "0x01fc": [
+    {
+      "global": "0x02026364",
+      "load_site": "0x00b91eba",
+      "store_site": "0x00b91ec0",
+      "width": "dword"
+    }
+  ],
+  "0x0200": [
+    {
+      "global": "0x01da3f14",
+      "load_site": "0x00b91ec5",
+      "store_site": "0x00b91ecd",
+      "width": "dword"
+    }
+  ],
+  "0x0204": [
+    {
+      "global": "0x01da3f18",
+      "load_site": "0x00b91ed5",
+      "store_site": "0x00b91edd",
+      "width": "dword"
+    }
+  ],
+  "0x0208": [
+    {
+      "global": "0x02026368",
+      "load_site": "0x00b91ee5",
+      "store_site": "0x00b91eeb",
+      "width": "dword"
+    }
+  ],
+  "0x020c": [
+    {
+      "global": "0x01da3f1c",
+      "load_site": "0x00b91f00",
+      "store_site": "0x00b91f08",
+      "width": "dword"
+    }
+  ],
+  "0x0210": [
+    {
+      "global": "0x01da3f20",
+      "load_site": "0x00b91ef0",
+      "store_site": "0x00b91ef8",
+      "width": "dword"
+    }
+  ],
+  "0x0214": [
+    {
+      "global": "0x01da3f24",
+      "load_site": "0x00b91f10",
+      "store_site": "0x00b91f18",
+      "width": "dword"
+    }
+  ],
+  "0x0218": [
+    {
+      "global": "0x01da3f28",
+      "load_site": "0x00b91f20",
+      "store_site": "0x00b91f28",
+      "width": "dword"
+    }
+  ],
+  "0x021c": [
+    {
+      "global": "0x01da3f2c",
+      "load_site": "0x00b91f30",
+      "store_site": "0x00b91f38",
+      "width": "dword"
+    }
+  ],
+  "0x0220": [
+    {
+      "global": "0x0202636c",
+      "load_site": "0x00b91f40",
+      "store_site": "0x00b91f48",
+      "width": "dword"
+    }
+  ],
+  "0x0224": [
+    {
+      "global": "0x02026370",
+      "load_site": "0x00b91f50",
+      "store_site": "0x00b91f56",
+      "width": "dword"
+    }
+  ],
+  "0x0228": [
+    {
+      "global": "0x02026333",
+      "load_site": "0x00b91f5b",
+      "store_site": "0x00b91f62",
+      "width": "byte"
+    }
+  ],
+  "0x022c": [
+    {
+      "global": "0x01da3f30",
+      "load_site": "0x00b91f67",
+      "store_site": "0x00b91f6f",
+      "width": "dword"
+    }
+  ],
+  "0x0230": [
+    {
+      "global": "0x01da3f34",
+      "load_site": "0x00b91f77",
+      "store_site": "0x00b91f7f",
+      "width": "dword"
+    }
+  ],
+  "0x0234": [
+    {
+      "global": "0x01da3f38",
+      "load_site": "0x00b91f87",
+      "store_site": "0x00b91f8d",
+      "width": "dword"
+    }
+  ],
+  "0x0238": [
+    {
+      "global": "0x01da3f3c",
+      "load_site": "0x00b91f92",
+      "store_site": "0x00b91f9a",
+      "width": "dword"
+    }
+  ],
+  "0x023c": [
+    {
+      "global": "0x01da3f40",
+      "load_site": "0x00b91fa2",
+      "store_site": "0x00b91faa",
+      "width": "dword"
+    }
+  ],
+  "0x0240": [
+    {
+      "global": "0x01da3f44",
+      "load_site": "0x00b91fb2",
+      "store_site": "0x00b91fba",
+      "width": "dword"
+    }
+  ],
+  "0x0244": [
+    {
+      "global": "0x01da3f48",
+      "load_site": "0x00b91fc2",
+      "store_site": "0x00b91fca",
+      "width": "dword"
+    }
+  ],
+  "0x0248": [
+    {
+      "global": "0x01da3f4c",
+      "load_site": "0x00b91fd2",
+      "store_site": "0x00b91fda",
+      "width": "dword"
+    }
+  ],
+  "0x024c": [
+    {
+      "global": "0x0202637c",
+      "load_site": "0x00b91fe2",
+      "store_site": "0x00b91fe8",
+      "width": "dword"
+    }
+  ],
+  "0x0254": [
+    {
+      "global": "0x01da3f54",
+      "load_site": "0x00b92004",
+      "store_site": "0x00b9200a",
+      "width": "dword"
+    }
+  ],
+  "0x0258": [
+    {
+      "global": "0x02026380",
+      "load_site": "0x00b9200f",
+      "store_site": "0x00b92017",
+      "width": "dword"
+    }
+  ],
+  "0x025c": [
+    {
+      "global": "0x02026384",
+      "load_site": "0x00b9201f",
+      "store_site": "0x00b92027",
+      "width": "dword"
+    }
+  ],
+  "0x0264": [
+    {
+      "global": "0x02026390",
+      "load_site": "0x00b9202f",
+      "store_site": "0x00b92035",
+      "width": "dword"
+    }
+  ],
+  "0x0268": [
+    {
+      "global": "0x020263a4",
+      "load_site": "0x00b92139",
+      "store_site": "0x00b9213f",
+      "width": "dword"
+    }
+  ],
+  "0x026c": [
+    {
+      "global": "0x020263a8",
+      "load_site": "0x00b92144",
+      "store_site": "0x00b9214a",
+      "width": "dword"
+    }
+  ],
+  "0x0270": [
+    {
+      "global": "0x020263a1",
+      "load_site": "0x00b9214f",
+      "store_site": "0x00b92156",
+      "width": "byte"
+    }
+  ],
+  "0x0271": [
+    {
+      "global": "0x020263a2",
+      "load_site": "0x00b9215b",
+      "store_site": "0x00b92162",
+      "width": "byte"
+    }
+  ],
+  "0x0272": [
+    {
+      "global": "0x02026379",
+      "load_site": "0x00b9203a",
+      "store_site": "0x00b92041",
+      "width": "byte"
+    }
+  ],
+  "0x0274": [
+    {
+      "global": "0x020263b0",
+      "load_site": "0x00b920b0",
+      "store_site": "0x00b920b8",
+      "width": "dword"
+    }
+  ],
+  "0x0278": [
+    {
+      "global": "0x020263b4",
+      "load_site": "0x00b920c0",
+      "store_site": "0x00b920c8",
+      "width": "dword"
+    }
+  ],
+  "0x027c": [
+    {
+      "global": "0x020263b8",
+      "load_site": "0x00b920d0",
+      "store_site": "0x00b920d8",
+      "width": "dword"
+    }
+  ],
+  "0x0280": [
+    {
+      "global": "0x020263ac",
+      "load_site": "0x00b920e0",
+      "store_site": "0x00b920e6",
+      "width": "dword"
+    }
+  ],
+  "0x0284": [
+    {
+      "global": "0x020263a3",
+      "load_site": "0x00b920eb",
+      "store_site": "0x00b920f2",
+      "width": "byte"
+    }
+  ],
+  "0x028c": [
+    {
+      "global": "0x020263c0",
+      "load_site": "0x00b92107",
+      "store_site": "0x00b9210d",
+      "width": "dword"
+    }
+  ],
+  "0x0290": [
+    {
+      "global": "0x020263c4",
+      "load_site": "0x00b92112",
+      "store_site": "0x00b92118",
+      "width": "dword"
+    }
+  ],
+  "0x0294": [
+    {
+      "global": "0x02026388",
+      "load_site": "0x00b92046",
+      "store_site": "0x00b9204c",
+      "width": "dword"
+    }
+  ],
+  "0x0298": [
+    {
+      "global": "0x0202638c",
+      "load_site": "0x00b92051",
+      "store_site": "0x00b92057",
+      "width": "dword"
+    }
+  ],
+  "0x029c": [
+    {
+      "global": "0x020263cc",
+      "load_site": "0x00b9211d",
+      "store_site": "0x00b92124",
+      "width": "byte"
+    }
+  ],
+  "0x02a0": [
+    {
+      "global": "0x020263c8",
+      "load_site": "0x00b92129",
+      "store_site": "0x00b92131",
+      "width": "dword"
+    }
+  ],
+  "0x02a4": [
+    {
+      "global": "0x0202637a",
+      "load_site": "0x00b9205c",
+      "store_site": "0x00b92063",
+      "width": "byte"
+    }
+  ],
+  "0x02a8": [
+    {
+      "global": "0x02026394",
+      "load_site": "0x00b92068",
+      "store_site": "0x00b92070",
+      "width": "dword"
+    }
+  ],
+  "0x02ac": [
+    {
+      "global": "0x02026398",
+      "load_site": "0x00b92078",
+      "store_site": "0x00b92080",
+      "width": "dword"
+    }
+  ],
+  "0x02b0": [
+    {
+      "global": "0x0202639c",
+      "load_site": "0x00b92088",
+      "store_site": "0x00b92090",
+      "width": "dword"
+    }
+  ],
+  "0x02b4": [
+    {
+      "global": "0x0202637b",
+      "load_site": "0x00b92098",
+      "store_site": "0x00b9209f",
+      "width": "byte"
+    }
+  ],
+  "0x02b5": [
+    {
+      "global": "0x020263a0",
+      "load_site": "0x00b920a4",
+      "store_site": "0x00b920ab",
+      "width": "byte"
+    }
+  ],
+  "0x02b6": [
+    {
+      "global": "0x020263cd",
+      "load_site": "0x00b92173",
+      "store_site": "0x00b9217a",
+      "width": "byte"
+    }
+  ],
+  "0x02b7": [
+    {
+      "global": "0x020263ce",
+      "load_site": "0x00b92167",
+      "store_site": "0x00b9216e",
+      "width": "byte"
+    }
+  ],
+  "0x02b8": [
+    {
+      "global": "0x020263cf",
+      "load_site": "0x00b9217f",
+      "store_site": "0x00b92186",
+      "width": "byte"
+    }
+  ],
+  "0x02c0": [
+    {
+      "global": "0x02026374",
+      "load_site": "0x00b9218b",
+      "store_site": "0x00b92191",
+      "width": "dword"
+    }
+  ],
+  "0x02c4": [
+    {
+      "global": "0x02026378",
+      "load_site": "0x00b92196",
+      "store_site": "0x00b9219d",
+      "width": "byte"
+    }
+  ],
+  "0x02c5": [
+    {
+      "global": "0x01da3f05",
+      "load_site": "0x00b921a2",
+      "store_site": "0x00b921a9",
+      "width": "byte"
+    }
+  ]
+}
