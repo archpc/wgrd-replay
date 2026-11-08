@@ -98,11 +98,22 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--min-addr", help="first instruction address to accept (hex)")
     ap.add_argument("--max-addr", help="exclusive upper bound (hex)")
     ap.add_argument("--only-offsets", help="JSON file whose keys are offsets to keep")
+    ap.add_argument("--format", choices=("lines", "rizin-json"), default="lines",
+                    help="input shape: rizin `pd` text or `pdfj` JSON")
     args = ap.parse_args(argv)
 
     lo = int(args.min_addr, 16) if args.min_addr else None
     hi = int(args.max_addr, 16) if args.max_addr else None
-    lines = sys.stdin.readlines()
+    raw = sys.stdin.read()
+    if args.format == "rizin-json":
+        # pdfj emits {"name":...,"ops":[{"offset":..,"opcode":..}, ...]}
+        data = json.loads(raw)
+        ops = data.get("ops", []) if isinstance(data, dict) else data
+        # `disasm` keeps the symbolic operand (push str.Name); `opcode` does not.
+        lines = [f" 0x{int(op['offset']):08x}  {op.get('disasm') or op.get('opcode', '')}\n"
+                 for op in ops]
+    else:
+        lines = raw.splitlines(keepends=True)
 
     if args.mode == "registry":
         table = parse_registry(lines, lo, hi)

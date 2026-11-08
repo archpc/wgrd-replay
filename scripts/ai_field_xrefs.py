@@ -233,7 +233,9 @@ class RizinOracle:
             text = self._listing.get(va)
             if text is None:
                 results[va] = (False, "not an instruction start")
-            elif f"0x{disp:x}" not in text:
+            elif not re.search(rf"\+0x{disp:x}\]", text):
+                # Require the closing bracket: a bare immediate that equals the
+                # displacement is not a memory operand.
                 results[va] = (False, f"operand not shown: {text}")
             else:
                 results[va] = (True, text)

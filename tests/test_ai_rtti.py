@@ -232,6 +232,12 @@ class TestOracle(unittest.TestCase):
         self.assertFalse(oracle.confirm_many([(0x1011, 0x270)])[0x1011][0])
         self.assertFalse(oracle.confirm_many([(0x1010, 0x271)])[0x1010][0])
 
+    def test_confirm_rejects_immediate_with_same_value(self):
+        oracle = ai_field_xrefs.RizinOracle("unused")
+        oracle._funcs = [(0x1000, 0x1100)]
+        oracle._listing = {0x1010: "mov eax, 0x270"}
+        self.assertFalse(oracle.confirm_many([(0x1010, 0x270)])[0x1010][0])
+
     def test_confirm_calls_checks_mnemonic_and_target(self):
         oracle = ai_field_xrefs.RizinOracle("unused")
         oracle._funcs = [(0x2000, 0x2100)]
@@ -259,9 +265,19 @@ class TestLedger(unittest.TestCase):
         self.assertEqual(axes["P4"], "economy")
         self.assertEqual(axes["P5"], "information")
 
+    def test_registry_and_globals_artifacts_agree(self):
+        registry = json.loads((REPO / "research/current-build/ai-field-registry.json").read_text())
+        globals_map = json.loads(TUNABLE_GLOBALS.read_text())
+        self.assertEqual(len(registry), 167)
+        registered = {int(k, 16) for k in registry}
+        stored = {int(k, 16) for k in globals_map}
+        # 155 registered fields reach a fixed global through a matched pair;
+        # the rest are address-taken, packed, or copied into a heap array.
+        self.assertEqual(len(registered & stored), 155)
+
     def test_tunable_globals_cover_the_named_fields(self):
         globals_map = json.loads(TUNABLE_GLOBALS.read_text())
-        self.assertEqual(len(globals_map), 144)
+        self.assertEqual(len(globals_map), 162)
         expected = {
             "0x01f0": "0x02026360",
             "0x01fc": "0x02026364",

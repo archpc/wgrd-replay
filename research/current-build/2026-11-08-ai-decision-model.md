@@ -51,12 +51,21 @@ Verified chain example (bytes checked in Rizin, not inferred):
 
 The gameplay-constants registration function `0x00b934b0`–`0x00b947ac`
 (prologue and `ret` verified) pushes `(offset, name)` pairs, three pushes per
-field: offset, zero, name token. **160 pairs** fall inside that function,
+field: offset, zero, name token. **167 pairs** fall inside that function,
 recovered by `scripts/ai_tunable_map.py --mode registry` and committed as
-`ai-field-registry.json`. Bound the parse to the function: the same listing run
-past `0x00b947ac` picks up the *next* function's unit-descriptor fields
-(`TypeUnitValue`, `MotherCountry`, `Training`, `CIWS`, …), which is how an
-earlier draft of this note reported a wrong count and range.
+`ai-field-registry.json`.
+
+Two parsing traps produced wrong counts in earlier drafts, and both are now
+avoided by construction:
+
+* **Bound the range.** The same listing run past `0x00b947ac` picks up the
+  *next* function's unit-descriptor fields (`TypeUnitValue`, `MotherCountry`,
+  `Training`, `CIWS`, …).
+* **Feed it analysed disassembly.** A linear `pd` sweep desynchronises midway
+  through the function; the `push 0x114` for `Persistance_Bruit` then decodes as
+  two `add` instructions and the whole triple silently disappears. Feed
+  `pdfj` from `af @ 0x00b934b0` instead: 1413 instructions, gap-free, 167
+  pairs.
 
 Fields that matter to this investigation:
 
@@ -95,8 +104,13 @@ benefits.
 
 One function, `0x00b914c0`–`0x00b921c1` (prologue, `ret`, and Rizin's own
 `method.Eugen::IA::TTunableConstante.virtual_28` flag all agree on the extent),
-copies **144** of the 160 registered fields from the descriptor into fixed
-global addresses. Rizin only names it after `af @ 0x00b914c0`; `aaa` alone
+performs **168 stores to fixed globals**; 164 of those pair a descriptor load
+with the store, across 162 distinct offsets. **155 of the 167 registered
+fields** reach a global this way. The other 12 are handled differently, which
+is why a naive "registered minus stored" difference is not an error: four are
+address-taken (`lea eax, [edi+0xe4]`) and eight are packed or copied into a
+heap array (the four `Color_0x` entries and the grid colour fields assemble
+bytes through `bl`/`dl`/`cl` and store to `[eax]`). Rizin only names it after `af @ 0x00b914c0`; `aaa` alone
 leaves the region as a gap, so a name-free listing under-reports coverage. Selected mappings (`scripts/ai_field_xrefs.py` cannot see these;
 they were extracted from the store listing and are reproduced in the ledger):
 
@@ -114,8 +128,11 @@ they were extracted from the store listing and are reproduced in the ledger):
 
 This is the useful structural result: these are **plain globals**, so their
 consumers can be found by absolute-address xref with no type information and no
-PDB. The full 144-entry table is in `ai-tunable-globals.json`, with the load and
-store site for each field.
+PDB. The full 162-offset table is in `ai-tunable-globals.json`, with the load and
+store site for each entry. Seven stored offsets are not registered fields
+(`0x74`, `0x13e`, `0x14a`, `0x1d0`, `0x1d4`, `0x1d8`, `0x254`); they are kept
+in the artifact rather than filtered out, because the loader really does write
+them.
 
 ## 4. Economy axis
 
@@ -283,8 +300,8 @@ authority for status. Summary:
 | id | claim | axis | status |
 |---|---|---|---|
 | P1 | Build is PE32 i386, SHA-256 pinned; PDB absent; RTTI complete | meta | proven |
-| P2 | 160 gameplay-tunable fields registered with offsets by `0x00b934b0` | meta | proven |
-| P3 | 144 of them copied to fixed globals by `0x00b914c0` | meta | proven |
+| P2 | 167 gameplay-tunable fields registered with offsets by `0x00b934b0` | meta | proven |
+| P3 | loader `0x00b914c0` writes 168 globals; 155 registered fields arrive by a matched load→store | meta | proven |
 | P4 | Difficulty 1/2/3 selects stock + threshold + damage blocks; neutral = 0/1.0 | economy | proven |
 | P5 | `InfluenceMapAlwaysKnowAllUnits` gates the influence-map visibility test | information | proven (path); enablement unresolved |
 | P6 | `IgnoreInvisibleUnit` is consulted in visibility bookkeeping | information | proven (read only) |
@@ -308,7 +325,7 @@ authorised yet; E3 and E4 require explicit VM authorisation, and no experiment
 may touch multiplayer.
 
 **E1 — Decode the NDF tunables table (offline).**
-Parse `NDF_Win.dat` for the gameplay-constant class. Prediction: the 160
+Parse `NDF_Win.dat` for the gameplay-constant class. Prediction: the 167
 registered names appear with values; `StockDeviseSupplementaireFacile > 0` and
 `InfluenceMapAlwaysKnowAllUnits ∈ {0,1}`. Falsifier: fields absent, or a value
 outside the domain implied by the code (e.g. a float where the code reads a
@@ -323,7 +340,7 @@ same replay, which would indicate incomplete vision logging rather than a
 cheat — record which.
 
 **E3 — Global read at runtime (needs authorisation).**
-Read the 144 globals and `+0x270..+0x27c` after world init on each difficulty.
+Read the 168 globals and `+0x270..+0x27c` after world init on each difficulty.
 Prediction table (Hard as shipped): stock > 0, player damage multiplier < 1.0,
 IA threshold != 1.0, all others 1.0. Falsifier: all globals equal to the
 neutral defaults on every difficulty, which would mean the table is inert in
@@ -343,6 +360,12 @@ All commands read the pinned binary only.
 ```
 python3 scripts/ai_rtti.py     --exe <exe> --slot-map --json slotmap.json
 python3 scripts/ai_rtti.py     --exe <exe> --class '.<name>' --slots 8
+rizin -q -c 'af @ 0x00b934b0' -c 'pdfj @ 0x00b934b0' <exe> \
+  | python3 scripts/ai_tunable_map.py --mode registry --format rizin-json \
+      --json ai-field-registry.json          # 167 fields
+rizin -q -c 'af @ 0x00b914c0' -c 'pdfj @ 0x00b914c0' <exe> \
+  | python3 scripts/ai_tunable_map.py --mode stores --format rizin-json \
+      --json ai-tunable-globals.json         # 162 offsets, 164 pairs
 python3 scripts/ai_field_xrefs.py --exe <exe> --disp 0x271 --disp 0x270 --validate --afl afl.txt
 python3 scripts/ai_attrib.py   --exe <exe> --afl afl.txt --slotmap slotmap.json --va 0x010828a5 --validate
 rizin -q -e scr.color=0 -c 'afl' <exe>          # save once for --afl

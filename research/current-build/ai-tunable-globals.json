@@ -139,11 +139,25 @@
       "store_site": "0x00b915b6"
     }
   ],
+  "0x006c": [
+    {
+      "global": "0x02026554",
+      "load_site": "0x00b915bb",
+      "store_site": "0x00b915be"
+    }
+  ],
   "0x0070": [
     {
       "global": "0x02026558",
       "load_site": "0x00b915c3",
       "store_site": "0x00b915c6"
+    }
+  ],
+  "0x0074": [
+    {
+      "global": "0x0202650c",
+      "load_site": "0x00b915cb",
+      "store_site": "0x00b915ce"
     }
   ],
   "0x0078": [
@@ -258,6 +272,13 @@
       "store_site": "0x00b916b0"
     }
   ],
+  "0x00b8": [
+    {
+      "global": "0x02026278",
+      "load_site": "0x00b916bb",
+      "store_site": "0x00b916c3"
+    }
+  ],
   "0x00bc": [
     {
       "global": "0x0202627c",
@@ -356,6 +377,13 @@
       "store_site": "0x00b917b0"
     }
   ],
+  "0x0114": [
+    {
+      "global": "0x020262b8",
+      "load_site": "0x00b917b8",
+      "store_site": "0x00b917c0"
+    }
+  ],
   "0x0118": [
     {
       "global": "0x02026203",
@@ -382,6 +410,13 @@
       "global": "0x020262c4",
       "load_site": "0x00b917f4",
       "store_site": "0x00b917fc"
+    }
+  ],
+  "0x0128": [
+    {
+      "global": "0x020262c8",
+      "load_site": "0x00b91804",
+      "store_site": "0x00b9180c"
     }
   ],
   "0x012c": [
@@ -412,11 +447,25 @@
       "store_site": "0x00b9186c"
     }
   ],
+  "0x013e": [
+    {
+      "global": "0x020265d8",
+      "load_site": "0x00b91886",
+      "store_site": "0x00b9189c"
+    }
+  ],
   "0x0144": [
     {
       "global": "0x020262d4",
       "load_site": "0x00b918ce",
       "store_site": "0x00b918d6"
+    }
+  ],
+  "0x014a": [
+    {
+      "global": "0x020265d4",
+      "load_site": "0x00b918f0",
+      "store_site": "0x00b91906"
     }
   ],
   "0x0150": [
@@ -548,6 +597,13 @@
       "store_site": "0x00b91a68"
     }
   ],
+  "0x0194": [
+    {
+      "global": "0x02026324",
+      "load_site": "0x00b91a70",
+      "store_site": "0x00b91a78"
+    }
+  ],
   "0x0198": [
     {
       "global": "0x02026328",
@@ -574,6 +630,20 @@
       "global": "0x02026331",
       "load_site": "0x00b91aac",
       "store_site": "0x00b91ab3"
+    }
+  ],
+  "0x01a3": [
+    {
+      "global": "0x02026332",
+      "load_site": "0x00b91ab8",
+      "store_site": "0x00b91abf"
+    }
+  ],
+  "0x01a4": [
+    {
+      "global": "0x02026334",
+      "load_site": "0x00b91ac4",
+      "store_site": "0x00b91acc"
     }
   ],
   "0x01a8": [
@@ -609,6 +679,27 @@
       "global": "0x0202634c",
       "load_site": "0x00b91b20",
       "store_site": "0x00b91b28"
+    }
+  ],
+  "0x01d0": [
+    {
+      "global": "0x020264f4",
+      "load_site": "0x00b91c6d",
+      "store_site": "0x00b91c73"
+    }
+  ],
+  "0x01d4": [
+    {
+      "global": "0x020264f8",
+      "load_site": "0x00b91d52",
+      "store_site": "0x00b91d58"
+    }
+  ],
+  "0x01d8": [
+    {
+      "global": "0x020264f0",
+      "load_site": "0x00b91e39",
+      "store_site": "0x00b91e3f"
     }
   ],
   "0x01dc": [
@@ -737,6 +828,13 @@
       "store_site": "0x00b91f48"
     }
   ],
+  "0x0224": [
+    {
+      "global": "0x02026370",
+      "load_site": "0x00b91f50",
+      "store_site": "0x00b91f56"
+    }
+  ],
   "0x0228": [
     {
       "global": "0x02026333",
@@ -779,11 +877,25 @@
       "store_site": "0x00b91faa"
     }
   ],
+  "0x0240": [
+    {
+      "global": "0x01da3f44",
+      "load_site": "0x00b91fb2",
+      "store_site": "0x00b91fba"
+    }
+  ],
   "0x0244": [
     {
       "global": "0x01da3f48",
       "load_site": "0x00b91fc2",
       "store_site": "0x00b91fca"
+    }
+  ],
+  "0x0248": [
+    {
+      "global": "0x01da3f4c",
+      "load_site": "0x00b91fd2",
+      "store_site": "0x00b91fda"
     }
   ],
   "0x024c": [
@@ -798,6 +910,13 @@
       "global": "0x01da3f50",
       "load_site": "0x00b91ff9",
       "store_site": "0x00b91fff"
+    }
+  ],
+  "0x0254": [
+    {
+      "global": "0x01da3f54",
+      "load_site": "0x00b92004",
+      "store_site": "0x00b9200a"
     }
   ],
   "0x0258": [
@@ -868,6 +987,13 @@
       "global": "0x020263b4",
       "load_site": "0x00b920c0",
       "store_site": "0x00b920c8"
+    }
+  ],
+  "0x027c": [
+    {
+      "global": "0x020263b8",
+      "load_site": "0x00b920d0",
+      "store_site": "0x00b920d8"
     }
   ],
   "0x0280": [
