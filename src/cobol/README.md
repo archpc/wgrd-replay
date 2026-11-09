@@ -55,6 +55,7 @@ cell, so the COBOL numeric move reconstructs the cell without rounding.
 Requires GnuCOBOL 3.2 (`brew install gnucobol`; already present on this host).
 
 ```sh
+mkdir -p build
 cobc -x -fixed -std=default -o build/wgrdcics src/cobol/WGRDCICS.cob
 ```
 
