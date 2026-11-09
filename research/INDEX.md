@@ -49,6 +49,8 @@ predictor exists yet: no weapon identity is available in either trace.
 | Topic | Note | Code and tests |
 |---|---|---|
 | Amount product, KE range-AP, crit, falloff, damage table T, hit roll and margin, HP-clamp fixtures, FP operation order | [combat damage model](current-build/2026-11-09-combat-damage-model.md) | static only; no decoder code, evidence in `~/.hermes/artifacts/wgrd-replay/combat-damage-static-20261109/` |
+| Shipped tunable values, revision equivalence, absence evidence | [NDF effective values](current-build/2026-11-08-ndf-effective-values.md); data [ndf-tunables-131544.json](current-build/ndf-tunables-131544.json) | `scripts/ndf_read.py`, `tests/test_ndf_read.py` |
+| Next milestone: bonus and multiplier consumer traces | [skirmish traces plan](current-build/2026-11-08-next-milestone-skirmish-traces.md) | static anchors only |
 
 ## Format and decoder evidence (build 59638)
 
