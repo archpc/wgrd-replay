@@ -212,6 +212,28 @@ Scalar SSE single precision, left to right:
 P, C and F are also returned on x87 and stored as float32 (`0xcfa180`,
 `0xcfa1a2`, `0xcfa170`). A predictor must round after every step.
 
+## Phase 2a: pure-Python kernel (implementation)
+
+`research/combat_damage.py` implements only the two verified fragments:
+`damage_amount(H, P, T, K, C, F)` (left-to-right float32 product, rounding
+after every multiply) and `apply_mode2(amount, max_damages, current)` (separate
+HP clamp, float32 per operation). Every term is an explicit argument. The
+module resolves no weapon, facing, accuracy or falloff input and does not model
+mode 1.
+
+`tests/test_combat_damage.py` separates evidence classes by name:
+
+- SYNTHETIC cases pin the arithmetic contract with fixed bit patterns, including
+  cases where per-step float32 rounding differs from one final rounding and
+  where left-to-right association differs from pair grouping. They also cover
+  the unclamped and floor clamp branches, which the retained capture does not.
+- ENGINE OBSERVATION cases hash-pin the retained `hp_clamp_fixtures.json`
+  (SHA-256 `e4eaaad0…5654`) and check all three mode-2 pairs bit-exact. The 25
+  mode-1 pairs are counted and marked out of scope.
+
+The fixture is private and its test skips explicitly when absent. These tests
+add no new engine evidence and do not change any earlier claim.
+
 ## Not established
 
 - t, m falloff arrays.

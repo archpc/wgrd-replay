@@ -43,12 +43,13 @@ separate questions and are not used as evidence for each other.
 ## Direct-fire damage model (build 131544)
 
 Static, read-only; no game launch, VM or instrumentation. Amount terms are
-recovered and the HP clamp is checked against retained pairs. No damage
-predictor exists yet: no weapon identity is available in either trace.
+recovered and the HP clamp is checked against retained pairs. A minimal kernel
+exists for the verified product order and mode-2 clamp. No damage predictor
+exists yet: no weapon identity is available in either trace.
 
 | Topic | Note | Code and tests |
 |---|---|---|
-| Amount product, KE range-AP, crit, falloff, damage table T, hit roll and margin, HP-clamp fixtures, FP operation order | [combat damage model](current-build/2026-11-09-combat-damage-model.md) | static only; no decoder code, evidence in `~/.hermes/artifacts/wgrd-replay/combat-damage-static-20261109/` |
+| Amount product, KE range-AP, crit, falloff, damage table T, hit roll and margin, HP-clamp fixtures, FP operation order | [combat damage model](current-build/2026-11-09-combat-damage-model.md) | `research/combat_damage.py`, `tests/test_combat_damage.py`; evidence in `~/.hermes/artifacts/wgrd-replay/combat-damage-static-20261109/` |
 
 ## Format and decoder evidence (build 59638)
 
