@@ -12,12 +12,14 @@ The differential test compares the 72-byte journal byte for byte, including
 IEEE-754 binary32 bit patterns, so agreement is bit equality.
 """
 import os
+import re
 import shutil
 import struct
 import subprocess
 import sys
 import tempfile
 import unittest
+from decimal import Decimal, ROUND_DOWN
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
@@ -44,6 +46,72 @@ BINARY = WORK / "wgrdcics"
 PYTHON = sys.executable or "python3"
 
 _F32 = struct.Struct("<f")
+
+
+DETAIL_RE = re.compile(
+    r"^ (?P<id>\S{10})  MODE (?P<mode>[12])  FAM +(?P<family>\d+)"
+    r"  ARM +(?P<armor>\d+)  AMOUNT +(?P<amount>\d+\.\d+)$")
+REJECT_RE = re.compile(r"^ (?P<id>\S{10})  (?P<code>R\d{3})  ")
+CLAIM_RE = re.compile(
+    r"^\s+CLAIM APPLIED +(?P<applied>-?\s*\d+\.\d+)"
+    r"  HP REGISTER NOW +(?P<hp>-?\s*\d+\.\d+)"
+    r"  CHARGE TO ACCOUNTS PAYABLE$")
+
+
+def parse_report(report):
+    """Return (records, pages) from a printed register.
+
+    ``records`` preserves transaction order; each entry carries the id, kind,
+    printed amount and, for mode 2, the printed applied and new-HP fields.
+    ``pages`` counts page headings, so a lost line at a page break shows up as a
+    missing id rather than a silent gap.
+    """
+    records = []
+    pages = 0
+    for raw in report.splitlines():
+        line = raw.replace("\f", "")
+        if "PAGE " in line and "BUILD 131544" in line:
+            pages += 1
+            continue
+        match = DETAIL_RE.match(line)
+        if match:
+            records.append({
+                "id": match.group("id"),
+                "kind": "D",
+                "mode": int(match.group("mode")),
+                "family": int(match.group("family")),
+                "armor": int(match.group("armor")),
+                "amount": match.group("amount"),
+                "applied": None,
+                "hp": None,
+            })
+            continue
+        match = REJECT_RE.match(line)
+        if match:
+            records.append({
+                "id": match.group("id"),
+                "kind": "R",
+                "code": match.group("code"),
+                "amount": None,
+                "applied": None,
+                "hp": None,
+            })
+            continue
+        match = CLAIM_RE.match(line)
+        if match:
+            if not records or records[-1]["kind"] != "D":
+                raise AssertionError("orphan claim line: " + raw)
+            if records[-1]["applied"] is not None:
+                raise AssertionError("duplicate claim line: " + raw)
+            records[-1]["applied"] = match.group("applied").replace(" ", "")
+            records[-1]["hp"] = match.group("hp").replace(" ", "")
+    return records, pages
+
+
+def truncate(text, places):
+    """COBOL numeric-edited output truncates at the printed precision."""
+    return Decimal(text).quantize(Decimal(1).scaleb(-places),
+                                  rounding=ROUND_DOWN)
 
 
 def f32(value):
@@ -164,6 +232,111 @@ class TestCompileAndSample(unittest.TestCase):
         headings = report.count("DEPARTMENT OF DEFENSE")
         self.assertEqual(headings, report.count("PAGE "))
         self.assertGreaterEqual(headings, 3)
+
+
+@unittest.skipUnless(COBC, "GnuCOBOL cobc not installed")
+class TestReportJournalCrossCheck(unittest.TestCase):
+    """ACCEPTANCE: every printed transaction matches the journal.
+
+    The report is a separate rendering path from the journal, and an earlier
+    defect dropped the pending detail line when a page break intervened. These
+    tests walk page boundaries on purpose and require each journal transaction
+    to appear exactly once, with the same amount and clamp figures.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        if not BINARY.is_file():
+            subprocess.run([COBC, "-x", "-fixed", "-std=default", "-o",
+                            str(BINARY), str(SOURCE)], check=True,
+                           capture_output=True)
+        cls.cross_checked = 0
+
+    def cross_check(self, table, batch, label):
+        code, journal, report, output = run_program(table, batch)
+        self.assertEqual(code, 0, output)
+        records, pages = parse_report(report)
+        journal_lines = [line for line in journal.splitlines()
+                         if not line.startswith("T")]
+        self.assertEqual(len(records), len(journal_lines), label)
+        self.assertGreaterEqual(pages, 1, label)
+        self.assertGreater(len(records), 0, label)
+        self.assertEqual(pages,
+                         report.count("BUILD 131544   PAGE "), label)
+        for entry, line in zip(records, journal_lines):
+            self.assertEqual(entry["id"], line[1:11], label)
+            status = line[11:13]
+            code_field = line[13:17]
+            if status == "OK":
+                self.assertEqual(entry["kind"], "D", label)
+                self.assertEqual(code_field, "0000", label)
+                self.assertEqual(entry["family"], int(line[17:20]), label)
+                self.assertEqual(entry["armor"], int(line[20:23]), label)
+                expected_amount = truncate(Decimal(line[47:65]), 4)
+                self.assertEqual(Decimal(entry["amount"]), expected_amount,
+                                 label + " " + entry["id"])
+                if line[31:39] != "--------":
+                    self.assertEqual(entry["mode"], 2, label)
+                    self.assertIsNotNone(entry["applied"], label)
+                    applied = struct.unpack(
+                        "<f", struct.pack("<I", int(line[31:39], 16)))[0]
+                    new_hp = struct.unpack(
+                        "<f", struct.pack("<I", int(line[39:47], 16)))[0]
+                    self.assertEqual(Decimal(entry["applied"]),
+                                     truncate(Decimal(repr(applied)), 4),
+                                     label + " " + entry["id"])
+                    self.assertEqual(Decimal(entry["hp"]),
+                                     truncate(Decimal(repr(new_hp)), 3),
+                                     label + " " + entry["id"])
+                else:
+                    self.assertEqual(entry["mode"], 1, label)
+                    self.assertIsNone(entry["applied"], label)
+            else:
+                self.assertEqual(entry["kind"], "R", label)
+                self.assertEqual(entry["code"], code_field, label)
+                self.assertIsNone(entry["amount"], label)
+                self.assertIsNone(entry["applied"], label)
+            self.cross_checked += 1
+
+    def test_sample_report_matches_journal(self):
+        self.cross_check(SYNTHETIC, SAMPLE, "sample")
+
+    def test_long_register_matches_journal(self):
+        records = make_cics_fixtures.random_records(180, seed=4242)
+        batch = WORK / "cross-long.dat"
+        write_batch(batch, records)
+        self.cross_check(SYNTHETIC, batch, "long")
+
+    def test_every_pagination_boundary_keeps_its_transaction(self):
+        # A mode-2 claim is a second printed line, so a detail can land on the
+        # last line of a page at many alignments; each must survive the break.
+        for count in range(1, 47):
+            values_list = []
+            for index in range(count):
+                values = make_cics_fixtures.base(index)
+                values.update({"mode": 2, "h": 1.0, "p": 1.0, "k": 1.0,
+                               "c": 1.0, "f": 1.0, "proj": 1,
+                               "family": 8, "armor": 8,
+                               "maxhp": 10.0, "curhp": 0.0})
+                values_list.append(values)
+            batch = WORK / ("boundary-%d.dat" % count)
+            write_batch(batch, values_list)
+            code, journal, report, output = run_program(SYNTHETIC, batch)
+            self.assertEqual(code, 0, output)
+            records, pages = parse_report(report)
+            self.assertEqual(len(records), count, "count %d" % count)
+            self.assertEqual([entry["id"] for entry in records],
+                             [value["id"] for value in values_list],
+                             "count %d" % count)
+            for entry in records:
+                self.assertEqual(entry["kind"], "D")
+                self.assertIsNotNone(entry["applied"],
+                                     "lost claim for %s at count %d"
+                                     % (entry["id"], count))
+            self.assertEqual(len(journal.splitlines()), count + 1)
+            self.assertGreaterEqual(pages, 1)
+            if count > 22:
+                self.assertGreaterEqual(pages, 2, "count %d" % count)
 
 
 @unittest.skipUnless(COBC, "GnuCOBOL cobc not installed")

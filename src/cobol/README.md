@@ -118,6 +118,14 @@ randomized precision cases, checks four known real cells
 with the deck to prove the loader refuses. Where the private table is present
 the suite also diffs a randomized batch through the real matrix.
 
+`TestReportJournalCrossCheck` parses the printed register and requires every
+journal transaction to appear exactly once, in order, with matching family,
+armor, amount, applied amount and new HP. It runs the sample, a 180-record
+register, and every batch size from 1 to 46 so detail/claim pairs straddle page
+breaks at many alignments. The defect this guards against dropped the pending
+line whenever a heading intervened: reintroducing it loses 23 of 180 detail
+lines and the test fails.
+
 ## Known discrepancies and limits
 
 - Mode 1 is amount-only. The engine's additive `+0x190` suppression path is
