@@ -155,7 +155,7 @@ through a base register other than the instance cannot be excluded.
 |---|---|---|
 | singleton is an **object base**, one dereference: `mov eax,[0x0201d31c]; mov eax,[eax+0x60]; ret` | `0x00bb2a10` | verified |
 | only non-zero store is `mov [0x0201d31c], ebx` (ebx == this) | `0x00babfa5` | verified |
-| destructor clears it | `0x00bad11b` | verified (child) |
+| three clear sites (`mov [global],0`): `0x00bacd61`, `0x00bad11b`, `0x00badb1b` | same | verified |
 | factory allocates `0x428`, runs ctor, then **replaces** the three vtable pointers with `0x1994cac` / `0x1994d28` / `0x1994d38` | `0x00a5d424`–`0x00a5d49c` | verified |
 | difficulty initialiser called from base slot 2 and again during construction | `0x00bae8a1`, `0x00bac469` | verified |
 | static difficulty table at `0x1da3f0c` is **nine × `0x3f800000`**; shipped 1.5/0.75/1.25 arrive only from the loader | `0x1da3f0c` | verified |
@@ -167,6 +167,14 @@ runtime, so the difficulty asymmetry is entirely data-driven.
 The runtime object is a **derived** class (vtable `0x1994cac`, factory
 `0x00a5d424`), not the base whose vtable the constructor installs. Field offsets
 `+0x270..+0x27c` therefore belong to the derived layout.
+
+Semantics check, run by the parent after the traces: of the 654 literal uses of
+`0x0201d31c`, 644 are plain `mov reg,[global]` loads, 3 are `mov [global],0`
+clears, 1 is the init store at `0x00babfa5`, and 1 is a compare. Seven sites
+look like a second dereference; disassembly shows they are vtable loads
+(`mov reg,[global]; mov vt,[reg]; call [vt+off]`, e.g. `0x00a95530` →
+`call dword [eax+0x38]`). So the global is an object base, not a
+pointer-to-pointer, and the earlier single-clear description was incomplete.
 
 Negative results, method-scoped: no read of `+0x274`/`+0x278`/`+0x27c` was found
 by (a) full-function disassembly of all 448 functions referencing the singleton,
