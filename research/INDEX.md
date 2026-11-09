@@ -39,7 +39,8 @@ separate questions and are not used as evidence for each other.
 | Topic | Note | Code and tests |
 |---|---|---|
 | AI tunables, difficulty economy block, influence-map visibility gate | [AI decision model](current-build/2026-11-08-ai-decision-model.md); ledger [ai-findings-ledger.json](current-build/ai-findings-ledger.json), globals [ai-tunable-globals.json](current-build/ai-tunable-globals.json) | `scripts/ai_rtti.py`, `scripts/ai_field_xrefs.py`, `scripts/ai_tunable_map.py`, `scripts/ai_attrib.py`, `tests/test_ai_rtti.py` |
-
+| Shipped tunable values, revision equivalence, absence evidence | [NDF effective values](current-build/2026-11-08-ndf-effective-values.md); data [ndf-tunables-131544.json](current-build/ndf-tunables-131544.json) | `scripts/ndf_read.py`, `tests/test_ndf_read.py` |
+| Next milestone: bonus and multiplier consumer traces | [skirmish traces plan](current-build/2026-11-08-next-milestone-skirmish-traces.md) | static anchors only |
 
 ## Format and decoder evidence (build 59638)
 
