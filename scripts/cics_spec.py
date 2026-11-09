@@ -22,7 +22,7 @@ decimals, no decimal point on the wire)::
     79-80   arme        9(2)   Arme (+0xe8)
     81      eff         9     EfficaciteSelonPortee (+0xf0), nonzero = true
     82      class       9     target class 1..6 (0xda5b90)
-    83-93   dist        9(5)V9(6)   R+0x44 two-dimensional distance
+    83-93   dist        9(6)V9(5)   R+0x44 two-dimensional distance
     94-104  r_bateaux   9(6)V9(5)   PorteeMaximaleBateaux (+0x8c)
     105-115 r_max       9(6)V9(5)   PorteeMaximale (+0x6c)
     116-126 r_tba       9(6)V9(5)   PorteeMaximaleTBA (+0x74)
@@ -89,7 +89,7 @@ BATCH_FIELDS = (
     ("arme", 79, 2, 0),
     ("eff", 81, 1, 0),
     ("tclass", 82, 1, 0),
-    ("dist", 83, 11, 6),
+    ("dist", 83, 11, 5),
     ("r_bateaux", 94, 11, 5),
     ("r_max", 105, 11, 5),
     ("r_tba", 116, 11, 5),

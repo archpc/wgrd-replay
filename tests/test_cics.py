@@ -49,9 +49,9 @@ _F32 = struct.Struct("<f")
 
 
 DETAIL_RE = re.compile(
-    r"^ (?P<id>\S{10})  MODE (?P<mode>[12])  FAM +(?P<family>\d+)"
+    r"^ (?P<id>\S+) +MODE (?P<mode>[12])  FAM +(?P<family>\d+)"
     r"  ARM +(?P<armor>\d+)  AMOUNT +(?P<amount>\d+\.\d+)$")
-REJECT_RE = re.compile(r"^ (?P<id>\S{10})  (?P<code>R\d{3})  ")
+REJECT_RE = re.compile(r"^ (?P<id>\S+) +(?P<code>R\d{3})  ")
 CLAIM_RE = re.compile(
     r"^\s+CLAIM APPLIED +(?P<applied>-?\s*\d+\.\d+)"
     r"  HP REGISTER NOW +(?P<hp>-?\s*\d+\.\d+)"
@@ -171,6 +171,14 @@ class TestRecordSpecification(unittest.TestCase):
             self.assertEqual(start - 1, cursor, name)
             cursor += length
         self.assertLessEqual(cursor, cics_spec.JOURNAL_LEN)
+
+    def test_raw_engine_distance_survives_transport(self):
+        values = make_cics_fixtures.base(1)
+        values["dist"] = 169000.0
+        line = cics_spec.encode_detail(values)
+        self.assertEqual(len(line), cics_spec.BATCH_LEN)
+        decoded = cics_spec.decode(line)
+        self.assertEqual(float(decoded["dist_value"]), 169000.0)
 
     def test_encode_decode_roundtrip(self):
         record = make_cics_fixtures.base(1)

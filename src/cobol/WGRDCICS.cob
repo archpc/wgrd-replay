@@ -203,7 +203,7 @@
 000203     05 TRX-ARME         PIC 99.
 000204     05 TRX-EFF          PIC 9.
 000205     05 TRX-CLASS        PIC 9.
-000206     05 TRX-DIST         PIC 9(5)V9(6).
+000206     05 TRX-DIST         PIC 9(6)V9(5).
 000207     05 TRX-R-BATEAUX    PIC 9(6)V9(5).
 000208     05 TRX-R-MAX        PIC 9(6)V9(5).
 000209     05 TRX-R-TBA        PIC 9(6)V9(5).
