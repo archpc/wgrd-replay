@@ -1,0 +1,408 @@
+"""Tests for WGRD-CICS (GnuCOBOL 131544 damage accounting).
+
+Evidence classes stay separate:
+
+* SYNTHETIC decks and batches test mechanics. The committed 65x35 deck is
+  labelled ``SYNTHETIC-NOT-GAMEDATA`` and is not game data.
+* ENGINE OBSERVATIONS are the hash-pinned private table and the verified
+  research kernels imported by the oracle. Tests that need the private table
+  skip explicitly when it is absent.
+
+The differential test compares the 72-byte journal byte for byte, including
+IEEE-754 binary32 bit patterns, so agreement is bit equality.
+"""
+import os
+import shutil
+import struct
+import subprocess
+import sys
+import tempfile
+import unittest
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parents[1]
+for extra in (REPO / "scripts", REPO / "research"):
+    if str(extra) not in sys.path:
+        sys.path.insert(0, str(extra))
+
+import cics_oracle  # noqa: E402
+import cics_spec  # noqa: E402
+import combat_damage_table  # noqa: E402
+import make_cics_fixtures  # noqa: E402
+
+COBC = shutil.which("cobc") or ""
+SOURCE = REPO / "src/cobol/WGRDCICS.cob"
+SYNTHETIC = REPO / "samples/cics/synthetic-table.cards"
+SAMPLE = REPO / "samples/cics/sample-batch.dat"
+PRIVATE_JSON = Path(os.environ.get(
+    "WGRD_ARME_ARMURE_TABLE",
+    Path.home() / ".hermes/artifacts/wgrd-replay"
+    "/combat-damage-static-20261109/arme-armure-table.json"))
+WORK = Path(tempfile.mkdtemp(prefix="wgrd-cics-test-"))
+BINARY = WORK / "wgrdcics"
+
+PYTHON = sys.executable or "python3"
+
+_F32 = struct.Struct("<f")
+
+
+def f32(value):
+    return _F32.unpack(_F32.pack(value))[0]
+
+
+def run_program(table, batch, env_extra=None):
+    journal = WORK / "journal.txt"
+    report = WORK / "report.txt"
+    for path in (journal, report):
+        if path.exists():
+            path.unlink()
+    env = os.environ.copy()
+    env.update({
+        "WGRD_CICS_TABLE": str(table),
+        "WGRD_CICS_BATCH": str(batch),
+        "WGRD_CICS_JOURNAL": str(journal),
+        "WGRD_CICS_REPORT": str(report),
+    })
+    if env_extra:
+        env.update(env_extra)
+    done = subprocess.run([str(BINARY)], env=env, capture_output=True,
+                          text=True)
+    return (done.returncode,
+            journal.read_text() if journal.exists() else "",
+            report.read_text() if report.exists() else "",
+            done.stdout + done.stderr)
+
+
+def write_batch(path, records, tamper=None):
+    lines = [cics_spec.encode_detail(record) for record in records]
+    if tamper:
+        lines = tamper(lines)
+    lines.append(cics_spec.encode_control(len(records)))
+    Path(path).write_text("\n".join(lines) + "\n")
+
+
+def private_table_available():
+    return PRIVATE_JSON.is_file()
+
+
+class TestRecordSpecification(unittest.TestCase):
+    """SYNTHETIC: the one authoritative layout."""
+
+    def test_batch_fields_are_contiguous_and_inside_the_record(self):
+        cursor = 0
+        for name, start, length, _ in cics_spec.BATCH_FIELDS:
+            self.assertEqual(start - 1, cursor, name)
+            cursor += length
+        self.assertLessEqual(cursor, cics_spec.BATCH_LEN)
+        self.assertEqual(len(set(field[0] for field in cics_spec.BATCH_FIELDS)),
+                         len(cics_spec.BATCH_FIELDS))
+
+    def test_journal_fields_are_contiguous(self):
+        cursor = 0
+        for name, start, length in cics_spec.JOURNAL_FIELDS:
+            self.assertEqual(start - 1, cursor, name)
+            cursor += length
+        self.assertLessEqual(cursor, cics_spec.JOURNAL_LEN)
+
+    def test_encode_decode_roundtrip(self):
+        record = make_cics_fixtures.base(1)
+        line = cics_spec.encode_detail(record)
+        self.assertEqual(len(line), cics_spec.BATCH_LEN)
+        decoded = cics_spec.decode(line)
+        self.assertEqual(decoded["id"], record["id"])
+        self.assertEqual(float(decoded["h_value"]), record["h"])
+
+
+@unittest.skipUnless(COBC, "GnuCOBOL cobc not installed")
+class TestCompileAndSample(unittest.TestCase):
+    """ACCEPTANCE: real build, sample batch, multi-page report."""
+
+    @classmethod
+    def setUpClass(cls):
+        done = subprocess.run(
+            [COBC, "-x", "-fixed", "-std=default", "-o", str(BINARY),
+             str(SOURCE)], capture_output=True, text=True)
+        if done.returncode != 0:
+            raise AssertionError("compile failed:\n" + done.stdout
+                                 + done.stderr)
+
+    def test_compiles_without_errors(self):
+        self.assertTrue(BINARY.is_file())
+
+    def test_sample_journal_is_bit_identical_to_the_oracle(self):
+        code, journal, _, _ = run_program(SYNTHETIC, SAMPLE)
+        self.assertEqual(code, 0)
+        expected, accepted, rejected, _ = cics_oracle.run(SYNTHETIC, SAMPLE)
+        self.assertEqual(journal.splitlines(), expected)
+        self.assertEqual((accepted, rejected), (6, 5))
+
+    def test_report_is_multipage_and_reconciled(self):
+        _, _, report, _ = run_program(SYNTHETIC, SAMPLE)
+        pages = [line for line in report.splitlines() if line.startswith("\f")]
+        self.assertGreaterEqual(report.count("PAGE 000"), 2)
+        self.assertIn("PAGE 0002", report)
+        self.assertIn("CONTROL CARD COUNT AGREES WITH REGISTER", report)
+        self.assertIn("ARMOR LOSS NOT RECOGNIZED UNTIL FORM DD-131544 IS",
+                      report)
+        for line in report.splitlines():
+            self.assertLessEqual(len(line.replace("\f", "")), 133)
+        self.assertTrue(pages or report.startswith("\f"))
+
+    def test_every_reject_code_in_the_sample_has_a_register_row(self):
+        _, _, report, _ = run_program(SYNTHETIC, SAMPLE)
+        for code in ("R002", "R003", "R004", "R006", "R008"):
+            self.assertIn(code, report)
+
+    def test_report_paginates_a_long_register(self):
+        records = make_cics_fixtures.random_records(180, seed=4242)
+        batch = WORK / "long.dat"
+        write_batch(batch, records)
+        code, _, report, _ = run_program(SYNTHETIC, batch)
+        self.assertEqual(code, 0)
+        self.assertIn("PAGE 0002", report)
+        self.assertIn("PAGE 0003", report)
+        headings = report.count("DEPARTMENT OF DEFENSE")
+        self.assertEqual(headings, report.count("PAGE "))
+        self.assertGreaterEqual(headings, 3)
+
+
+@unittest.skipUnless(COBC, "GnuCOBOL cobc not installed")
+class TestDifferential(unittest.TestCase):
+    """Bit-exact differential against the Python kernels."""
+
+    @classmethod
+    def setUpClass(cls):
+        if not BINARY.is_file():
+            done = subprocess.run(
+                [COBC, "-x", "-fixed", "-std=default", "-o", str(BINARY),
+                 str(SOURCE)], capture_output=True, text=True)
+            if done.returncode != 0:
+                raise AssertionError(done.stderr)
+
+    def assert_batch_matches(self, table, records, label):
+        batch = WORK / (label + ".dat")
+        write_batch(batch, records)
+        code, journal, _, output = run_program(table, batch)
+        self.assertEqual(code, 0, output)
+        expected, accepted, rejected, _ = cics_oracle.run(table, batch)
+        self.assertEqual(len(journal.splitlines()), len(records) + 1)
+        self.assertEqual(journal.splitlines(), expected, label)
+        self.assertGreater(accepted + rejected, 0)
+
+    def test_synthetic_table_random_batch_matches_bit_for_bit(self):
+        self.assert_batch_matches(SYNTHETIC,
+                                  make_cics_fixtures.random_records(250, 131544),
+                                  "random-synthetic")
+
+    def test_random_precision_batch_matches_bit_for_bit(self):
+        import random
+        from decimal import Decimal
+        rng = random.Random(20261109)
+
+        def pick(low, high, places):
+            return Decimal(rng.randint(int(low * 10 ** places),
+                                       int(high * 10 ** places))
+                           ).scaleb(-places)
+
+        records = []
+        for index in range(300):
+            values = make_cics_fixtures.base(index)
+            values.update({
+                "mode": rng.choice((1, 2)),
+                "h": pick(0, 9, 8),
+                "p": pick(0, 9999, 8),
+                "k": pick(0, 9, 8),
+                "c": pick(0, 9, 8),
+                "f": pick(0, 9, 8),
+                "dist": pick(0, 99999, 6),
+                "maxhp": pick(0, 99999, 3),
+                "curhp": pick(0, 99999, 3),
+            })
+            records.append(values)
+        self.assert_batch_matches(SYNTHETIC, records, "random-precision")
+
+    @unittest.skipUnless(private_table_available(),
+                         "private arme-armure-table.json absent")
+    def test_private_table_random_batch_matches_bit_for_bit(self):
+        cards = WORK / "private.cards"
+        subprocess.run([PYTHON, "-B",
+                        str(REPO / "scripts/gen_table_cards.py"),
+                        "--private", str(PRIVATE_JSON),
+                        "--out", str(cards)], check=True,
+                       capture_output=True)
+        self.assert_batch_matches(cards,
+                                  make_cics_fixtures.random_records(300, 4107205),
+                                  "random-private")
+
+
+@unittest.skipUnless(COBC, "GnuCOBOL cobc not installed")
+class TestTableSemantics(unittest.TestCase):
+    """ENGINE OBSERVATIONS: real cells and loader refusal."""
+
+    @classmethod
+    def setUpClass(cls):
+        if not BINARY.is_file():
+            subprocess.run([COBC, "-x", "-fixed", "-std=default", "-o",
+                            str(BINARY), str(SOURCE)], check=True,
+                           capture_output=True)
+
+    @unittest.skipUnless(private_table_available(),
+                         "private arme-armure-table.json absent")
+    def test_known_cells_reproduce_through_cobol(self):
+        table = combat_damage_table.load_arme_armure_table(PRIVATE_JSON)
+        cards = WORK / "cells.cards"
+        subprocess.run([PYTHON, "-B",
+                        str(REPO / "scripts/gen_table_cards.py"),
+                        "--private", str(PRIVATE_JSON), "--out", str(cards)],
+                       check=True, capture_output=True)
+        cells = [(8, 3), (24, 3), (64, 3), (0, 3), (8, 0), (2, 25)]
+        records = []
+        for index, (family, armor) in enumerate(cells):
+            values = make_cics_fixtures.base(index)
+            values.update({"mode": 1, "h": 1.0, "p": 1.0, "k": 1.0,
+                           "c": 1.0, "f": 1.0, "proj": 1,
+                           "armor": armor, "family": family})
+            records.append(values)
+        batch = WORK / "cells.dat"
+        write_batch(batch, records)
+        code, journal, _, _ = run_program(cards, batch)
+        self.assertEqual(code, 0)
+        for line, (family, armor) in zip(journal.splitlines(), cells):
+            expected = table.lookup(family, armor)
+            self.assertEqual(line[23:31], cics_spec.bits(expected),
+                             "T[%d][%d]" % (family, armor))
+
+    def test_loader_refuses_a_broken_control_total(self):
+        cards = WORK / "tampered.cards"
+        text = SYNTHETIC.read_text().splitlines()
+        header = text[0]
+        text[0] = header[:29] + "99999999999" + header[40:]
+        cards.write_text("\n".join(text) + "\n")
+        code, journal, _, output = run_program(cards, SAMPLE)
+        self.assertEqual(code, 12)
+        self.assertIn("CONTROL TOTAL DISAGREES", output)
+        self.assertEqual(journal, "")
+
+    def test_loader_refuses_a_broken_family_sequence(self):
+        cards = WORK / "sequence.cards"
+        text = SYNTHETIC.read_text().splitlines()
+        card = list(text[5])
+        card[1:4] = "999"
+        text[5] = "".join(card)
+        cards.write_text("\n".join(text) + "\n")
+        code, _, _, output = run_program(cards, SAMPLE)
+        self.assertEqual(code, 12)
+        self.assertIn("FAMILY SEQUENCE BROKEN", output)
+
+    def test_loader_refuses_extra_cards(self):
+        cards = WORK / "extra.cards"
+        cards.write_text(SYNTHETIC.read_text() + " " * 80 + "\n")
+        code, _, _, output = run_program(cards, SAMPLE)
+        self.assertEqual(code, 12)
+        self.assertIn("EXTRA CARDS AFTER MATRIX", output)
+
+    @unittest.skipUnless(private_table_available(),
+                         "private arme-armure-table.json absent")
+    def test_generated_cards_carry_every_real_cell_exactly(self):
+        table = combat_damage_table.load_arme_armure_table(PRIVATE_JSON)
+        cards = WORK / "exact.cards"
+        subprocess.run([PYTHON, "-B",
+                        str(REPO / "scripts/gen_table_cards.py"),
+                        "--private", str(PRIVATE_JSON), "--out", str(cards)],
+                       check=True, capture_output=True)
+        matrix = cics_oracle.load_cards(cards)
+        for family in (0, 2, 8, 24, 64):
+            for armor in (0, 3, 9, 24, 30, 34):
+                self.assertEqual(matrix[family][armor],
+                                 f32(table.lookup(family, armor)),
+                                 "T[%d][%d]" % (family, armor))
+
+
+@unittest.skipUnless(COBC, "GnuCOBOL cobc not installed")
+class TestRejectPaths(unittest.TestCase):
+    """SYNTHETIC: every reject code and the reconciliation return code."""
+
+    @classmethod
+    def setUpClass(cls):
+        if not BINARY.is_file():
+            subprocess.run([COBC, "-x", "-fixed", "-std=default", "-o",
+                            str(BINARY), str(SOURCE)], check=True,
+                           capture_output=True)
+
+    def single(self, **overrides):
+        values = make_cics_fixtures.base(1)
+        values.update(overrides)
+        return [values]
+
+    def journal_for(self, records, tamper=None):
+        batch = WORK / "case.dat"
+        write_batch(batch, records, tamper=tamper)
+        return run_program(SYNTHETIC, batch)
+
+    def test_unknown_record_type(self):
+        code, journal, _, _ = self.journal_for(
+            self.single(), tamper=lambda lines: ["X" + lines[0][1:]])
+        self.assertEqual(code, 0)
+        self.assertIn("R001", journal)
+        self.assertTrue(journal.splitlines()[0].startswith("R"))
+
+    def test_non_numeric_amount_term(self):
+        def tamper(lines):
+            card = list(lines[0])
+            card[12:24] = ["A"] * 12
+            return ["".join(card)]
+        _, journal, _, _ = self.journal_for(self.single(), tamper=tamper)
+        self.assertIn("R005", journal)
+
+    def test_non_numeric_hp_field(self):
+        def tamper(lines):
+            card = list(lines[0])
+            card[148:156] = ["B"] * 8
+            return ["".join(card)]
+        _, journal, _, _ = self.journal_for(self.single(), tamper=tamper)
+        self.assertIn("R007", journal)
+
+    def test_control_count_mismatch_returns_eight(self):
+        batch = WORK / "mismatch.dat"
+        lines = [cics_spec.encode_detail(make_cics_fixtures.base(1))]
+        lines.append(cics_spec.encode_control(99))
+        batch.write_text("\n".join(lines) + "\n")
+        code, _, report, _ = run_program(SYNTHETIC, batch)
+        self.assertEqual(code, 8)
+        self.assertIn("CONTROL CARD COUNT DISAGREES", report)
+
+    def test_missing_control_card_returns_eight(self):
+        batch = WORK / "nocontrol.dat"
+        batch.write_text(cics_spec.encode_detail(make_cics_fixtures.base(1))
+                         + "\n")
+        code, _, report, _ = run_program(SYNTHETIC, batch)
+        self.assertEqual(code, 8)
+        self.assertIn("CONTROL CARD ABSENT", report)
+
+
+class TestSourceContract(unittest.TestCase):
+    """SYNTHETIC: genuine fixed-format source, no free-format drift."""
+
+    def test_fixed_format_columns_and_uppercase(self):
+        lines = SOURCE.read_text().splitlines()
+        self.assertGreater(len(lines), 600)
+        for number, line in enumerate(lines, start=1):
+            self.assertLessEqual(len(line), 72, number)
+            self.assertEqual("%06d" % number, line[:6], number)
+            self.assertEqual(line[6], " ", number)
+            self.assertEqual(line, line.upper(), number)
+            self.assertNotIn("\t", line, number)
+
+    def test_required_cobol_constructs_are_present(self):
+        text = SOURCE.read_text()
+        for token in ("OCCURS 65 TIMES", "OCCURS 35 TIMES",
+                      "COMPUTE WS-QUOT = WS-REM / 13000.0",
+                      "FUNCTION INTEGER-PART",
+                      "MULTIPLY WS-P BY WS-ACC",
+                      "EVALUATE TRX-CLASS",
+                      "PERFORM 1100-STORE-CARD"):
+            self.assertIn(token, text)
+
+
+if __name__ == "__main__":
+    unittest.main()
