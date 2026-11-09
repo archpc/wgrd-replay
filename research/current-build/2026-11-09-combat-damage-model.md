@@ -234,6 +234,27 @@ mode 1.
 The fixture is private and its test skips explicitly when absent. These tests
 add no new engine evidence and do not change any earlier claim.
 
+## Phase 2b: table-backed adapter
+
+`research/combat_damage_table.py` loads the private extraction
+`arme-armure-table.json` (SHA-256 `9004d776…d12834`) and exposes
+`lookup(family, armor)`. It validates the pinned record metadata (packed
+`6b829a65…`, decompressed `640c66c2…`, offset `0x104f2f7`, class 236, property
+1419), the 65 keys `0..64`, row lengths (30 values, key 2 has 25), JSON float
+element types, finiteness, and exact float32 representability. Every row is
+padded with `0.0` to the 35-column engine stride, preserving the zero-filled
+columns 30..34 and the zero tail of key 2. Out-of-range or non-integer indices
+raise; values are never reinterpreted or rounded by the loader.
+
+`tests/test_combat_damage_table.py` separates SYNTHETIC validation payloads
+(missing/extra rows, wrong lengths, wrong element types, non-float32 values,
+metadata mismatch, bad hash, missing file) from ENGINE OBSERVATIONS (known
+extracted cells, the `0x3dcccccd` value of `T[0][3]`, zero-filled columns,
+short-row padding). Two end-to-end cases pass a verified cell into
+`damage_amount` with constructed H, P, K, C and F.
+
+The 65×35 matrix stays in the private evidence directory and is not committed.
+
 ## Not established
 
 - t, m falloff arrays.
