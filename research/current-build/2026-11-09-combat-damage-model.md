@@ -255,6 +255,51 @@ short-row padding). Two end-to-end cases pass a verified cell into
 
 The 65×35 matrix stays in the private evidence directory and is not committed.
 
+## Phase 2c: kinetic range family index (0xda3410)
+
+Instruction and data checks (OBS, build 131544):
+
+- Gate `0xc2ce00`: `cmp dword [ecx+0xec], 0` then
+  `sub eax, 5; cmp eax, 0x3b; jnbe` on `[ecx+0xe8]`, so `ProjectileType == 0`
+  and unsigned `Arme` in 5..64. The call site `0xcfa21d`..`0xcfa228` also
+  requires byte `[ammo+0xf0] EfficaciteSelonPortee != 0`.
+- `0xda3410` is cdecl with three stack arguments (caller cleans `0xc`):
+  `arg1` = impact record `R` (distance `+0x44`, ammunition handle at `+0`),
+  `arg2` = `victim+0x20`, `arg3` = armour. `arg3` is pushed but never read.
+- `0xda5b90(victim+0x20)` returns target class 1..6, default 2.
+  `0xc2ba70` is thiscall on the ammunition object with one stack class
+  argument (`ret 4`). Its jump table at `0xc2baa8` maps class 1 -> `+0x8c`,
+  2 -> `+0x6c`, 3/4 -> `+0x74`, 5 -> `+0x7c`, 6 -> `+0x84`; the table bytes
+  were read from the executable at file offset `0x82aea8`.
+- Registrar `0xc2f6f0` confirms `+0xe8 Arme`, `+0xec ProjectileType`,
+  `+0x6c PorteeMaximale`, `+0x74 PorteeMaximaleTBA`,
+  `+0x7c PorteeMaximaleHA`, `+0x84 PorteeMaximaleProjectile`,
+  `+0x8c PorteeMaximaleBateaux`, `+0xf0 EfficaciteSelonPortee`.
+- Arithmetic order: x87 range stored as float32, `subss` distance, `maxss`
+  with 0, `divss` by `[0x203dd00]` (shipped value 13000.0), `cvtps2pd` then
+  `cvttsd2si` (truncate toward zero), `add Arme`, `cmp`/`cmovl` cap
+  (`34` when `Arme < 34`, else `64`), `cmp`/`cmovnle` floor at 5.
+- Range units are not established. The divisor is used as a raw number.
+
+Implemented in `research/combat_damage_range.py`: `range_family_applies`
+(gate), `range_max_for_class` (class -> raw NDF range field), and
+`kinetic_family_index(arme, rmax, distance)` returning a table row index only.
+Absent class fields raise; no zero default is invented.
+
+Cross-check (`phase2c-ammunition-crosscheck.json`, SHA-256
+`5909779c…33e24`) extracted from the pinned archive
+(`172e481d…be151b`, expanded `640c66c2…d032`, 2092 `TAmmunition` objects):
+record `ndf_index` 112911 has raw `Arme = 8`, `EfficaciteSelonPortee = True`
+and ranges 156000/156000/156000/104000 (class 6 absent); record 89611 has raw
+`Arme = 3`, a different GUID, all five range fields, and no
+`EfficaciteSelonPortee` property. Neither record has a `ProjectileType`
+property, so the gate is not asserted from these records; that absence is
+recorded, not defaulted. No Arme name or AP meaning is assigned.
+
+`tests/test_combat_damage_range.py` keeps SYNTHETIC gate, boundary, cap and
+invalid-input cases separate from these NDF observations and the table-backed
+lookup. Accuracy, crit, facing and splash are untouched.
+
 ## Not established
 
 - t, m falloff arrays.
@@ -269,3 +314,7 @@ The 65×35 matrix stays in the private evidence directory and is not committed.
 - Kill publication (`0xc9bf20`, `0xc954f9`) is from the 2026-11-02 doc and was
   not re-read in this pass.
 - No weapon identity in either trace, so no amount is predicted yet.
+- Range units for the 13000.0 step and the `Portee*` fields.
+- Default value of an absent range field at runtime (the engine's object memory
+  is not modelled; `range_max_for_class` raises instead of assuming zero).
+- `cvttsd2si` overflow behaviour for step counts outside int32 (no capture).
