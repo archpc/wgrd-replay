@@ -145,5 +145,31 @@ class TestShippedValues(unittest.TestCase):
             self.assertEqual(self.props[f"MultiplicateurDegatInfligeParLeJoueur_{suffix}"], 1.0)
 
 
+class TestVariableLengthValues(unittest.TestCase):
+    """SYNTHETIC: WideString, Blob and table-string payloads stay aligned."""
+
+    def test_widestring_blob_and_tablestring(self):
+        classes = ["TProbe"]
+        properties = [("AliasName", 0), ("Blob", 0), ("Name", 0)]
+        strings = ["Indexed"]
+        wide = "T-80U".encode("utf-16-le")
+        objects = [(
+            0,
+            [
+                (0, ndf_read.WIDESTRING, u32(len(wide)) + wide),
+                (1, ndf_read.BLOB, u32(3) + b"xyz"),
+                (2, ndf_read.TABLESTRING, u32(0)),
+            ],
+        )]
+        ndf = ndf_read.NdfFile(build_ndf(objects, classes, properties,
+                                         strings))
+        values = ndf.objects[0].values
+        self.assertEqual(values[0].type, "widestring")
+        self.assertEqual(values[0].value, "T-80U")
+        self.assertEqual(values[1].value, 3)
+        self.assertEqual(values[2].type, "string")
+        self.assertEqual(strings[values[2].value], "Indexed")
+
+
 if __name__ == "__main__":
     unittest.main()
