@@ -113,3 +113,73 @@ value is never loaded at all, which would make the asymmetry inert.
 
 Static only; no game launch, no VM operation, no multiplayer. PR #26 remains
 frozen. Cow untouched.
+
+## Progress, 2026-11-08 (parent-verified)
+
+Two bounded read-only traces were run in parallel and every address below was
+re-disassembled by the parent before integration.
+
+### A. The 500-point bonus
+
+| finding | address | status |
+|---|---|---|
+| property registration: offset `0x264`, i32, name `0x19a808c` | `0x00b9448d` | verified |
+| class registry (schema + creator) | global `0x0203b350` | verified |
+| instance creator: loads registry, allocates `0x2c8` | `0x00b92680` | verified |
+| constructor installs vtable `0x19a6fe4`, zero-fills `+0x0c..+0x2bf` | `0x00b8de50` | verified |
+| loader is vtable **byte offset `0x1c` (slot index 7)**, not slot 28 | `0x19a7000` → `0x00b914c0` | verified |
+| field copy `[edi+0x264]` → global `0x02026390` | `0x00b9202f` / `0x00b92035` | verified |
+
+Correction to the earlier briefing: Rizin's `virtual_28` label is a **byte
+offset**, matching slot index 7. Both descriptions name the same method.
+
+Negative results, each method-scoped:
+
+* No reader of `0x02026390` by exact-address reference anywhere in the image
+  (whole-file dword scan; one hit, the store).
+* `BonusIAMoneyForSkirmish` occurs exactly once as a string (`0x19a808c`) and is
+  referenced only by the registration push at `0x00b94495`; there is no second
+  name table or binding entry.
+* No `.lua`, `.luac`, `.py`, or `.pyc` payload exists anywhere under `Data/`
+  (enumeration count 0), so this installation ships no script that could read it.
+* No `[reg+0x264]` operand inside 43 vtable methods of the skirmish/game-rules
+  classes (12600 instructions disassembled).
+
+Unresolved: the instance pointer is returned in `eax` only and stored nowhere,
+so the NDF parse-tree node that owns it was not identified; and aliased access
+through a base register other than the instance cannot be excluded.
+
+### B. Singleton and multipliers
+
+| finding | address | status |
+|---|---|---|
+| singleton is an **object base**, one dereference: `mov eax,[0x0201d31c]; mov eax,[eax+0x60]; ret` | `0x00bb2a10` | verified |
+| only non-zero store is `mov [0x0201d31c], ebx` (ebx == this) | `0x00babfa5` | verified |
+| destructor clears it | `0x00bad11b` | verified (child) |
+| factory allocates `0x428`, runs ctor, then **replaces** the three vtable pointers with `0x1994cac` / `0x1994d28` / `0x1994d38` | `0x00a5d424`–`0x00a5d49c` | verified |
+| difficulty initialiser called from base slot 2 and again during construction | `0x00bae8a1`, `0x00bac469` | verified |
+| static difficulty table at `0x1da3f0c` is **nine × `0x3f800000`**; shipped 1.5/0.75/1.25 arrive only from the loader | `0x1da3f0c` | verified |
+
+That last row matters: the multipliers are not compiled-in constants. The image
+ships 1.0 everywhere and the NDF loader overwrites those nine globals at
+runtime, so the difficulty asymmetry is entirely data-driven.
+
+The runtime object is a **derived** class (vtable `0x1994cac`, factory
+`0x00a5d424`), not the base whose vtable the constructor installs. Field offsets
+`+0x270..+0x27c` therefore belong to the derived layout.
+
+Negative results, method-scoped: no read of `+0x274`/`+0x278`/`+0x27c` was found
+by (a) full-function disassembly of all 448 functions referencing the singleton,
+(b) enumeration of 24 base-vtable methods and 22 runtime-vtable methods,
+(c) an ECX-anchored scan of 11 callees receiving the singleton, or (d) 47
+methods of the damage/morale/stress/fire classes. Direction of the multipliers
+is therefore **unresolved**; nothing found compares them to a unit-side value.
+
+### What this does and does not settle
+
+Settled: the bonus has a proven data value and a proven loader path but no
+located consumer; the multipliers are data-driven, live on a derived
+gameplay-services object, and still have no located comparison.
+
+Not settled: any effect on skirmish outcomes. Both remain *suspected*, not
+proven, and neither is evidence of cheating.
