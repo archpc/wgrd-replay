@@ -40,6 +40,15 @@ separate questions and are not used as evidence for each other.
 |---|---|---|
 | AI tunables, difficulty economy block, influence-map visibility gate | [AI decision model](current-build/2026-11-08-ai-decision-model.md); ledger [ai-findings-ledger.json](current-build/ai-findings-ledger.json), globals [ai-tunable-globals.json](current-build/ai-tunable-globals.json) | `scripts/ai_rtti.py`, `scripts/ai_field_xrefs.py`, `scripts/ai_tunable_map.py`, `scripts/ai_attrib.py`, `tests/test_ai_rtti.py` |
 
+## Direct-fire damage model (build 131544)
+
+Static, read-only; no game launch, VM or instrumentation. Amount terms are
+recovered and the HP clamp is checked against retained pairs. No damage
+predictor exists yet: no weapon identity is available in either trace.
+
+| Topic | Note | Code and tests |
+|---|---|---|
+| Amount product, KE range-AP, crit, falloff, damage table T, hit roll and margin, HP-clamp fixtures, FP operation order | [combat damage model](current-build/2026-11-09-combat-damage-model.md) | static only; no decoder code, evidence in `~/.hermes/artifacts/wgrd-replay/combat-damage-static-20261109/` |
 
 ## Format and decoder evidence (build 59638)
 

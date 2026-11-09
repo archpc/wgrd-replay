@@ -117,13 +117,108 @@ captured `+0x190..` window. The 3 mode-2 hits (28.0, 28.0, 14.5) each moved
 `+0x19c` 0 -> 10 = MaxDamages, so all were lethal and clamped. Mode-1 hits add to
 `+0x190`; one sample saturates at 800.0 (634.281 + 171 -> 800).
 
+## Milestone 1b: damage table T (OBS, parent-verified)
+
+Found by delegate A; every claim below was re-run by the parent.
+
+- `[0x2026e70]` is written live only at `0xaa3719` (`mov [0x2026e70], edi`)
+  in creator `0xaa3690` (0x30-byte object; final vtable `0x1999e50`). The
+  stores at `0xa9e76b`/`0xa9efe0` are destructor clears to 0.
+- RTTI: vtable[-1] `0x1b90dfc` -> TypeDescriptor `0x1ea0940` ->
+  `.?AVTGameplayArmeArmureContainer@IA@Eugen@@`.
+- The NDF registry entry at `0xaa0f40` binds the name
+  `"TGameplayArmeArmureContainer"`, size 0x30 and creator `0xaa3690`. Bounded
+  negative: no `E8` caller of `0xaa3690` in `.text`; one pointer ref.
+- The `Values` reader is `0xaa64b0`. Rows come from `0xa86170` (= 65 = 0x41),
+  the stride from `0x56b020` (= 35). It zero-fills `rows*35` floats, then
+  copies each maplist row to `[obj+0x18] + key*35*4`.
+- Shipped data: `pc/ndf/patchable/gfx/everything.ndfbin` (packed SHA-256
+  `6b829a65…dc2c8`; decompressed with a tolerant inflate, SHA-256
+  `640c66c2…d032`). The object record at offset `0x104f2f7` has class id 236,
+  property 1419, MAPLIST of 65 entries. Keys 0..64 (UINT32), values are
+  LIST of FLOAT32. 64 rows have 30 values, key 2 has 25. Columns 30..34 stay 0.0.
+- Parent decode with an independent parser: all 65 rows equal delegate A's
+  table. Private copy: `arme-armure-table.json` (SHA-256
+  `9004d776…d12834`), which also pins `packed_sha256`/`decompressed_sha256`
+  and the record offset.
+- Samples, `T[family][armor]`: `T[8]` = `0,0,0,8,8,4,2,1.5,1,0…`;
+  `T[24]` = `0,0,0,40,40,20,10,9.5,9…`; `T[64]` = `0,0,0,60,60,30,24,23,22…`.
+- INF only: the column index is armor level and the row is the damage family.
+  Mapping the rows to weapon kinds (KE, HEAT, HE, ...) is not established.
+
+## Milestone 1c: hit roll, margin and H (OBS)
+
+R-record layout, from appender `0xcf7fe0` (11 stack args, `ret 0x2c`;
+record at `var_7ch`, copied by `0xc4b0f0`):
+
+| R offset | value | site |
+|---|---|---|
+| +0x44 | 2-D distance (sqrtss of dx²+dy²) | `0xcf8132` |
+| +0x48 | arg_20h = **H** | `0xcf813b` |
+| +0x54 | arg_28h = **margin** | `0xcf8145` |
+
+Producer at `0xce1b50` (reached from `0xcdf11c` <- `0xd88219`; INF: the
+direct-fire path, since `0xce1830` requires `ProjectileType == 5`):
+
+- **H** = `0xc52b10(handle, ...)`. It is the product of the resolved object's
+  `+0xa0`, a vtable `+0x64` factor and an optional `+0x50` multiplier, times
+  `[0x1da3ef8]` when the condition holds. Object roles are not established.
+- **margin** = `e[8] - e[0]` when `e[8] >= e[0]`, else `-1.0` (`0xce1ae5`).
+
+The shot record `e` (0x48 bytes) is built by `0xc9a980`. For a non-missile
+`ProjectileType` it calls the ammo's `HitRollRule` (`ammo+0xcc`) vtable
+`+0x28`. RTTI: vtable `0x19b4808` = `TModernWarfareHitRollRule`; slot +0x28 =
+`0xc889e0`, slot +0x2c = `0xc8f700`.
+
+- `0xc889e0`: `e[0] = 0xbb19b0(gameplay services)`, the **uniform roll** in
+  [0,1). Then tail-calls `+0x2c`.
+- `0xc8f700` writes `e[4]` (`0xc8fb52`), `e[8] = max(e4 * k, base) * [obj+0xb0]`
+  with `obj = 0xb00690(arg 2)` (`0xc8fb65`; object not identified), and
+  `e[0xc]`. `e[8] = -1.0` when a flag at `[+0x3c]+0x3f`
+  is set (`0xc8fb84`). The interpolation table at `0x19b43b0` and threshold
+  3.5 (`0x199fb64`) feed `e4`.
+- **RNG** `0xbb19b0`: on the owning thread it calls `0xab1840` (`ecx+0x28`) ->
+  `0x517030`. That is **Wichmann-Hill**: three state words, multipliers
+  171/172/170, moduli 30269/30307/30323 (`0x763d/0x7663/0x7673`), result =
+  frac(s1/30269 + s2/30307 + s3/30323). Off-thread it uses a different
+  generator via `0x50f080`.
+
+INF: `e[8]` is the hit probability and the margin is `p_hit - roll`, so a hit
+means roll <= p_hit, and crits scale with the margin. HYP: the `e[4]` / `k`
+names (accuracy x modifiers). Not verified at runtime.
+
+## Milestone 1d: HP-clamp fixtures (OBS, parent-verified)
+
+Delegate B's `extract.py`, rerun by the parent, reproduces
+`hp_clamp_fixtures.json` byte for byte (SHA-256 `e4eaaad0…5654`, private
+`delegates/B/`). The parent's own parse agrees on all 28 pairs: mode, amount,
+`+0x190/+0x194/+0x19c` before and after.
+
+- 56 events = 28 enter + 28 leave, paired by `(thread_id, call_id)`, 0 unpaired.
+  11 failed reads, all the `arg1` source-handle read at address 0. All 28
+  windows were read.
+- Mode 2: 3/3 bit-exact under float32 rounding per operation. Only the clamped
+  branch (`amount > room`) occurs; the unclamped and floor branches are not
+  covered by any capture.
+- Mode 1, empirical only: `after == f32(before + amount)` in 24/25; one
+  saturates at 800.0. No mode-1 formula is claimed.
+- No frame field on these events; frames are `not_captured`.
+
+## FP operation order (OBS, `0xcfa2ae`..`0xcfa2e6`)
+
+Scalar SSE single precision, left to right:
+`((((H * P) * T) * K) * C) * F`. T arrives through x87 (`fld` in `0xa9e380`,
+`fstp dword` at `0xcfa2be`), so it is rounded to float32 before the multiply.
+P, C and F are also returned on x87 and stored as float32 (`0xcfa180`,
+`0xcfa1a2`, `0xcfa170`). A predictor must round after every step.
+
 ## Not established
 
-- T source: object at `[0x2026e70]` (35 armor columns). NDF table not found.
-- t, m falloff arrays, H producers for two of three appenders (`0xcf81f0`,
-  `0xcde829`/`0xce1b50`); at `0xcdf2e3` H = 1.0 constant and margin =
-  `[e+8]-[e]` or -1.0.
-- RNG: not located. HYP: margin is a roll residual from the hit/crit roll.
+- t, m falloff arrays.
+- `0xcde829` H = `edi+0x48` and `0xcf81f0` callers (`0xc71ad5`, `0xc821d8`,
+  `0xcde8b4`): producers not traced.
+- Full `0xc8f700` accuracy formula (`e4`, `k`) and the identity of `obj`
+  whose `+0xb0` scales `e[8]`.
 - Facing index -> front/side/rear/top naming (local axis sign unverified).
 - C: state meaning of module `+0x104`.
 - Mode-2-derived suppression entry (28 * 50) is absent from the trace after
