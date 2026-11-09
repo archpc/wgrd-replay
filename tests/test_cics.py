@@ -19,7 +19,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
-from decimal import Decimal, ROUND_DOWN
+from decimal import Decimal, ROUND_DOWN, ROUND_HALF_UP
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
@@ -109,9 +109,16 @@ def parse_report(report):
 
 
 def truncate(text, places):
-    """COBOL numeric-edited output truncates at the printed precision."""
+    """Journal text truncates at its stored precision."""
     return Decimal(text).quantize(Decimal(1).scaleb(-places),
                                   rounding=ROUND_DOWN)
+
+
+def round_display(value, places):
+    """COBOL ``COMPUTE ... ROUNDED`` rounds half away from zero."""
+    dec = value if isinstance(value, Decimal) else Decimal(repr(value))
+    return dec.quantize(Decimal(1).scaleb(-places),
+                        rounding=ROUND_HALF_UP)
 
 
 def f32(value):
@@ -280,8 +287,10 @@ class TestReportJournalCrossCheck(unittest.TestCase):
                 self.assertEqual(code_field, "0000", label)
                 self.assertEqual(entry["family"], int(line[17:20]), label)
                 self.assertEqual(entry["armor"], int(line[20:23]), label)
-                expected_amount = truncate(Decimal(line[47:65]), 4)
-                self.assertEqual(Decimal(entry["amount"]), expected_amount,
+                amount_bits = struct.unpack(
+                    "<f", struct.pack("<I", int(line[23:31], 16)))[0]
+                self.assertEqual(Decimal(entry["amount"]),
+                                 round_display(amount_bits, 4),
                                  label + " " + entry["id"])
                 if line[31:39] != "--------":
                     self.assertEqual(entry["mode"], 2, label)
@@ -291,10 +300,10 @@ class TestReportJournalCrossCheck(unittest.TestCase):
                     new_hp = struct.unpack(
                         "<f", struct.pack("<I", int(line[39:47], 16)))[0]
                     self.assertEqual(Decimal(entry["applied"]),
-                                     truncate(Decimal(repr(applied)), 4),
+                                     round_display(applied, 4),
                                      label + " " + entry["id"])
                     self.assertEqual(Decimal(entry["hp"]),
-                                     truncate(Decimal(repr(new_hp)), 3),
+                                     round_display(new_hp, 3),
                                      label + " " + entry["id"])
                 else:
                     self.assertEqual(entry["mode"], 1, label)
@@ -345,6 +354,109 @@ class TestReportJournalCrossCheck(unittest.TestCase):
             self.assertGreaterEqual(pages, 1)
             if count > 22:
                 self.assertGreaterEqual(pages, 2, "count %d" % count)
+
+
+@unittest.skipUnless(COBC, "GnuCOBOL cobc not installed")
+class TestReportRounding(unittest.TestCase):
+    """ACCEPTANCE: report-only rounding must not touch the kernel.
+
+    The line printer rounds half away from zero at the printed precision.
+    Journal amount fields keep their exact binary32 bit pattern and their
+    eight-decimal truncated text; only the register display changed.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        if not BINARY.is_file():
+            subprocess.run([COBC, "-x", "-fixed", "-std=default", "-o",
+                            str(BINARY), str(SOURCE)], check=True,
+                           capture_output=True)
+
+    def run_cases(self, cases, label):
+        records = []
+        for index, (p, max_hp, cur_hp) in enumerate(cases, start=1):
+            values = make_cics_fixtures.base(index)
+            # T[0][8] = 4.0 in the synthetic deck; H=0.25 makes amount = P.
+            values.update({"mode": 2, "h": 0.25, "p": p, "k": 1.0,
+                           "c": 1.0, "f": 1.0, "proj": 1,
+                           "family": 0, "armor": 8,
+                           "maxhp": max_hp, "curhp": cur_hp})
+            records.append(values)
+        batch = WORK / (label + ".dat")
+        write_batch(batch, records)
+        return run_program(SYNTHETIC, batch)
+
+    def test_engine_values_print_at_four_decimals(self):
+        code, journal, report, _ = self.run_cases(
+            [(0.04, 10.0, 0.0), (0.03, 10.0, 0.0)], "rounding")
+        self.assertEqual(code, 0)
+        lines = journal.splitlines()
+        self.assertEqual(lines[0][23:31], "3D23D70A")
+        self.assertEqual(lines[1][23:31], "3CF5C28F")
+        self.assertRegex(report, r"AMOUNT\s+0\.0400")
+        self.assertRegex(report, r"AMOUNT\s+0\.0300")
+        self.assertRegex(report, r"CLAIM APPLIED\s+0\.0400")
+        self.assertRegex(report, r"CLAIM APPLIED\s+0\.0300")
+        self.assertRegex(report, r"HP REGISTER NOW\s+0\.040")
+        self.assertRegex(report, r"HP REGISTER NOW\s+0\.030")
+
+    def test_negative_applied_keeps_sign_and_rounding(self):
+        code, journal, report, _ = self.run_cases(
+            [(1.0, 5.0, 20.0)], "negative")
+        self.assertEqual(code, 0)
+        self.assertEqual(journal.splitlines()[0][31:39], "C1700000")
+        self.assertRegex(report, r"AMOUNT\s+1\.0000")
+        self.assertRegex(report, r"CLAIM APPLIED\s+-\s*15\.0000")
+        self.assertRegex(report, r"HP REGISTER NOW\s+5\.000")
+
+    def test_near_ties_follow_the_printed_boundary(self):
+        code, journal, report, _ = self.run_cases(
+            [(0.00005, 10.0, 0.0), (0.00015, 10.0, 0.0)], "ties")
+        self.assertEqual(code, 0)
+        # binary32 cannot represent an exact four-decimal tie, so the nearest
+        # values sit either side of the half step and must round down/up.
+        self.assertRegex(report, r"AMOUNT\s+0\.0000")
+        self.assertRegex(report, r"AMOUNT\s+0\.0002")
+
+    def test_exact_decimal_ties_round_away_from_zero(self):
+        # Presentation contract test: COBOL ROUNDED is half away from zero.
+        self.assertEqual(round_display(Decimal("0.00005"), 4),
+                         Decimal("0.0001"))
+        self.assertEqual(round_display(Decimal("-0.00005"), 4),
+                         Decimal("-0.0001"))
+
+    def test_rounding_survives_page_breaks(self):
+        cases = [(0.04, 10.0, 0.0)] * 30
+        code, journal, report, _ = self.run_cases(cases, "rounding-pages")
+        self.assertEqual(code, 0)
+        entries, pages = parse_report(report)
+        self.assertEqual(len(entries), 30)
+        self.assertGreaterEqual(pages, 2)
+        self.assertTrue(all(entry["amount"] == "0.0400" for entry in entries))
+        self.assertTrue(all(entry["applied"] == "0.0400" for entry in entries))
+        self.assertEqual(len(journal.splitlines()), 31)
+
+    def test_report_amounts_agree_with_journal_bits(self):
+        cases = [(0.04, 10.0, 0.0), (0.03, 10.0, 0.0), (1.0, 5.0, 20.0),
+                 (0.00005, 10.0, 0.0), (0.00015, 10.0, 0.0)]
+        code, journal, report, _ = self.run_cases(cases, "rounding-mix")
+        self.assertEqual(code, 0)
+        entries, _ = parse_report(report)
+        journal_lines = [line for line in journal.splitlines()
+                         if not line.startswith("T")]
+        self.assertEqual(len(entries), len(journal_lines))
+        for entry, line in zip(entries, journal_lines):
+            amount = struct.unpack(
+                "<f", struct.pack("<I", int(line[23:31], 16)))[0]
+            applied = struct.unpack(
+                "<f", struct.pack("<I", int(line[31:39], 16)))[0]
+            hp = struct.unpack(
+                "<f", struct.pack("<I", int(line[39:47], 16)))[0]
+            self.assertEqual(Decimal(entry["amount"]),
+                             round_display(amount, 4))
+            self.assertEqual(Decimal(entry["applied"]),
+                             round_display(applied, 4))
+            self.assertEqual(Decimal(entry["hp"]), round_display(hp, 3))
 
 
 @unittest.skipUnless(COBC, "GnuCOBOL cobc not installed")

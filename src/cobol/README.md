@@ -45,6 +45,14 @@ filler 165-176. Control card: `Z` plus a 7-digit detail count.
 Journal: 72 bytes; accepted `D`, rejected `R`, final `T` trailer with accepted
 and rejected counts and the float32 grand-total bit pattern.
 
+Report display is presentation only: edited amount, applied, HP and total fields
+are filled with `COMPUTE ... ROUNDED`, which rounds half away from zero at four
+decimals (three for HP). The journal keeps the exact binary32 bit pattern and
+its eight-decimal truncated text, so rounding never changes the damage model.
+A binary32 value cannot sit exactly on a four-decimal half step (that would need
+a denominator with a factor of five), so ties are exercised through the display
+contract rather than through engine values.
+
 Table deck: `H` header (name, build, 65, 35, control total in thousandths,
 provenance tag) then 12 `R` cards per family. Values are 21-digit
 implied-decimal integers carrying the exact decimal expansion of each binary32
