@@ -183,6 +183,15 @@ by (a) full-function disassembly of all 448 functions referencing the singleton,
 methods of the damage/morale/stress/fire classes. Direction of the multipliers
 is therefore **unresolved**; nothing found compares them to a unit-side value.
 
+### Review status
+
+The three checks above (vtable arithmetic, singleton counter-example hunt,
+wording audit) were run by the parent and their results are recorded in the
+commit. Independent delegated review was attempted three times and each run was
+lost to a runtime cap before it reported, so these documents are **not**
+independently reviewed. Treat the parent-run checks as the review of record and
+re-open them if an independent pass is wanted.
+
 ### What this does and does not settle
 
 Settled: the bonus has a proven data value and a proven loader path but no
