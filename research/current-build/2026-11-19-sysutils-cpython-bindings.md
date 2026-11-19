@@ -369,8 +369,10 @@ renamed battle-start.
    static zeroing of `+0xd0`; no static reset explains the lag. Sample-specific.
 3. Battle start: §5 proximity is correlation; a UI-corroborated phase capture
    would discriminate, under authorization.
-4. Further `.data` binding tables beyond `_sysutils` and `_misc` unverified
-   per-table (§1).
+4. Binding-table inventory complete: 28 modules / 271 entries, 27 installers
+   verified ([inventory note](2026-11-19-binding-inventory.md)); one table
+   (`0x1d7efe0`) has no located installer. Per-function semantics beyond the
+   clock bindings remain unverified.
 
 ## 8. ResetTime posts a deferred token; it is not a clock writer (2026-11-19)
 
