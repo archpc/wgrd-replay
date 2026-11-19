@@ -17,6 +17,44 @@ conditional field, or reader helper. Allocation-failure behavior is outside deco
 Authentic boundary validation: 31 count==1 records across all three SHA-256-bound
 samples; all exactly 25 bytes, fully consumed. No field meanings assigned.
 
+## 0x0b — FUN_00b2e760 (STATIC-ONLY; no authentic occurrences)
+
+Build 59638, parent-verified 2026-11-19 (worker disassembly; full report:
+local evidence record `~/.hermes/artifacts/wgrd-replay/frameclock-lua-20261119/op0b-static-layout.md`).
+No authentic 0x0B blocks exist in the corpus, so nothing here is
+sample-validated; the decoder deliberately does not support 0x0B yet.
+
+Dispatch: dispatcher `0xb24050`, opcode table base `0xb241f4` (33 entries,
+opcodes `0x02..0x22`; table record
+`research/evidence/ev_1a54f3c80ea18ed0a60fa1041204c9118bfcbb72cd111b49833aed492b68d985.json`).
+0x0B is index 9, entry `0xb24218` → thunk `0xb240e8`
+(`56 e8 72 a6 00 00 83 c4 04 5e c3`: `push esi ; call 0xb2e760`), verified
+against the binary. (Terminology: the `0xb2416c` called "dispatch wrapper"
+in the 0x17 section below is that opcode's thunk — table entry `0xb24248`;
+the dispatcher proper is `0xb24050`.)
+
+Creator `0xb2e760..0xb2e860` (success ret `0xb2e83f`, failure ret
+`0xb2e860`; int3 padding to `0xb2e870`, the 0x0a creator; no tail jump).
+Allocation `push 0x2c` at `0xb2e78e` (call `0x529280`): 44-byte object;
+descriptor `0x19a1908` set at `0xb2e7b1`. RTTI unresolved (`0x19a1904`
+holds `.text` pointer `0x55aac0`, no MSVC COL); class name unknown.
+
+Four wire reads, each `test al,al ; je 0xb2e840` on failure (cleanup calls
+the reader vtable with arg 1, then `xor eax,eax` at `0xb2e84d` → NULL):
+
+| read | site | size | dest |
+|---|---|---|---|
+| 1 | `0xb2e7dc` | 4 | obj+0x04 |
+| 2 | `0xb2e7f7` | 16 | obj+0x08 |
+| 3 | `0xb2e80a` | 16 | obj+0x18 |
+| 4 | `0xb2e81d` | 4 | obj+0x28 |
+
+No value validation of any kind (no cmp/test on values, no count, no enum,
+no conditional field). Wire layout: opcode (1) + 4 + 16 + 16 + 4 =
+**41 bytes fixed**. Field meanings are not established; the two 16-byte
+fields are opaque here (GUID-shaped by size only — that is a shape note,
+not an identification).
+
 ## 0x0c — FUN_00b2eeb0 (ChangeProduction); structural layout
 
 Creator 0xb2eeb0, dispatcher 0xb241f4[0x0c-2]. Read order (reader Read(dst,n)):

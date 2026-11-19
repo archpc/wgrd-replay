@@ -155,8 +155,11 @@ destruction math. Anchors and negative results are in the
 1. Request usefulness: filters, reference history and request summaries on the
    existing timeline. Keep contextual kind 39 and unknown execution outcomes.
    (Executable offline.)
-2. Targeted format questions: the `0x0C` consumer, `0x0A`/0x0B` and marker
-   fields. Check the [research index](research/INDEX.md) first.
+2. Targeted format questions: the `0x0C` consumer and marker fields.
+   (`0x0A` layout complete; `0x0B` wire layout decoded statically —
+   41 bytes fixed, no authentic occurrences, decoder support deliberately
+   deferred; see [COMMAND-LAYOUTS](research/COMMAND-LAYOUTS.md).)
+   Check the [research index](research/INDEX.md) first.
    (Executable offline: static analysis plus the pinned corpus.)
 3. Independent validation: more authenticated samples, and the Sample2
    executable. (Acquisition-dependent: needs new authenticated inputs, not a

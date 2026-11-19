@@ -108,7 +108,9 @@ channel and request ID, with `matched_purchase = null` and unknown outcome.
 
 No reliable join from this queue ID to a serialized 0x0d field is established.
 Do not subtract these requests from purchase totals. 0x0b has no authentic
-occurrences in this corpus and remains unsupported. 0x0c ChangeProduction has
+occurrences in this corpus and remains unsupported by the decoder; its wire
+layout is now decoded statically (41 bytes fixed, no validation — see
+[COMMAND-LAYOUTS §0x0b](COMMAND-LAYOUTS.md#0x0b--fun_00b2e760-static-only-no-authentic-occurrences)). 0x0c ChangeProduction has
 47 authentic records, including13 in Sample1; its interior is decoded structurally (see [CHANGEPRODUCTION-0C.md](CHANGEPRODUCTION-0C.md)) and exported as timeline action `change_production_request` with raw-field parameters; field meanings and consumer remain unresolved.
 
 ## Corpus results
