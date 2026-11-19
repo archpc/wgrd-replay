@@ -13,7 +13,7 @@ overtaken by the [frame/tick capture](2026-11-02-frame-tick-capture.md) and
 [frame-indexed combat events](2026-11-03-combat-frames-captured.md): H1's rate
 is observed with an integer 10/11 frame offset, and combat events carry frame
 brackets. The deterministic-clock bindings cited here belong to the CPython
-2.7 `_sysutils` module, identified 2026-11-19 (earlier notes mislabeled the
+2.5.1 `_sysutils` module, identified 2026-11-19 (earlier notes mislabeled the
 table as Lua; [binding note](2026-11-19-sysutils-cpython-bindings.md)). Read
 §11 errata before citing the timing claims. The release remains the record of
 what the two retained traces alone supported on 2026-11-02.
@@ -258,7 +258,15 @@ Parent recomputation from the hash-pinned traces, no new capture:
    hooks: all 28 impacts land inside tick calls with frame brackets, engine
    seconds inside the frame-derived bounds without fitting. See
    [combat frames](2026-11-03-combat-frames-captured.md).
-6. **Binding language.** The deterministic-clock table is CPython 2.7
+6. **Binding language.** The deterministic-clock table is CPython 2.5.1
    `PyMethodDef` for module `_sysutils` (51 entries), not Lua; the realtime
    clock is a separate `+0x98` float field. See
    [binding note](2026-11-19-sysutils-cpython-bindings.md).
+7. **Interpreter version (corrected same day).** The original binding
+   identification said CPython 2.7, inferred from the API-version gate
+   (`push 0x3f5` = 1013). That inference was wrong: 1013 is shared by Python
+   2.5/2.6/2.7. Direct evidence gives 2.5.1 — build paths
+   `Python-2.5.1\Objects\cellobject.c`, SVN `tags/r251` HeadURL, 21 `2.5.1`
+   strings vs zero `2.7.x`, and `LoadPythonLib250` in the NDF. The
+   `PyMethodDef` identification is unaffected. Proof and correction record:
+   [binding note §1](2026-11-19-sysutils-cpython-bindings.md).

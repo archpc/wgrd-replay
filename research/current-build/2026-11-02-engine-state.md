@@ -143,7 +143,7 @@ both use offset `+0xc`. The observer reads `+0x08`/`+0x0c`/`+0x10` raw as
 ## 2. Named deterministic clock (units upgraded, origin still unknown)
 
 The `.data` binding table gives these entries (parent-confirmed, re-verified
-here by disassembling the function bodies). The table is CPython 2.7
+here by disassembling the function bodies). The table is CPython 2.5.1
 `PyMethodDef` for module `_sysutils`, not Lua as originally labeled; the
 installer and version-gate proof are in the
 [2026-11-19 binding note](2026-11-19-sysutils-cpython-bindings.md):

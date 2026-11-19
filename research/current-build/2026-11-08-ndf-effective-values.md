@@ -159,6 +159,6 @@ python3 scripts/ndf_read.py gdconst.bin --prop IgnoreInvisibleUnit \
 4. Whether skirmish setup selects a non-default `IncomeMultiplierIndex`; the
    data default is 3 (100%).
 5. Whether a script layer ships values this install does not contain. The
-   executable embeds CPython 2.7 (`_sysutils` module, proven 2026-11-19 in
+   executable embeds CPython 2.5.1 (`_sysutils` module, proven 2026-11-19 in
    [the binding note](2026-11-19-sysutils-cpython-bindings.md)); whether its
    scripts carry tunables is still unverified.

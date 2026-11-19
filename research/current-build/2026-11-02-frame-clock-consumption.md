@@ -120,7 +120,7 @@ Consequences for interpretation, no stronger claim than the bytes support:
    references to `0x201d318` and of all 497 stores to a `+0xd0` displacement in
    `.text` found exactly one writer: the `_sysutils` setter `0xa41bc0`
    (`mov [eax+0xd0],ecx` at `0xa41bf2`). (The original text called this a
-   "Lua setter"; the table is CPython 2.7 `PyMethodDef`, see the
+   "Lua setter"; the table is CPython 2.5.1 `PyMethodDef`, see the
    [2026-11-19 binding note](2026-11-19-sysutils-cpython-bindings.md).)
    Update 2026-11-19: an exhaustive scan of all 837 memory-modifying `+0xd0`
    operands (the 497 figure was the mov-dword + fstp subset) confirms exactly
