@@ -377,9 +377,14 @@ renamed battle-start.
    (`0x1d7efe0`) has no located installer. Per-function semantics beyond the
    clock bindings remain unverified.
 5. Speed-factor simulation effect (§10): the only registered speed listener
-   is a HUD 3D viewer; no static path from the factor to the tick stepper.
-   How game speed scales the simulation is unproven — candidates are the
-   script layer (acquisition-gated, §9) or an unlocated non-listener reader.
+   is a HUD 3D viewer, and the lone external handle reference is the speed
+   dropdown's Reset-on-construct; no native factor reader feeds the stepper
+   in any scanned channel. Hypothesis (unproven): speed scales playback
+   pacing (frames per wall-second), not the 0.2 s simulation quantum —
+   consistent with ticks staying 1:1 with frames and the ~2.75x effective
+   wall rate at a 5x request. Discriminator: an authorized capture at two
+   speeds comparing tick/frame advance per wall-second, or the script packs
+   (§9, acquisition-gated).
 
 ## 8. ResetTime posts a deferred token; it is not a clock writer (2026-11-19)
 
@@ -660,6 +665,18 @@ listener fan-out feeds the tick stepper is falsified as stated. The worker
 also observed QPC-delta-based clock readers (`0x50f100`/`0x519730`, import
 call at `0x50f10b`) that ignore `+0x68`; their scaling constant is not
 re-verified here. Open question §7.5.
+
+The lone external reference to the singleton handle is UI, not a stepper
+reader (parent-verified): of the 10 `ds:0x1fcefe0` sites, nine are inside the
+manager region (`0x4f70d5`–`0x52a992`: construct, push-as-this, teardown
+clear); the tenth, `0x120399d`, is in the ctor `0x1203950` of
+`Wargame::Eugen::TUIWargame2InGameSpeedDropdown` (vtable `0x1a02bc0`, COL
+`0x1c1a9cc`, TypeDescriptor `0x1f7e084`, name read back). Guarded on
+`[this+0xc0] != 3` and a live handle, it does `mov ecx,0x1fce0d0 ;
+call 0x518560` — the speed **Reset** op. So the speed dropdown resets speed
+on construction; it does not read the factor into simulation. The
+"unlocated non-listener reader" candidate is narrowed to: no native reader
+outside the manager + UI was found in the handle/direct-reference scans.
 
 ## Reproduction
 
