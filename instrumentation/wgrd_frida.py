@@ -9,6 +9,7 @@ import os
 from pathlib import Path
 import sys
 import threading
+import time
 from datetime import datetime, timezone
 
 
@@ -74,12 +75,109 @@ def verify_loaded(config, image, info, process_path):
             raise ValueError(f"loaded entry mismatch: {hook['name']}")
 
 
+class TraceSequenceAudit:
+    """Count received instrumentation records, never infer engine semantics."""
+
+    def __init__(self):
+        self.last_sequence = 0
+        self.received_records = 0
+        self.failed = False
+        self.closed = False
+
+    def observe(self, event):
+        if self.closed:
+            self.failed = True
+            raise ValueError("instrumentation record arrived after drain completion")
+        sequence = event.get("sequence")
+        if type(sequence) is not int or sequence != self.last_sequence + 1:
+            self.failed = True
+            raise ValueError("missing, duplicate or out-of-order instrumentation sequence")
+        self.last_sequence = sequence
+        self.received_records += 1
+
+    def finish(self, sender, allowances=None):
+        """Reconcile with the sender summary. Strict by default.
+
+        ``allowances`` may grant the one documented detach allowance:
+        ``{"outstanding_threads": 1}`` for the unpaired tick enter a v4-style
+        capture leaves at detach. No other counter can be relaxed, and the
+        allowance never stretches to 2.
+        """
+        if self.failed:
+            raise ValueError("instrumentation stream previously failed integrity checks")
+        if allowances is None:
+            allowances = {}
+        if not isinstance(allowances, dict) or set(allowances) - {"outstanding_threads"}:
+            raise ValueError("only the outstanding_threads allowance is defined")
+        for value in allowances.values():
+            if type(value) is not int or value != 1:
+                raise ValueError("the outstanding_threads allowance is exactly 1")
+        loss = sender.get("loss_accounting")
+        if not isinstance(loss, dict):
+            raise ValueError("sender loss accounting is missing")
+        expected = loss.get("last_sequence")
+        if type(expected) is not int or expected != self.last_sequence:
+            raise ValueError("sender/receiver sequence totals disagree")
+        counters = [loss.get("send_failures")]
+        counters.extend(sender.get(key) for key in (
+            "suppressed", "callback_errors", "stale_frames",
+            "stack_mismatches", "outstanding_threads"))
+        bounds = [0, 0, 0, 0, 0, allowances.get("outstanding_threads", 0)]
+        if any(type(value) is not int or not 0 <= value <= bound
+               for value, bound in zip(counters, bounds)):
+            raise ValueError("sender reported incomplete or invalid capture state")
+        self.closed = True
+        return {"received_records": self.received_records,
+                "last_sequence": self.last_sequence, "complete": True}
+
+
+class LossAccountingRecorder:
+    """Controller-side glue around TraceSequenceAudit.
+
+    ``observe`` returns records the controller must write (a single
+    ``loss_accounting_failure`` on the first discontinuity, nothing after);
+    ``finalize`` returns (records, error) for the sender summary. With
+    accounting disabled both are transparent, preserving the legacy trace
+    shape. Records carry no timestamp; the controller stamps them on write.
+    """
+
+    def __init__(self, enabled, allow_outstanding_threads=False):
+        self.audit = TraceSequenceAudit() if enabled else None
+        self.allowances = ({"outstanding_threads": 1}
+                           if enabled and allow_outstanding_threads else {})
+
+    def observe(self, payload):
+        if self.audit is None or self.audit.failed:
+            return []
+        try:
+            self.audit.observe(payload)
+        except ValueError as exc:
+            return [{"event": "loss_accounting_failure", "error": str(exc)}]
+        return []
+
+    def finalize(self, summary):
+        if self.audit is None:
+            return [], None
+        try:
+            result = self.audit.finish(summary, self.allowances)
+        except ValueError as exc:
+            return [{"event": "loss_accounting_failure", "error": str(exc)}], str(exc)
+        return [{"event": "loss_accounting", **result}], None
+
+
 def validate_config(config):
     """Reject ambiguous or unsafe hook configurations."""
     import re
 
     if not re.fullmatch(r"[0-9a-f]{64}", config.get("sha256", "")):
         raise ValueError("sha256 must be lowercase hexadecimal")
+    if "loss_accounting" in config and not isinstance(config["loss_accounting"], bool):
+        raise ValueError("loss_accounting must be a boolean")
+    if "loss_allow_outstanding_threads" in config:
+        if not isinstance(config["loss_allow_outstanding_threads"], bool):
+            raise ValueError("loss_allow_outstanding_threads must be a boolean")
+        if not config.get("loss_accounting"):
+            raise ValueError("loss_allow_outstanding_threads requires loss_accounting")
     if not config.get("revision") or config.get("module", "").lower() != "wargame3.exe":
         raise ValueError("revision and explicit wargame3.exe module are required")
     base = int(config["ghidra_base"], 0)
@@ -206,6 +304,10 @@ def run_trace(args):
                  "hooks": [{**h, "rva": int(h["va"], 0) - ghidra_base,
                             "args": h.get("args", 0), "sample_every": h.get("sample_every", 1)}
                            for h in config["hooks"]]}
+    if config.get("loss_accounting"):
+        js_config["loss_accounting"] = True
+    recorder = LossAccountingRecorder(config.get("loss_accounting", False),
+                                      config.get("loss_allow_outstanding_threads", False))
     source = Path(__file__).with_name("hooks.js").read_text(encoding="utf-8").replace(
         "__CONFIG__", json.dumps(js_config, separators=(",", ":")), 1)
     session = script = None
@@ -213,6 +315,7 @@ def run_trace(args):
     detached = threading.Event()
     wake = threading.Event()
     errors = []
+    capture_failed = False
     lock = threading.Lock()
     with open(args.output, "x", encoding="utf-8", newline="\n") as output:
         def write(event):
@@ -228,6 +331,10 @@ def run_trace(args):
         def message(msg, data):
             if msg.get("type") == "send":
                 write(msg["payload"])
+                for record in recorder.observe(msg["payload"]):
+                    write({**record, "timestamp_utc": utc_now()})
+                    errors.append(record["error"])
+                    wake.set()
                 if msg["payload"].get("event") == "callback_error":
                     errors.append(msg["payload"])
                     wake.set()
@@ -274,6 +381,7 @@ def run_trace(args):
             if detached.is_set():
                 raise RuntimeError("target detached before planned completion")
         except BaseException as exc:
+            capture_failed = True
             write({"event": "failure", "timestamp_utc": utc_now(), "error": f"{type(exc).__name__}: {exc}"})
             raise
         finally:
@@ -283,6 +391,18 @@ def run_trace(args):
                     write({"event": "summary", "timestamp_utc": utc_now(), **result})
                     if result.get("callback_errors", 0):
                         errors.append("instrumentation callback failed")
+                    if recorder.audit is not None:
+                        if errors or capture_failed:
+                            # A failed capture must not carry a "complete" audit
+                            # record; zero-record reconciliation would pass 0==0.
+                            write({"event": "loss_accounting_skipped", "timestamp_utc": utc_now(),
+                                   "reason": "capture already failing"})
+                        else:
+                            records, loss_error = recorder.finalize(result)
+                            for record in records:
+                                write({**record, "timestamp_utc": utc_now()})
+                            if loss_error:
+                                errors.append(loss_error)
                 except Exception as exc:
                     errors.append(str(exc))
                     write({"event": "cleanup_error", "timestamp_utc": utc_now(), "error": str(exc)})
@@ -299,6 +419,14 @@ def run_trace(args):
                     errors.append(str(exc))
                     write({"event": "cleanup_error", "timestamp_utc": utc_now(), "error": str(exc)})
             write({"event": "end", "timestamp_utc": utc_now(), "cleanup_errors": len(errors)})
+        if config.get("loss_accounting") and not errors:
+            # In-flight script deliveries can land after the finally block.
+            # Bounded drain (0.5 s max) before the trace closes so a late
+            # violation is still recorded and reaches the exit decision;
+            # legacy captures keep their immediate exit.
+            deadline = time.monotonic() + 0.5
+            while not errors and time.monotonic() < deadline:
+                time.sleep(0.02)
     if errors:
         raise RuntimeError("script or cleanup errors occurred")
     print(f"HERMES_DONE_WGRD_TRACE {args.output}")

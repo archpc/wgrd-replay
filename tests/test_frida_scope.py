@@ -110,6 +110,15 @@ class PositionCaptureConfig(unittest.TestCase):
         self.assertEqual(result.returncode,0,result.stdout+result.stderr)
         self.assertIn('WGRD_SCOPE_SIM_OK',result.stdout)
 
+class LossAccountingSimulation(unittest.TestCase):
+    @unittest.skipUnless(shutil.which('node'), 'Node is unavailable for Frida callback simulation')
+    def test_opt_in_sequence_keeps_legacy_shape(self):
+        result = subprocess.run(['node', str(ROOT/'tests/frida_loss_sim.js')],
+                                capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stdout+result.stderr)
+        self.assertIn('WGRD_LOSS_SIM_OK', result.stdout)
+
+
 class PortableConfigCoverage(unittest.TestCase):
     def test_only_image_bytes_require_the_private_executable(self):
         result = unittest.TestResult()
