@@ -152,9 +152,11 @@ destruction math. Anchors and negative results are in the
 
 ## Other priorities
 
-1. Request usefulness: filters, reference history and request summaries on the
-   existing timeline. Keep contextual kind 39 and unknown execution outcomes.
-   (Executable offline.)
+1. Request usefulness: filters, reference history and request summaries are
+   implemented as the pure query layer `wgrd_timeline_query.py` (API +
+   [usage](docs/USAGE.md#query-a-timeline); contextual kind 39 and unknown
+   execution outcomes preserved and tested). Remaining: optional CLI surface
+   if a consumer needs it. (Executable offline.)
 2. Targeted format questions: marker fields; deeper 0x0C apply targets
    (manager-entry vtable slot +0x44 concrete classes).
    (`0x0A` layout complete; `0x0B` wire layout decoded statically —

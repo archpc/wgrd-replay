@@ -179,6 +179,43 @@ explicit markers such as `{"nonfinite": "NaN"}`. Parser dictionaries can contain
 raw non-finite floats; use `wgrd_replay.json_safe(parsed)` before strict JSON serialization.
 Corpus inventory rejects non-finite metadata. These are distinct output contracts.
 
+## Query a timeline
+
+`wgrd_timeline_query` provides pure, read-only views over `timeline["events"]`:
+filtering, per-reference history and request counts. Inputs are never mutated;
+interpretations are never reclassified; contextual kind-39 requests and unknown
+execution outcomes are counted as reported. Event dicts are shared with the
+timeline — do not mutate them.
+
+```python
+from wgrd_timeline_query import filter_events, reference_history, request_summary
+
+events = timeline["events"]
+orders = filter_events(events, opcode=0x07, frame_min=4042, frame_max=4166)
+counts = request_summary(events)
+entries = timeline["entity_references"]["entries"]
+history = reference_history(events, entries[0]["reference_id"]) if entries else []
+```
+
+`filter_events` accepts `opcode` (int 0..255), `slot`, inclusive
+`frame_min`/`frame_max`, `action` and `status` (exact interpretation strings);
+criteria compose with AND, and invalid arguments raise `ValueError`.
+`action="None"` selects the None-action bucket (uninterpreted requests and
+unresolved tails); `opcode=None` means no opcode filter.
+`reference_history` takes a catalog `reference_id` — the scoped string
+`"<replay_sha256>:<reference_hex>"`; malformed ids raise `ValueError` — and
+returns the referencing events in `command_order`, including the singular
+`target_reference` of 0x18 supply requests. `request_summary` returns `total`,
+`by_action`, `by_status`, `by_slot`, `by_opcode`, `contextual_kind39` and
+`execution_outcomes`; None actions/outcomes count under the string `"None"`,
+as do unresolved tail events (opcode None) in `by_opcode`.
+
+Captured output for the pinned koppeltar-Sample1 (sha256 `c5f8eff1…521df8`):
+30 orders in the frame window, `total` 4162, `contextual_kind39` 3318,
+8 interpreted actions plus the `"None"` bucket (33 events), 8 history events
+for the first catalog reference.
+No execution outcome is implied by any of these counts.
+
 ## Check a collection
 
 ```sh
