@@ -105,14 +105,17 @@ receipt, not a claim that the open engine questions are solved.
 
 Blocked evidence boundary — deterministic counter writer: the runtime advance
 of `TGameplayServices+0xd0` has no statically visible writer beyond the Python
-setter `0xa41bc0` and a constructor zero-init; direct and wide-store scans are
-exhausted. The discriminating experiment is an authorized capture hooking the
-setter itself. The shared counter `ds:0x1dbf028` is NOT a discriminator
-(1,379 inc sites). `ResetTime` is eliminated as a writer: it posts a data-less
-synchronisation-queue token ([sysutils note §8](research/current-build/2026-11-19-sysutils-cpython-bindings.md));
-the queue-drain family is the concrete remaining static candidate. Until the
-capture runs, the writer is unknown; indirect pointer-copy paths are
-candidates, not conclusions.
+setter `0xa41bc0` and a constructor zero-init. Direct, wide-store, ResetTime,
+synchronisation-queue and sync-item-vtable envelopes are exhausted
+([sysutils note §§3, 8, 9](research/current-build/2026-11-19-sysutils-cpython-bindings.md));
+each clock field has one runtime writer (its Python setter, zero native call
+sites) plus construction zero-init. The coherent remaining hypothesis is that
+the embedded Python layer drives the setters — an OFFLINE question (shipped
+script fragments in the executable and NDF payloads). The census is a
+proximity heuristic, not a formal indirect-write proof. The gold
+discriminator remains an authorized capture hooking the setter itself; the
+shared counter `ds:0x1dbf028` is NOT a discriminator (1,379 inc sites). Until
+then, the writer is unknown; candidates are not conclusions.
 
 ## Next authorized capture (weapon/team delta; tick-frame join already done)
 

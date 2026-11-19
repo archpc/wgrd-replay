@@ -339,20 +339,21 @@ renamed battle-start.
 
 ## 7. Open questions
 
-1. Counter writer (§3): direct and wide-store paths are exhausted statically;
-   remaining candidates are indirect/copy-pointer writes, non-`.text` writers,
-   or Python-driven setter calls. The synchronisation-queue drain family is
-   now a concrete candidate class (§8): it is outside the writer sweep's
-   singleton-callee set. Runtime discriminator: a hook on the setter
-   `0xa41bc0` itself, under authorization (the shared counter `0x1dbf028`
-   cannot attribute calls).
+1. Counter writer (§3, §8, §9): direct, wide-store, ResetTime, queue-family
+   and sync-item-vtable envelopes are exhausted statically; each clock field
+   has one runtime writer (its Python setter) plus construction zero-init,
+   and both setters have zero native call sites. Remaining candidates: the
+   embedded Python layer calling the setters (offline question — shipped
+   script fragments, §9), or indirect writes outside the scanned envelopes
+   (the census is a proximity heuristic, not a formal proof). Runtime
+   discriminator: a hook on the setter `0xa41bc0` itself, under authorization
+   (the shared counter `0x1dbf028` cannot attribute calls).
 2. The integer 10/11 frame lag origin: constructor zero-init is the only
    static zeroing of `+0xd0`; no static reset explains the lag. Sample-specific.
 3. Battle start: §5 proximity is correlation; a UI-corroborated phase capture
    would discriminate, under authorization.
-4. Queue-drain clock access (§8) unanalyzed past the posted excerpts; further
-   `.data` binding tables beyond `_sysutils` and `_misc` unverified per-table
-   (§1).
+4. Further `.data` binding tables beyond `_sysutils` and `_misc` unverified
+   per-table (§1).
 
 ## 8. ResetTime posts a deferred token; it is not a clock writer (2026-11-19)
 
@@ -402,17 +403,16 @@ Consequence for the writer question (§7.1): ResetTime is eliminated as a
 direct or indirect writer in this envelope. Its mechanism is a data-less
 ordering token posted to the synchronisation queue — the "copied pointer,
 written later" shape, but the token itself cannot write. Any ResetTime-driven
-reset must live in the drain's own code: entry `0x58e310`, per-item
-`0x58d990` (thread-id compare, pending array `ds:0x2005fa8/0x2005fac`, then
-`call [vtable+8]` = clear-flag for this class), worker `0x58df00` (30000 ms
-timeout structure). That family is outside §3's singleton-callee sweep.
+reset must live in the queue-processing code; §9 identifies that family
+correctly and eliminates it too. (Topology note: `0x58e310` is a member of
+`IA::Eugen::TTaskLayerMovementInterpolator`, flushing that object's own item
+vector — not the manager drain; the manager-side drain is `0x58dd20`.)
 Hypothesis, unproven: the token is an ordering barrier that makes the game
 thread perform the reset at a synchronised frame.
 
-Open branches: the drain body and pending-array consumer (all 7 references to
-`ds:0x2005fa8` are inside `0x58d1c1–0x58df09`); `0xab3f90`, unreferenced in
-text, posts both `TResetTimeHelper` and `TLoadingDoneHelper` — reachability
-via data pointer unverified.
+Open branches: `0xab3f90`, unreferenced in text, posts both
+`TResetTimeHelper` and `TLoadingDoneHelper`; §9 resolves its reachability.
+The queue-family analysis is complete in §9.
 
 Reproduction:
 
@@ -425,6 +425,84 @@ $OD -s --start-address=0x1e83028 --stop-address=0x1e83060 "$EXE"   # RTTI name
 $OD -s --start-address=0x1984b30 --stop-address=0x1984b48 "$EXE"   # vtable
 grep -c 'call   0xa41890' ~/REA/wgrd-131544/wgrd_131544_full.lst   # 0
 ```
+
+## 9. Queue family eliminated; one runtime writer per clock field (2026-11-19)
+
+Worker analysis, parent-reverified (full report: local evidence record
+`~/.hermes/artifacts/wgrd-replay/frameclock-lua-20261119/queue-drain-analysis.md`).
+
+Topology (RTTI read back): the manager singleton `ds:0x2006000` is
+`Eugen::TSynchronisationQueue`; its drain is `0x58dd20` (called from
+`0x58bc91` / `0x58bf4f`). `0x58e310` belongs to
+`IA::Eugen::TTaskLayerMovementInterpolator` (COL `0x1b7ac8c` →
+TypeDescriptor `0x1e876ec`, name read back) and flushes that object's own
+vector; `ebp = ecx` at `58e315`, so its `[ebp+…]` operands are this-relative.
+The pending array `ds:0x2005fa8/0x2005fac` holds 8-byte `{item*, handle*}`
+elements, LIFO; producers `0x58d5f0` / `0x58d9a9`, poppers `0x58d1c0`
+(callers `7f9a54` / `7f9bb4` in the command-playback loop `0x7f98f0`) and the
+inline pop in `0x58d990`; `0x58df00` only peeks and attaches a 30 s task
+handle. The playback loop writes a QWORD sim-time global `ds:0x2017270`
+(`7f9adb`) and `[obj+0x24]` — not the singleton clock fields.
+
+Negative scan (independently recomputed): the contiguous unit
+`0x58d000–0x58e450` (1,860 rows inclusive; the worker's 1,859 excludes the
+`0x58e450` endpoint) plus 1,695 rows of one-level callees contain zero stores
+to `+0xd0/+0xd4/+0xd8/+0xdc`, zero loads of `ds:0x201d318`, zero calls to
+`0xa41bc0`. The three `0x98` forms in the unit are immediates
+(`58d646`, `58e269`, `58e357` — payload-variant selectors), not displacements.
+Adjacent false positive pre-empted: `99f99c: mov byte [esi+0xd0],al` is in
+the packet-object function `0x99f8f0` (byte width, `[esi+0x20]` buffer
+context), not a singleton write.
+
+Polymorphic channel closed: of 41 `*SynchronisationItem*` COLs, 30 resolve to
+vtables; the drain's dispatch slot `vfunc[2]` (`+0x8`) is `0x58e480`
+(`mov byte [ecx+4],0 ; ret`) for every concrete class (spot-verified on
+`TResetTimeHelper` base `0x1942a7c` and `TLoadingDoneHelper` `0x1984b10`,
+identical five-slot shape). No slot of any sync-item class writes the
+`+0xd0` family. One slot-5 body (`0x13125a0`,
+`TSynchronisationItemSendLaunchDirectOrder`) loads the singleton read-only.
+
+Whole-binary writer census (proximity heuristic, limitation below):
+
+| field | runtime writer | construction zero-init |
+|---|---|---|
+| `+0xd0` int ticks | `0xa41bf2` in `SetDeterministicCurrentTimeInTicks` (`0xa41bc0`) — only one | `aab588: mov [ebx+0xd0],0` |
+| `+0x98` float realtime | `0xa42314` in `SetRealtimeCurrentTime` (`0xa422e0`) — only one | `aab524: mov [ebx+0x98],0` |
+
+Both setters have **zero** textual call sites in the listing (recomputed:
+`call 0xa41bc0` = 0, `call 0xa422e0` = 0); they are reachable only through
+the `_sysutils` PyMethodDef dispatch. `+0xd4` has one byte writer
+(`0xbdb254`, writes 0); `+0xd8/+0xdc` none.
+
+`0xab3f90` reachability resolved: it is virtual #0 of
+`IA::Eugen::TGameplayServices` (vtable `0x199acc0`, COL `0x1b91f20` →
+`.?AVTGameplayServices@IA@Eugen@@`, name read back), installed by the
+constructor at `aab454: mov [ebx],0x199acc0`. Zero direct callers; a bounded
+indirect search over the 537 singleton-reference rows found 7 `call [reg]`
+candidates, all through other objects. Address-taken, no located caller.
+
+Limitation, stated plainly: the writer census uses a 15-row/64-byte
+"register holds the singleton" proximity heuristic. It is not a formal
+whole-binary proof against indirect writes: a store in a callee that received
+the pointer as an argument, or an object-copy/memcpy path outside the scanned
+envelopes, would be missed. The scanned envelopes are §3 (direct + wide
+stores), §8 (ResetTime), this section (queue unit + callees + all sync-item
+vtables). Within them, no engine writer exists.
+
+Consequence: the observed per-tick counter advance cannot be attributed to
+any native writer found so far. The coherent remaining hypothesis is that the
+embedded Python layer calls `SetDeterministicCurrentTimeInTicks` (and
+`SetRealtimeCurrentTime`) itself — the setters exist precisely for script
+use. This is now an OFFLINE question: feasibility probe (2026-11-19) found no
+plaintext script markers in `NDF_Win.dat` (24,281,088 bytes; compressed
+payloads not yet excluded), but the executable embeds Python-like fragments
+in `.rdata` (`import ` at file offsets `0x1624685`, `0x1631ab3`, `0x1631ac5`,
+`0x1631b54`; `def ` at `0x1624f20`, `0x1624fa0`, `0x162fddc`; `.pyc` at
+`0x16343bc`; `System.` at `0x152cbea`, `0x15920fc`, `0x15a07a6`). Next
+discriminating step: examine those fragments and unpack NDF payloads per the
+ndf-effective-values procedure, looking for calls to the clock setters. The
+runtime discriminator (authorized setter-hook capture) remains the gold
+standard; nothing here manufactures a runtime observation.
 
 ## Reproduction
 
