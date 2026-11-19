@@ -14,9 +14,10 @@ Card format (80 columns, uppercase, fixed width)::
     R<family:3><seq:2>[<value:21><filler:3>]x3<filler:2>
 
 Values are transported as 21-digit implied-decimal integers, 18 decimal
-places, zero filled. Every transport integer is derived with Decimal arithmetic
-from the exact binary32 value, so the COBOL ``MOVE`` reconstructs the same
-float32 bit pattern with no rounding. The header sum is the double-precision
+places, zero filled. Every transport integer is Decimal(repr(cell)) * 10**18:
+a shortest round-trip decimal within half a binary32 ULP, not the full exact
+expansion, so the COBOL ``MOVE``'s correctly-rounded conversion reconstructs
+the same float32 bit pattern. The header sum is the double-precision
 sum of the padded matrix in row-major order, and the COBOL loader recomputes it.
 """
 import argparse
@@ -41,7 +42,7 @@ BUILD = "131544"
 
 
 def transport(value):
-    """Return the 21-digit implied-decimal integer for an exact float32."""
+    """Return the 21-digit implied-decimal integer that transports a float32 bit-exactly."""
     scaled = Decimal(repr(value)) * SCALE
     assert scaled == scaled.to_integral_value(), value
     digits = int(scaled)

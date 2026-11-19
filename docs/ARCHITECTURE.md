@@ -147,6 +147,8 @@ Field-level meanings and their confidence are in the per-opcode notes linked bel
 | `research/unit-data/build59638-v1.json.gz` | `research/export_unit_index59638.py` (inputs: the git-ignored `work/` NDF extraction from `research/ndf59638_unpack.py` and `ndf59638_parse.py`) |
 | private 131544 unit index (`unit-index-131544.json`) | `research/aar_unit_index.py` |
 | AAR `events.json`, `units.json`, `chronology.md` | `instrumentation/aar_events.py` |
+| CICS table deck (private cells, synthetic sample committed) | `scripts/gen_table_cards.py` |
+| CICS oracle journal | `scripts/cics_oracle.py` |
 
 Per-sample structural counts come from `wgrd_corpus.py` (`--expect` for regression comparison) and the pinned tests, not from generated reports. The former coverage generators are archived.
 
@@ -160,6 +162,7 @@ Sample inputs are read from `samples/manifest.json` (external bytes, not in Git)
 | byte-level container and layouts   | [FORMAT.md](../FORMAT.md) |
 | per-opcode command layouts         | [research/COMMAND-LAYOUTS.md](../research/COMMAND-LAYOUTS.md) + per-opcode notes ([research/FIXED-OPCODES-02-13-18.md](../research/FIXED-OPCODES-02-13-18.md), [research/CHANGEPRODUCTION-0C.md](../research/CHANGEPRODUCTION-0C.md), [research/OP07-ORDERS.md](../research/OP07-ORDERS.md), [research/PRODUCTION-COMMANDS.md](../research/PRODUCTION-COMMANDS.md)) |
 | current output/status contract | This reference and [FORMAT.md](../FORMAT.md) |
+| damage accounting and CICS batch   | [docs/damage-accounting.md](damage-accounting.md) + [src/cobol/README.md](../src/cobol/README.md) |
 | timeline interpretation evidence | [research/TIMELINE-SEMANTICS.md](../research/TIMELINE-SEMANTICS.md) |
 | entities and reference keys        | [research/ENTITY-CONTEXT.md](../research/ENTITY-CONTEXT.md), [research/OP18-REFERENCE-KEYS.md](../research/OP18-REFERENCE-KEYS.md), [research/OP18-SUPPLY-TARGETS.md](../research/OP18-SUPPLY-TARGETS.md) |
 | executable analysis (addresses)    | [REA-NOTES-59638.md](../research/REA-NOTES-59638.md)                            |

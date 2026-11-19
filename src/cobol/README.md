@@ -55,8 +55,10 @@ contract rather than through engine values.
 
 Table deck: `H` header (name, build, 65, 35, control total in thousandths,
 provenance tag) then 12 `R` cards per family. Values are 21-digit
-implied-decimal integers carrying the exact decimal expansion of each binary32
-cell, so the COBOL numeric move reconstructs the cell without rounding.
+implied-decimal integers carrying a shortest round-trip decimal of each
+binary32 cell (within half a binary32 ULP, not the full exact expansion), so
+the COBOL numeric move's correctly-rounded conversion reconstructs the cell's
+bit pattern.
 
 ## Build
 
