@@ -153,11 +153,14 @@ Singleton pointer slot `0x201d318` (unchanged). Two distinct clock fields:
   `mulss [0x195d768]` (`cd cc 4c 3e` = 0.2f), x87 return. Ticks getter
   `0xa40780` pushes `[eax+0xd0]` at `0xa407a8`. Setter `0xa41bc0` parses one
   `"i"` arg and stores `mov [eax+0xd0],ecx` at `0xa41bf2`, then
-  `inc ds:0x1dbf028` at `0xa41bfd`. That counter is **shared, not a setter
-  discriminator**: `.text` contains 1,379 `inc ds:0x1dbf028` sites (3,514
-  references), including `DisplayDebugMessage` at `0xa4085e` and `ResetTime`
-  at `0xa41907`. Its semantics are unverified (plausibly a global
-  binding-call statistic); a nonzero value cannot attribute a call to the
+  `inc ds:0x1dbf028` at `0xa41bfd`. That counter is **Py_None's refcount,
+  not a setter discriminator** (verified 2026-11-19, §10): `0x1dbf028` is
+  the `Py_None` object (`ob_type` at `0x1dbeea0`, `tp_name` "NoneType" read
+  back); every void binding returns `Py_INCREF(Py_None); return Py_None`.
+  `.text` contains 1,379 `inc ds:0x1dbf028` sites (3,514 references),
+  including `DisplayDebugMessage` at `0xa4085e` and `ResetTime` at
+  `0xa41907`. Its value counts None-returns across the whole binding layer;
+  a nonzero value cannot attribute a call to the
   setter. Only a hook on `0xa41bc0` itself discriminates setter invocations.
   Static observation; unobserved at runtime.
 - **Realtime: `+0x98`, binary32.** Getter `0xa41710`:
@@ -364,7 +367,7 @@ renamed battle-start.
    script fragments, §9), or indirect writes outside the scanned envelopes
    (the census is a proximity heuristic, not a formal proof). Runtime
    discriminator: a hook on the setter `0xa41bc0` itself, under authorization
-   (the shared counter `0x1dbf028` cannot attribute calls).
+   (`0x1dbf028` is Py_None's refcount and cannot attribute calls, §10).
 2. The integer 10/11 frame lag origin: constructor zero-init is the only
    static zeroing of `+0xd0`; no static reset explains the lag. Sample-specific.
 3. Battle start: §5 proximity is correlation; a UI-corroborated phase capture
@@ -386,12 +389,13 @@ no Python arguments (format `""` at `0x1927bdc`). Its complete global effect:
 ```
 a418ed  e8 0e 73 ae ff      call 0x528c00        ; array-new alloc, size 0xc
 a41902  e8 29 2d f3 ff      call 0x974630        ; TResetTimeHelper ctor
-a41907  ff 05 28 f0 db 01   inc ds:0x1dbf028     ; shared usage counter
-a4190d  b8 28 f0 db 01      mov eax,0x1dbf028    ; returns the counter address
+a41907  ff 05 28 f0 db 01   inc ds:0x1dbf028     ; Py_INCREF(Py_None)
+a4190d  b8 28 f0 db 01      mov eax,0x1dbf028    ; return Py_None
 ```
 
-The return-value anomaly (`&0x1dbf028` in `eax` where sibling bindings return
-0) is recorded, semantics unverified; it is not a clock write.
+The earlier "return-value anomaly" is resolved (§10): `0x1dbf028` is
+`Py_None`, and every void binding returns it; ResetTime is no exception.
+It is not a clock write.
 
 Class identity from RTTI: TypeDescriptor `0x1e83028` =
 `.?AVTResetTimeHelper@Eugen@@`, vtable `0x1984b30`, base
@@ -490,8 +494,9 @@ Whole-binary writer census (proximity heuristic, limitation below):
 
 Both setters have **zero** textual call sites in the listing (recomputed:
 `call 0xa41bc0` = 0, `call 0xa422e0` = 0); they are reachable only through
-the `_sysutils` PyMethodDef dispatch. `+0xd4` has one byte writer
-(`0xbdb254`, writes 0); `+0xd8/+0xdc` none.
+the `_sysutils` PyMethodDef dispatch. `+0xd4` has two runtime byte writers
+(`0xd4e8e9` sets 1 in a restore-task step, `0xbdb254` clears 0 during
+phase-2 teardown — a pending-teardown latch, §10); `+0xd8/+0xdc` none.
 
 `0xab3f90` reachability resolved: it is virtual #0 of
 `IA::Eugen::TGameplayServices` (vtable `0x199acc0`, COL `0x1b91f20` →
@@ -555,6 +560,73 @@ step: obtain `ZZ_GladPatchableWin.dat` / the `CommonData:/Python` tree
 (authorized acquisition or authorized guest file read) and scan for the same
 markers. The runtime discriminator (authorized setter-hook capture) remains
 the gold standard; nothing here manufactures a runtime observation.
+
+## 10. Determinism stubs, Py_None, and the speed mechanism (2026-11-19)
+
+Worker analysis, parent-reverified (full report: local evidence record
+`~/.hermes/artifacts/wgrd-replay/frameclock-lua-20261119/determinism-speed-analysis.md`).
+All five functions below have zero call/jmp sites in the listing
+(recomputed) — binding-only entries, no arguments (format `""`).
+
+**`0x1dbf028` is `Py_None`.** Its `ob_type` pointer reads `0x1dbeea0`, whose
+`tp_name` reads back "NoneType". Every void binding ends
+`inc ds:0x1dbf028 ; mov eax,0x1dbf028 ; ret` = `Py_INCREF(Py_None); return
+Py_None`. The 1,379 inc sites are None-returns across the binding layer, not
+a call statistic with per-binding meaning. This resolves §8's return-value
+anomaly and strengthens §2: the value cannot attribute setter calls even in
+principle.
+
+**The determinism/desynchro block is inert.** `RequireDeterminismFromNowOn`
+(`0xa41770`) and `DontRequireDeterminismFromNowOn` (`0xa40900`) parse no
+args, perform zero game-state stores (the only write is the Py_None
+refcount), and return None. Same shape for `NeedDesynchroLogFromNow`
+(`0xa41600`), `DontNeedDesynchroLogFromNow` (`0xa408b0`) and
+`StartDesynchroLogNowIFN` (`0xa424b0`). There is no script-controllable
+determinism flag behind these names in build 131544; any determinism policy
+is compile-time. Scripts calling them change nothing.
+
+**`+0xd4` is a pending-teardown latch, not a determinism flag.** Set:
+`d4e8e9: mov byte [edi+0xd4],1` inside the restore-task step `0xd4e870`
+(`edi = ds:0x201d318` loaded at `d4e89d`, guarded on arg == 1). Cleared:
+`bdb254: mov byte [eax+0xd4],0` inside `0xbdb110`, guarded on the TS state
+enum `[TS+0x14] == 2`, during a shutdown sequence that then calls
+`0xd4e6c0` and jumps to `0xab49e0`. Constructor zero-init at `aab592`.
+None of the five bindings touches it. (§9's census listed only the clear
+site; the set site completes it.)
+
+**Speed control is a synchronisation-queue item, not mutable state.**
+`DecreaseGameSpeed` (`0xa40530`), `IncreaseGameSpeed` (`0xa40f40`),
+`ResetGameSpeed` (`0xa417c0`) each `new(0x10)` a `Eugen::TChangeGameSpeed`
+(RTTI TypeDescriptor `0x1e7a4e8`, name read back; vtable `0x198121c`, base
+`TSynchronisationItemImpl` `0x1942a7c`) via ctor `0x94fbe0` with opcode
+2 / 1 / 0 respectively (pushes verified). The ctor posts the item into the
+same queue as ResetTime's token (`0x58da80 → 0x58e450 → 0x58b800`, manager
+`ds:0x2006000+0x18`); the wrapper drops the pointer because the queue owns
+it. The opcode lives at item `+0xc`.
+
+Apply is deferred to the queue drain, vtable slot 5 = `0x95e430`:
+opcode 0 → `0x518560` (reset), 1 → `0x50ffe0` (increase), 2 → `0x5060d0`
+(decrease), each on the speed-manager instance at `0x1fce0d0` (BSS, past
+.data's virtual end; getter `0x4fc470`; no RTTI — descriptive name only).
+Layout used: `+0x68` float32 current factor, `+0x6c` int32 step index,
+`+0x78/+0x7c` listener vector. Setter `0x519490(idx)` computes in SSE
+float32: `idx >= 0 → (float)idx + 1.0f` (`addss [0x19326e8]` = 1.0);
+else `-1.0f / ((float)idx - 1.0f)` (`subss` then `divss [0x1932748]` = -1.0),
+single `xchg` store into `+0x68`, then listener fan-out on change.
+Increase caps at 100.0 (`0x1932738`), Decrease floors at 0.01
+(`0x19326d8`), constants read back. Reset ⇒ index 0 ⇒ 1.0; Increase steps
+2.0, 3.0, …; Decrease steps 0.5, 0.333…, 1/(1−i). The branches are not
+symmetric inverses: from a negative index, one Increase returns to 1.0, not
+to the previous slow value.
+
+Replay consequences (static, not runtime-observed): speed changes are part
+of the ordered simulation stream — a replay's speed trajectory must be
+reconstructed by replaying the queue items, not by reading a load-time
+field; the manager is process-global and zero-filled at load. Whether the
+drain is tick-locked (a mid-tick speed item landing next tick) is unproven.
+The listener fan-out reaching the tick stepper is inference, not proven —
+no direct `+0x68` reader outside the manager was found in a bounded grep.
+Nothing in the five functions touches `+0xd0`, `+0x98` or `+0xd4`.
 
 ## Reproduction
 

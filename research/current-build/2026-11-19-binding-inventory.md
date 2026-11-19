@@ -80,12 +80,14 @@ sequence; 27 of 28 located and byte-matched (spot-verified `_world`,
   `_script_break_point.NoMoreScriptToExecuteInFrame`, `_manager.resetcount`.
 
 The deterministic/realtime pair is independently script-writable — the seam
-for replay/time control. `RequireDeterminismFromNowOn` /
-`DontRequireDeterminismFromNowOn` are newly surfaced controls whose semantics
-are unverified; they are candidates for the determinism-boundary question,
-not answers. `NoMoreScriptToExecuteInFrame` is consistent with a per-frame
-script execution boundary (relevant to the open script-drives-the-clock
-hypothesis, sysutils note §9) but proves nothing by itself.
+for replay/time control. The determinism controls
+(`RequireDeterminismFromNowOn`, `DontRequireDeterminismFromNowOn`) and the
+desynchro-log trio are verified no-op stubs in this build, and the game-speed
+trio posts `TChangeGameSpeed` synchronisation-queue items (mechanism, speed
+manager layout and formula: [sysutils note §10](2026-11-19-sysutils-cpython-bindings.md)).
+`NoMoreScriptToExecuteInFrame` is consistent with a per-frame script
+execution boundary (relevant to the open script-drives-the-clock hypothesis,
+sysutils note §9) but proves nothing by itself.
 
 ## Caveats
 

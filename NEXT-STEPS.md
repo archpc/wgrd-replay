@@ -114,8 +114,8 @@ the Python layer drives the setters; the script corpus lives in external packs
 (`ZZ_GladPatchableWin.dat`, `CommonData:/Python`) that are NOT retained — the
 exe and NDF contain no script bytes (searched). Next step is acquisition-gated;
 the census is a proximity heuristic, not a formal indirect-write proof. The gold
-discriminator remains an authorized capture hooking the setter itself; the
-shared counter `ds:0x1dbf028` is NOT a discriminator (1,379 inc sites). Until
+discriminator remains an authorized capture hooking the setter itself;
+`ds:0x1dbf028` is Py_None's refcount, NOT a discriminator (1,379 inc sites). Until
 then, the writer is unknown; candidates are not conclusions.
 
 ## Next authorized capture (weapon/team delta; tick-frame join already done)
