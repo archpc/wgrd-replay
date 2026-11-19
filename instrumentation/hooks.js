@@ -13,6 +13,8 @@ let suppressed = 0;
 let callbackErrors = 0;
 let staleFrames = 0;
 let stackMismatches = 0;
+let lastSequence = 0;
+let sendFailures = 0;
 
 function hexBytes(address, size) {
   const range = Process.findRangeByAddress(address);
@@ -29,11 +31,17 @@ function hexBytes(address, size) {
   }
 }
 
+function transmit(event) {
+  if (config.loss_accounting === true) event.sequence = ++lastSequence;
+  try { send(event); }
+  catch (error) { sendFailures++; throw error; }
+}
+
 function emit(event) {
   if (emitted >= config.event_limit) { suppressed++; return false; }
   emitted++;
   event.timestamp_utc = new Date().toISOString();
-  send(event);
+  transmit(event);
   return true;
 }
 
@@ -103,7 +111,7 @@ function captureReads(hook, args, ecx, edx, phase, retval) {
 
 function callbackFailure(phase, hook, error, thread) {
   callbackErrors++;
-  send({event: 'callback_error', phase, hook, thread_id: thread,
+  transmit({event: 'callback_error', phase, hook, thread_id: thread,
     timestamp_utc: new Date().toISOString(), error: String(error)});
 }
 
@@ -207,6 +215,8 @@ rpc.exports = {
     for (const listener of listeners) listener.detach();
     listeners.length = 0;
     return {counts, filtered, emitted, suppressed, callback_errors: callbackErrors, stale_frames: staleFrames,
-      stack_mismatches: stackMismatches, outstanding_threads: Object.keys(stacks).length};
+      stack_mismatches: stackMismatches, outstanding_threads: Object.keys(stacks).length,
+      ...(config.loss_accounting === true ? {loss_accounting: {
+        last_sequence: lastSequence, send_failures: sendFailures}} : {})};
   }
 };
