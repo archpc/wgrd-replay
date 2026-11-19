@@ -1,4 +1,4 @@
-# Revision 131544: `_sysutils` is CPython 2.7, not Lua — binding table, clock fields, writer scan
+# Revision 131544: `_sysutils` is CPython 2.5.1, not Lua — binding table, clock fields, writer scan
 
 Date: 2026-11-19. Status: static, read-only. No VM, no game run, no new capture.
 Supersedes the "Lua binding" language in earlier notes for this table; does not
@@ -16,6 +16,23 @@ record: `~/REA/wgrd-131544/canonical-listing-verification.json`).
 
 ## 1. The table is CPython `PyMethodDef`, module `_sysutils`
 
+**Version: CPython 2.5.1.** The original identification (PR #30) said 2.7,
+inferred from the API-version gate; that inference was wrong — 1013 is shared
+by Python 2.5/2.6/2.7 and never discriminated the minor version. Direct
+version evidence (script-layer worker found, parent re-verified against the
+pinned image, 2026-11-19):
+
+- Build path string at file offset `0x162a3ed`: `2.5.1\Objects\cellobject.c`;
+  20 `Python-2.5.1` build paths in the image.
+- SVN `$HeadURL: svn+ssh://***@svn.python.org/python/tags/r251/Python/sysmodule.c $`
+  at `0x1636200`; `tags/r251` is the only release tag present (r251 = 2.5.1).
+- `2.5.1` occurs 21 times; `2.7.x` zero times (recomputed).
+- The NDF side agrees: `initialisationnonpatchable.ndfbin` +13830 names
+  `LoadPythonLib250` (decompressed blob offset `0x5a21`, §9).
+
+The `PyMethodDef` identification, table contents and installer proof below
+are unaffected by the version correction.
+
 Entries are 16 bytes `{ml_name, ml_meth, ml_flags, ml_doc}` with `ml_flags = 1`
 (`METH_VARARGS`) and `ml_doc = NULL`. Byte proof, all parent-verified:
 
@@ -23,7 +40,7 @@ Entries are 16 bytes `{ml_name, ml_meth, ml_flags, ml_doc}` with `ml_flags = 1`
   `cmp ds:0x2024a4c,0` / `jne ret`:
 
   ```
-  a4279a  68 f5 03 00 00      push 0x3f5          ; 1013 = PYTHON_API_VERSION (2.7)
+  a4279a  68 f5 03 00 00      push 0x3f5          ; 1013 = PYTHON_API_VERSION (shared by 2.5-2.7; not a version discriminator)
   a4279f  6a 00               push 0x0            ; doc = NULL
   a427a1  6a 00               push 0x0            ; self = NULL
   a427a3  68 78 cc d9 01      push 0x1d9cc78      ; methods = table base
@@ -491,18 +508,51 @@ vtables). Within them, no engine writer exists.
 
 Consequence: the observed per-tick counter advance cannot be attributed to
 any native writer found so far. The coherent remaining hypothesis is that the
-embedded Python layer calls `SetDeterministicCurrentTimeInTicks` (and
+Python layer calls `SetDeterministicCurrentTimeInTicks` (and
 `SetRealtimeCurrentTime`) itself — the setters exist precisely for script
-use. This is now an OFFLINE question: feasibility probe (2026-11-19) found no
-plaintext script markers in `NDF_Win.dat` (24,281,088 bytes; compressed
-payloads not yet excluded), but the executable embeds Python-like fragments
-in `.rdata` (`import ` at file offsets `0x1624685`, `0x1631ab3`, `0x1631ac5`,
-`0x1631b54`; `def ` at `0x1624f20`, `0x1624fa0`, `0x162fddc`; `.pyc` at
-`0x16343bc`; `System.` at `0x152cbea`, `0x15920fc`, `0x15a07a6`). Next
-discriminating step: examine those fragments and unpack NDF payloads per the
-ndf-effective-values procedure, looking for calls to the clock setters. The
-runtime discriminator (authorized setter-hook capture) remains the gold
-standard; nothing here manufactures a runtime observation.
+use, and each setter name has exactly two references in the whole image: its
+`PyMethodDef` slot and its own error-path push (recomputed: one push each;
+zero native lookups of the bindings).
+
+Script-layer search (2026-11-19, worker + parent verification; full report:
+local evidence record `~/.hermes/artifacts/wgrd-replay/frameclock-lua-20261119/script-layer-search.md`):
+
+- The `.rdata` "Python-like fragments" recorded in the first feasibility
+  probe are CPython interpreter internals, NOT scripts: `0x1624685` cPickle
+  "import of module %s failed"; `0x1631ab3/ac5/b54` compile.c diagnostics;
+  `0x1624f20` cPickle error `__str__` docstring; `0x16343bc` import.c
+  extension table (`.py .pyw .pyc path_importer_cache`); the `System.` hits
+  are NDF filenames and C++ RTTI, not a System module.
+- Exhaustive exe search: zero pyc magic, zero zipimport/frozen-module/
+  `PyRun_*`/`'%s.py'` markers; 1,158 nested-zlib candidates inflated to zero
+  scripts. A binding-registry string block (`0x1586c74..0x1587210`) lists
+  ~75 modules (`_sysutils`, `_timeinfo`, `_misc`, `_world`,
+  `_script_break_point`, sip, `_ast`/`parser`/`marshal`) — the C binding
+  layer, not script code.
+- `NDF_Win.dat` unpacked (edat v2): 2,664 payloads, all EUG0/CNDF flag
+  `0x80`, directory and per-entry MD5 verified, 44,687,262 bytes
+  decompressed, concatenated sha256
+  `692379d96f2c6c030c1d45119dc1776efe7caf9f4a50935a9c65bf23fbde99c9`
+  (parent recomputed). Zero hits for the setter names, `ResetTime`,
+  `_sysutils`, `WorldTickEnd`, `import `, `def `, `.pyc`, pyc magic, zip or
+  bzip2 markers; every entry is `pc\ndf\*.ndfbin`.
+- The NDF names the script infrastructure instead:
+  `initialisationnonpatchable.ndfbin` +13830 `LoadPythonLib250`;
+  `TClusterAddPythonPath` and `TResourceDescriptorPythonPack` (272 instances
+  across 271 clusters); `clustermap.ndfbin` +16554 mounts
+  `CommonData:/Python/Eugen`, `GameData:/Python/Eugen`, `EugenPatchable`,
+  `EugenSolo`, `EugenTest` plus `ResourcePythonPack::Load`. The only external
+  packs named are `GladPackPatchable:/ZZ_GladPatchableWin.dat` and
+  `GladPackNotPatchable:/ZZ_GladNotPatchableWin.dat` (plus `DLC_1..3.dat`).
+- The script corpus is NOT retained: the DepotDownloader manifest lists 625
+  paths (583 under `Data\WarGame\PC`), none containing `CommonData` or
+  `Python` — the original download was filtered.
+
+Verdict: hypothesis still open, now acquisition-gated. Next discriminating
+step: obtain `ZZ_GladPatchableWin.dat` / the `CommonData:/Python` tree
+(authorized acquisition or authorized guest file read) and scan for the same
+markers. The runtime discriminator (authorized setter-hook capture) remains
+the gold standard; nothing here manufactures a runtime observation.
 
 ## Reproduction
 

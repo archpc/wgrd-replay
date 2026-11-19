@@ -39,7 +39,7 @@ CLOCK_CONSTANTS = {
     "speed_factor_plus_one": 0x19326E8,   # 1.0
     "speed_factor_minus_one": 0x1932748,  # -1.0
 }
-# Named _sysutils (CPython 2.7 PyMethodDef) bindings for the clock; table proof:
+# Named _sysutils (CPython 2.5.1 PyMethodDef) bindings for the clock; table proof:
 # research/current-build/2026-11-19-sysutils-cpython-bindings.md (formerly mislabeled Lua).
 # a406b0 -> [[0x201d318]+0xd0] * 0.2 ; a40780 -> [[0x201d318]+0xd0] ; a41710 -> [[0x201d318]+0x98]
 ENGINE_NAMED_TIME_BINDINGS = (

@@ -82,7 +82,7 @@ new replay with known UI times should be added to its `DISPLAYED` table.
 
 Completed and merged; these are not open tasks:
 
-- Binding identification: the clock table is CPython 2.7 `_sysutils` (51
+- Binding identification: the clock table is CPython 2.5.1 `_sysutils` (51
   entries), the lifecycle table `_misc` (32); not Lua. Installer and
   version-gate proof:
   [sysutils note](research/current-build/2026-11-19-sysutils-cpython-bindings.md)
@@ -110,9 +110,10 @@ synchronisation-queue and sync-item-vtable envelopes are exhausted
 ([sysutils note §§3, 8, 9](research/current-build/2026-11-19-sysutils-cpython-bindings.md));
 each clock field has one runtime writer (its Python setter, zero native call
 sites) plus construction zero-init. The coherent remaining hypothesis is that
-the embedded Python layer drives the setters — an OFFLINE question (shipped
-script fragments in the executable and NDF payloads). The census is a
-proximity heuristic, not a formal indirect-write proof. The gold
+the Python layer drives the setters; the script corpus lives in external packs
+(`ZZ_GladPatchableWin.dat`, `CommonData:/Python`) that are NOT retained — the
+exe and NDF contain no script bytes (searched). Next step is acquisition-gated;
+the census is a proximity heuristic, not a formal indirect-write proof. The gold
 discriminator remains an authorized capture hooking the setter itself; the
 shared counter `ds:0x1dbf028` is NOT a discriminator (1,379 inc sites). Until
 then, the writer is unknown; candidates are not conclusions.
