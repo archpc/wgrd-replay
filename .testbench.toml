@@ -1,0 +1,88 @@
+# TestBench integration for wgrd-replay (local-only, chore/testbench-integration).
+#
+# Suite boundaries:
+# - offline-unit: deterministic stdlib tests + pinned public unit fixture.
+#   Private replay/executable/trace evidence is absent under the sandbox HOME,
+#   so those tests skip explicitly (a skip is unavailable coverage, not a pass).
+#   Requires the cached public fixture below; no network is used or allowed.
+#   Keep WGRD_CORPUS_DIR unset in the ambient environment for this profile.
+# - private-evidence-regression: explicit opt-in. Replays, engine traces, NDF
+#   blob and PE identities are host-local private artifacts, pinned by absolute
+#   path because TestBench sandboxes HOME. Missing inputs skip honestly; present
+#   altered inputs fail. Never substitutes simulated evidence for engine evidence.
+# - gate-*: the repo's CONTRIBUTING.md quality gates (syntax, doc links, cow and
+#   archived-copy preservation). check_docs.py enumerates via git ls-files, so
+#   new Markdown must be staged before it runs.
+#
+# Interpreter: {python} resolves to the TestBench CLI interpreter (python3.14
+# here). wgrd-replay supports Python 3.13-3.15 only; set TESTBENCH_PYTHON to a
+# supported interpreter if the CLI ever runs on an older one.
+# No suite here launches the game, attaches Frida, or operates a VM. Runtime
+# engine evidence enters only as hash-pinned traces consumed by the regression
+# suite; live capture remains a separately authorized manual workflow.
+
+[project]
+name = "wgrd-replay"
+languages = ["python"]
+
+[[suite]]
+name = "offline-unit"
+adapter = "python_unittest"
+profile = "unit"
+command = ["{python}", "-B", "-m", "unittest", "discover", "-s", "tests", "-v"]
+timeout_s = 180.0
+description = "Deterministic offline decoder/corpus/timeline/instrumentation-mechanics tests; private evidence skips, public fixture pinned"
+
+[suite.env_overrides]
+WGRD_UNIT_DATA = "/Users/sein/Code/wgrd-replay/work/public-units/wargame-data"
+WGRD_NDF_BLOB = ""
+PYTHONDONTWRITEBYTECODE = "1"
+
+[[suite]]
+name = "private-evidence-regression"
+adapter = "python_unittest"
+profile = "regression"
+command = ["{python}", "-B", "-m", "unittest", "discover", "-s", "tests", "-v"]
+timeout_s = 300.0
+description = "Opt-in full suite against host-local private evidence: 71-replay corpus, AAR traces, NDF blob, 59638/131544 PEs; skips report absent coverage"
+
+[suite.env_overrides]
+WGRD_UNIT_DATA = "/Users/sein/Code/wgrd-replay/work/public-units/wargame-data"
+WGRD_SAMPLES_DIR = "/Users/sein/.hermes/artifacts/wgrd-replay/samples/raw"
+WGRD_ARTIFACTS_DIR = "/Users/sein/.hermes/artifacts/wgrd-replay"
+WGRD_EXE_59638 = "/Users/sein/.hermes/artifacts/wgrd-replay/game/win64/Data/PC/59638/WarGame3.exe"
+WGRD_ENGINE_PE = "/Users/sein/.hermes/artifacts/wgrd-replay/game/win64/WarGame3.exe"
+WGRD_CURRENT_EXE = "/Users/sein/.hermes/artifacts/wgrd-replay/game/win64/WarGame3.exe"
+WGRD_CORPUS_DIR = "/Users/sein/Code/wgrd-replay/samples/raw/getuploader-20261029"
+WGRD_NDF_BLOB = "/Users/sein/.hermes/artifacts/wgrd-replay/combat-damage-static-20261109/gdconst.bin"
+WGRD_AAR_NDF = "/Users/sein/.hermes/artifacts/wgrd-replay/game/win64/Data/WarGame/PC/131544/NDF_Win.dat"
+WGRD_AAR_RUNTIME_TRACE = "/Users/sein/.hermes/artifacts/wgrd-replay/aar-20261102T050816Z/wgrd-aar-combat-20261102-01.jsonl"
+WGRD_AAR_RUNTIME_INDEX = "/Users/sein/.hermes/artifacts/wgrd-replay/aar-20261102T050816Z/units/unit-index-131544.json"
+WGRD_AAR_V3_TRACE = "/Users/sein/.hermes/artifacts/wgrd-replay/aar-v3-20261102T082918Z/native-v3b-replay.jsonl"
+WGRD_AAR_V3_INFLIGHT = "/Users/sein/.hermes/artifacts/wgrd-replay/aar-v3-20261102T082918Z/native-v3b-inflight-snapshot.jsonl"
+WGRD_AAR_V4_TRACE = "/Users/sein/.hermes/artifacts/wgrd-replay/combat-frames-20261103/run07/run-07.jsonl"
+PYTHONDONTWRITEBYTECODE = "1"
+
+[[suite]]
+name = "gate-python-syntax"
+adapter = "shell"
+profile = "unit"
+command = ["{python}", "-B", "scripts/check_python.py"]
+timeout_s = 60.0
+description = "CONTRIBUTING gate: syntax of all tracked Python files"
+
+[[suite]]
+name = "gate-doc-links"
+adapter = "shell"
+profile = "unit"
+command = ["{python}", "-B", "scripts/check_docs.py"]
+timeout_s = 60.0
+description = "CONTRIBUTING gate: explicit Markdown links against tracked paths (stage new docs first)"
+
+[[suite]]
+name = "gate-preservation"
+adapter = "shell"
+profile = "unit"
+command = ["{python}", "-B", "scripts/check_preservation.py"]
+timeout_s = 60.0
+description = "CONTRIBUTING gate: ASCII cow byte identity and archived source copies"
