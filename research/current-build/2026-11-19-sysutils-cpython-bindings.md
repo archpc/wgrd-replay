@@ -376,6 +376,10 @@ renamed battle-start.
    verified ([inventory note](2026-11-19-binding-inventory.md)); one table
    (`0x1d7efe0`) has no located installer. Per-function semantics beyond the
    clock bindings remain unverified.
+5. Speed-factor simulation effect (§10): the only registered speed listener
+   is a HUD 3D viewer; no static path from the factor to the tick stepper.
+   How game speed scales the simulation is unproven — candidates are the
+   script layer (acquisition-gated, §9) or an unlocated non-listener reader.
 
 ## 8. ResetTime posts a deferred token; it is not a clock writer (2026-11-19)
 
@@ -607,9 +611,13 @@ it. The opcode lives at item `+0xc`.
 Apply is deferred to the queue drain, vtable slot 5 = `0x95e430`:
 opcode 0 → `0x518560` (reset), 1 → `0x50ffe0` (increase), 2 → `0x5060d0`
 (decrease), each on the speed-manager instance at `0x1fce0d0` (BSS, past
-.data's virtual end; getter `0x4fc470`; no RTTI — descriptive name only).
+.data's virtual end; no RTTI — descriptive name only). `0x4fc470`
+(`mov eax,0x1fce0d0; ret`) is a fixed-address supplier used in the
+allocation path (sole caller `0x52ab5a`, after `push 0x80`), not the live
+handle; the singleton handle is `ds:0x1fcefe0` (set during construction at
+`0x4f70d5`, pushed as `this`, cleared on teardown).
 Layout used: `+0x68` float32 current factor, `+0x6c` int32 step index,
-`+0x78/+0x7c` listener vector. Setter `0x519490(idx)` computes in SSE
+`+0x70/+0x78/+0x7c` listener vector capacity/begin/count. Setter `0x519490(idx)` computes in SSE
 float32: `idx >= 0 → (float)idx + 1.0f` (`addss [0x19326e8]` = 1.0);
 else `-1.0f / ((float)idx - 1.0f)` (`subss` then `divss [0x1932748]` = -1.0),
 single `xchg` store into `+0x68`, then listener fan-out on change.
@@ -624,9 +632,34 @@ of the ordered simulation stream — a replay's speed trajectory must be
 reconstructed by replaying the queue items, not by reading a load-time
 field; the manager is process-global and zero-filled at load. Whether the
 drain is tick-locked (a mid-tick speed item landing next tick) is unproven.
-The listener fan-out reaching the tick stepper is inference, not proven —
-no direct `+0x68` reader outside the manager was found in a bounded grep.
 Nothing in the five functions touches `+0xd0`, `+0x98` or `+0xd4`.
+
+**Listener fan-out traced — it ends at the HUD, not the stepper**
+(worker trace, parent-reverified; full report:
+`~/.hermes/artifacts/wgrd-replay/frameclock-lua-20261119/speed-listener-trace.md`).
+Registration is `push_back` `0x501c20`, whose sole call site is `0x11e785a`
+in the ctor `0x11e6fa0` (recomputed: 2 total references, definition + one
+call); removal `0x518190` runs in the dtor `0x11e9bf0`. Exactly one listener
+class registers: `Wargame::Eugen::TUIWargame2InGameHUDSelection3DViewer`
+(RTTI TypeDescriptor `0x1f7a3c0`, name read back), through the
+`TGameSpeedChangedListener` interface subobject (mdisp `0xcc`). Its callback
+`0x11f5410` is three instructions: `movss xmm0,[esp+4] ;
+movss [ecx+0x88],xmm0 ; ret 4` — stores the factor at owner `+0x154`
+(`0x88 + 0xcc`), initialized to 1.0f at `0x11e7808`
+(`mov [edi+0x154],0x3f800000`, read back). The consumer `0x11f60e0` reads
+`[edi+0x154]` and multiplies by 1.2f (`0x195d774`) and 0.35f (`0x19ba990`),
+both read back, in 3D-transform blend math. Terminal: no reference to the
+tick step `0xb34060`, the 0.2f quantum `0x195d768`, or `ds:0x201d318` in the
+callback/consumer envelope (recomputed).
+
+So the speed factor's only statically traced consumer is a HUD 3D viewer.
+**How game speed scales the simulation remains unproven** — the effect must
+reach the stepper through a consumer not registered as a speed listener
+(script layer, or an unlocated reader); the earlier inference that the
+listener fan-out feeds the tick stepper is falsified as stated. The worker
+also observed QPC-delta-based clock readers (`0x50f100`/`0x519730`, import
+call at `0x50f10b`) that ignore `+0x68`; their scaling constant is not
+re-verified here. Open question §7.5.
 
 ## Reproduction
 
