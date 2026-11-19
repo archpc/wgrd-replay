@@ -224,6 +224,19 @@ class NdfFile:
                 raise NdfError("zip blob marker != 1")
             off += 1
             return Value("zipblob", n), off
+        if tag == WIDESTRING:
+            n = self._u32(off)
+            off += 4
+            blob = self.raw[off:off + n]
+            off += n
+            return Value("widestring",
+                         blob.decode("utf-16-le", errors="replace")), off
+        if tag == BLOB:
+            n = self._u32(off)
+            off += 4
+            blob = self.raw[off:off + n]
+            off += n
+            return Value("blob", len(blob)), off
         if tag in FIXED:
             size = FIXED[tag]
             blob = self.raw[off:off + size]
@@ -261,6 +274,8 @@ def _decode(tag: int, b: bytes):
     if tag == FLOAT64:
         return struct.unpack("<d", b)[0]
     if tag == TRANSTABLE:
+        return struct.unpack("<I", b)[0]
+    if tag in (TABLESTRING, TABLESTRINGFILE):
         return struct.unpack("<I", b)[0]
     if tag in (LONG, TIME64):
         return struct.unpack("<q", b)[0]

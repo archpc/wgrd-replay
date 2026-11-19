@@ -212,6 +212,94 @@ Scalar SSE single precision, left to right:
 P, C and F are also returned on x87 and stored as float32 (`0xcfa180`,
 `0xcfa1a2`, `0xcfa170`). A predictor must round after every step.
 
+## Phase 2a: pure-Python kernel (implementation)
+
+`research/combat_damage.py` implements only the two verified fragments:
+`damage_amount(H, P, T, K, C, F)` (left-to-right float32 product, rounding
+after every multiply) and `apply_mode2(amount, max_damages, current)` (separate
+HP clamp, float32 per operation). Every term is an explicit argument. The
+module resolves no weapon, facing, accuracy or falloff input and does not model
+mode 1.
+
+`tests/test_combat_damage.py` separates evidence classes by name:
+
+- SYNTHETIC cases pin the arithmetic contract with fixed bit patterns, including
+  cases where per-step float32 rounding differs from one final rounding and
+  where left-to-right association differs from pair grouping. They also cover
+  the unclamped and floor clamp branches, which the retained capture does not.
+- ENGINE OBSERVATION cases hash-pin the retained `hp_clamp_fixtures.json`
+  (SHA-256 `e4eaaad0…5654`) and check all three mode-2 pairs bit-exact. The 25
+  mode-1 pairs are counted and marked out of scope.
+
+The fixture is private and its test skips explicitly when absent. These tests
+add no new engine evidence and do not change any earlier claim.
+
+## Phase 2b: table-backed adapter
+
+`research/combat_damage_table.py` loads the private extraction
+`arme-armure-table.json` (SHA-256 `9004d776…d12834`) and exposes
+`lookup(family, armor)`. It validates the pinned record metadata (packed
+`6b829a65…`, decompressed `640c66c2…`, offset `0x104f2f7`, class 236, property
+1419), the 65 keys `0..64`, row lengths (30 values, key 2 has 25), JSON float
+element types, finiteness, and exact float32 representability. Every row is
+padded with `0.0` to the 35-column engine stride, preserving the zero-filled
+columns 30..34 and the zero tail of key 2. Out-of-range or non-integer indices
+raise; values are never reinterpreted or rounded by the loader.
+
+`tests/test_combat_damage_table.py` separates SYNTHETIC validation payloads
+(missing/extra rows, wrong lengths, wrong element types, non-float32 values,
+metadata mismatch, bad hash, missing file) from ENGINE OBSERVATIONS (known
+extracted cells, the `0x3dcccccd` value of `T[0][3]`, zero-filled columns,
+short-row padding). Two end-to-end cases pass a verified cell into
+`damage_amount` with constructed H, P, K, C and F.
+
+The 65×35 matrix stays in the private evidence directory and is not committed.
+
+## Phase 2c: kinetic range family index (0xda3410)
+
+Instruction and data checks (OBS, build 131544):
+
+- Gate `0xc2ce00`: `cmp dword [ecx+0xec], 0` then
+  `sub eax, 5; cmp eax, 0x3b; jnbe` on `[ecx+0xe8]`, so `ProjectileType == 0`
+  and unsigned `Arme` in 5..64. The call site `0xcfa21d`..`0xcfa228` also
+  requires byte `[ammo+0xf0] EfficaciteSelonPortee != 0`.
+- `0xda3410` is cdecl with three stack arguments (caller cleans `0xc`):
+  `arg1` = impact record `R` (distance `+0x44`, ammunition handle at `+0`),
+  `arg2` = `victim+0x20`, `arg3` = armour. `arg3` is pushed but never read.
+- `0xda5b90(victim+0x20)` returns target class 1..6, default 2.
+  `0xc2ba70` is thiscall on the ammunition object with one stack class
+  argument (`ret 4`). Its jump table at `0xc2baa8` maps class 1 -> `+0x8c`,
+  2 -> `+0x6c`, 3/4 -> `+0x74`, 5 -> `+0x7c`, 6 -> `+0x84`; the table bytes
+  were read from the executable at file offset `0x82aea8`.
+- Registrar `0xc2f6f0` confirms `+0xe8 Arme`, `+0xec ProjectileType`,
+  `+0x6c PorteeMaximale`, `+0x74 PorteeMaximaleTBA`,
+  `+0x7c PorteeMaximaleHA`, `+0x84 PorteeMaximaleProjectile`,
+  `+0x8c PorteeMaximaleBateaux`, `+0xf0 EfficaciteSelonPortee`.
+- Arithmetic order: x87 range stored as float32, `subss` distance, `maxss`
+  with 0, `divss` by `[0x203dd00]` (shipped value 13000.0), `cvtps2pd` then
+  `cvttsd2si` (truncate toward zero), `add Arme`, `cmp`/`cmovl` cap
+  (`34` when `Arme < 34`, else `64`), `cmp`/`cmovnle` floor at 5.
+- Range units are not established. The divisor is used as a raw number.
+
+Implemented in `research/combat_damage_range.py`: `range_family_applies`
+(gate), `range_max_for_class` (class -> raw NDF range field), and
+`kinetic_family_index(arme, rmax, distance)` returning a table row index only.
+Absent class fields raise; no zero default is invented.
+
+Cross-check (`phase2c-ammunition-crosscheck.json`, SHA-256
+`5909779c…33e24`) extracted from the pinned archive
+(`172e481d…be151b`, expanded `640c66c2…d032`, 2092 `TAmmunition` objects):
+record `ndf_index` 112911 has raw `Arme = 8`, `EfficaciteSelonPortee = True`
+and ranges 156000/156000/156000/104000 (class 6 absent); record 89611 has raw
+`Arme = 3`, a different GUID, all five range fields, and no
+`EfficaciteSelonPortee` property. Neither record has a `ProjectileType`
+property, so the gate is not asserted from these records; that absence is
+recorded, not defaulted. No Arme name or AP meaning is assigned.
+
+`tests/test_combat_damage_range.py` keeps SYNTHETIC gate, boundary, cap and
+invalid-input cases separate from these NDF observations and the table-backed
+lookup. Accuracy, crit, facing and splash are untouched.
+
 ## Not established
 
 - t, m falloff arrays.
@@ -226,3 +314,7 @@ P, C and F are also returned on x87 and stored as float32 (`0xcfa180`,
 - Kill publication (`0xc9bf20`, `0xc954f9`) is from the 2026-11-02 doc and was
   not re-read in this pass.
 - No weapon identity in either trace, so no amount is predicted yet.
+- Range units for the 13000.0 step and the `Portee*` fields.
+- Default value of an absent range field at runtime (the engine's object memory
+  is not modelled; `range_max_for_class` raises instead of assuming zero).
+- `cvttsd2si` overflow behaviour for step counts outside int32 (no capture).

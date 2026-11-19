@@ -23,3 +23,6 @@ hermes-verify-*
 
 # Local investigation scratch
 work/
+
+# Local WGRD-CICS build outputs
+build/
