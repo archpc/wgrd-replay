@@ -17,7 +17,7 @@ Status codes: **S** reproduction script, **T** regression tests, **E** static-an
 
 | Topic | Note | Code and tests |
 |---|---|---|
-| **Evidence-bounded AAR release (final)** | [AAR release](current-build/2026-11-02-aar-release.md) | `instrumentation/aar_events.py`, `tests/test_aar_release.py` |
+| **Evidence-bounded AAR release (final for retained evidence; timing partly superseded, see its §11)** | [AAR release](current-build/2026-11-02-aar-release.md) | `instrumentation/aar_events.py`, `tests/test_aar_release.py` |
 | Damage producer, source credit, Killed token, ownership | [causal chain](current-build/2026-11-02-causal-chain.md) | `instrumentation/aar_events.py`, `tests/test_aar_events.py` |
 | Runtime lifecycle export | [runtime AAR](current-build/2026-11-02-runtime-aar.md) | same |
 | Native positions (V3) | [position AAR](current-build/2026-11-02-position-aar.md) | same |
@@ -26,6 +26,7 @@ Status codes: **S** reproduction script, **T** regression tests, **E** static-an
 | Replay frame consumption and the 0.2 s simulation tick | [frame consumption](current-build/2026-11-02-frame-clock-consumption.md) | `wgrd_timeline_report.py`, `tests/test_timeline_report.py` |
 | Frame/tick/battle clock, bounded playback | [frame/tick capture](current-build/2026-11-02-frame-tick-capture.md) | `instrumentation/frameclock-131544.json` |
 | Frame-indexed combat events (runtime-v4) | [combat frames](current-build/2026-11-03-combat-frames-captured.md) | `instrumentation/aar-capture-131544-v4.json`, `tests/test_aar_events.py` |
+| `_sysutils` binding table is CPython 2.7; clock fields; counter-writer scan; trace re-verification | [sysutils bindings](current-build/2026-11-19-sysutils-cpython-bindings.md) | `tests/test_timeline_report.py` (clock metadata pins) |
 | Offline corpus and order queue on the current executable | [offline corpus](current-build/2026-10-29-offline-corpus.md) | `research/offline_corpus.py`, `tests/test_offline_corpus.py` |
 | Clock and actor hypotheses (H1-H3) | [NEXT-STEPS.md](../NEXT-STEPS.md) | `tests/test_aar_hypotheses.py` |
 

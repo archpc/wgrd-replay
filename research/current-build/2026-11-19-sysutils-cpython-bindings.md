@@ -1,0 +1,360 @@
+# Revision 131544: `_sysutils` is CPython 2.7, not Lua — binding table, clock fields, writer scan
+
+Date: 2026-11-19. Status: static, read-only. No VM, no game run, no new capture.
+Supersedes the "Lua binding" language in earlier notes for this table; does not
+change any verified address or computation. One delegated worker claim was
+refuted during parent verification (§4).
+
+Executable `WarGame3.exe`, SHA-256
+`5eaa6d6168c9570ff9789bffb3b2cc16fd908be61263b12fcc1e8b2f09efc75d`, re-hashed
+before analysis. VAs at image base `0x400000`. GNU objdump 2.47
+(`-d -M intel`, `-s` for data). The cached `.text` listing used for the
+exhaustive scan is `objdump` output, identity
+`ebf338179663e635fbc5248aa03e6b48a424bec2fe1bdf449075d07dd3769275`
+(7,320,958 instruction rows, 0 byte mismatches against the pinned file;
+record: `~/REA/wgrd-131544/canonical-listing-verification.json`).
+
+## 1. The table is CPython `PyMethodDef`, module `_sysutils`
+
+Entries are 16 bytes `{ml_name, ml_meth, ml_flags, ml_doc}` with `ml_flags = 1`
+(`METH_VARARGS`) and `ml_doc = NULL`. Byte proof, all parent-verified:
+
+- Installer `0xa42790` (sole caller `0x9d65d4`), one-shot guard
+  `cmp ds:0x2024a4c,0` / `jne ret`:
+
+  ```
+  a4279a  68 f5 03 00 00      push 0x3f5          ; 1013 = PYTHON_API_VERSION (2.7)
+  a4279f  6a 00               push 0x0            ; doc = NULL
+  a427a1  6a 00               push 0x0            ; self = NULL
+  a427a3  68 78 cc d9 01      push 0x1d9cc78      ; methods = table base
+  a427a8  ff 35 80 c4 d9 01   push [0x1d9c480]    ; name -> 0x1988490 "_sysutils"
+  a427b8  e8 73 50 af 00      call 0x1537830      ; Py_InitModule4-style helper
+  ```
+
+- The helper hard-rejects any other API version:
+  `1537889: 3d f5 03 00 00  cmp eax,0x3f5` / `153788e: 74 39  je 0x15378c9`,
+  otherwise formats the string at `0x1dcba88`:
+  `"Python C API version mismatch for module %.100s: This Python has API
+  version %d, module %.100s has version %d."` (read back verbatim).
+- The method walker rejects `ml_flags & 0x30`:
+  `1537960: f6 47 08 30  test BYTE PTR [edi+0x8],0x30` → string at
+  `0x1a35de8`: `"module functions cannot set METH_CLASS or METH_STATIC"`
+  (`METH_CLASS 0x10 | METH_STATIC 0x20`). Loop: `cmp [edi],0` → end,
+  `add edi,0x10`.
+- Argument format strings are CPython codes: deterministic setter
+  `0x196cb98 = "i"`, realtime setter `0x196cb8c = "f"`, seconds getter
+  `0x1927bdc = ""` (no args). Parser helper `0x1546430` (called by every
+  binding; formerly mislabeled "Lua-arg resolver").
+- After module init the installer looks up `"sip"` (`0x1988120`, read back)
+  and registers the descriptor `0x1d9c478 = {0, 2, 0x1988490, 0}` — a SIP
+  (Python/C++ binding layer) module definition.
+
+Correction scope: `2026-11-02-engine-state.md` §2/§2.1,
+`2026-11-02-frame-clock-consumption.md` §4, `instrumentation/state_observe.py`
+comments, and the branch-only `2026-11-02-aar-clock.md` addendum called these
+"Lua" bindings. That language is wrong for this table. The engine may embed
+Lua elsewhere; nothing here proves or disproves that. Other `.data` tables
+with the same 16-byte layout (e.g. `GameStarted` at `0x1d97b38`) are not
+covered by this proof; each needs its own installer check before relabeling.
+
+### Table extent and full entry list
+
+51 entries, `0x1d9cc78..0x1d9cf98`, stride 16, null terminator at
+`0x1d9cfa8` (16 zero bytes, read back). Walk-back stops at ASCII `"refcount"`
+string data at `0x1d9cc68`. The region after the terminator belongs to a
+neighbouring module descriptor (`{0,2,"_task",0}` at `0x1d9cfb8`).
+
+| # | Entry VA | Name | fn |
+|---|---|---|---|
+| 0 | `0x1d9cc78` | `LaunchOutGame` | `0xa41380` |
+| 1 | `0x1d9cc88` | `GetNbGameDesignObjectIdForAlliance` | `0xa40e30` |
+| 2 | `0x1d9cc98` | `MustUseTacticalStartingPoints` | `0xa41540` |
+| 3 | `0x1d9cca8` | `AddStrategicRoadInfoForZoneManager` | `0xa40240` |
+| 4 | `0x1d9ccb8` | `GetAllianceNumFromGDStartingPointRoadDescription` | `0xa40a80` |
+| 5 | `0x1d9ccc8` | `GetAllianceNumFromGDStartingPointAlliance` | `0xa409a0` |
+| 6 | `0x1d9ccd8` | `SetGDStartingPointAllianceToAllianceNum` | `0xa41c20` |
+| 7 | `0x1d9cce8` | `InitGameDesignObjectId` | `0xa41010` |
+| 8 | `0x1d9ccf8` | `GetInitialStateForReplay` | `0xa40d70` |
+| 9 | `0x1d9cd08` | `SetInitialStateForReplay` | `0xa420a0` |
+| 10 | `0x1d9cd18` | `SetGameplayCPPStateFromSave` | `0xa41ec0` |
+| 11 | `0x1d9cd28` | `GetGameplayCPPSavedState` | `0xa40c90` |
+| 12 | `0x1d9cd38` | `DisplayDebugMessage` | `0xa407d0` |
+| 13 | `0x1d9cd48` | `SetRootGDObject` | `0xa42350` |
+| 14 | `0x1d9cd58` | `RootGDObject` | `0xa41960` |
+| 15 | `0x1d9cd68` | `DeterministicCurrentTimeInSeconds` | `0xa406b0` |
+| 16 | `0x1d9cd78` | `DeterministicCurrentTimeInTicks` | `0xa40780` |
+| 17 | `0x1d9cd88` | `SetDeterministicCurrentTimeInTicks` | `0xa41bc0` |
+| 18 | `0x1d9cd98` | `RealtimeCurrentTime` | `0xa41710` |
+| 19 | `0x1d9cda8` | `SetRealtimeCurrentTime` | `0xa422e0` |
+| 20 | `0x1d9cdb8` | `OnGamePhaseChanged` | `0xa41650` |
+| 21 | `0x1d9cdc8` | `NeedDesynchroLogFromNow` | `0xa41600` |
+| 22 | `0x1d9cdd8` | `DontNeedDesynchroLogFromNow` | `0xa408b0` |
+| 23 | `0x1d9cde8` | `StartDesynchroLogNowIFN` | `0xa424b0` |
+| 24 | `0x1d9cdf8` | `SetSaveLoadForTestAuto` | `0xa42460` |
+| 25 | `0x1d9ce08` | `SetIsTestAuto` | `0xa421d0` |
+| 26 | `0x1d9ce18` | `SetNextGamePhase` | `0xa42220` |
+| 27 | `0x1d9ce28` | `TerminateGamePhaseManager` | `0xa42500` |
+| 28 | `0x1d9ce38` | `BeforeStartGameGameplayServices` | `0xa403c0` |
+| 29 | `0x1d9ce48` | `DestroyGameplayServices` | `0xa40600` |
+| 30 | `0x1d9ce58` | `InitializeGameplayServices` | `0xa410c0` |
+| 31 | `0x1d9ce68` | `KillGamesRules` | `0xa412d0` |
+| 32 | `0x1d9ce78` | `SetGameRules` | `0xa41db0` |
+| 33 | `0x1d9ce88` | `GetGameRules` | `0xa40bd0` |
+| 34 | `0x1d9ce98` | `GameplayType` | `0xa40950` |
+| 35 | `0x1d9cea8` | `SetGameplayServicesRandomSeed` | `0xa41fd0` |
+| 36 | `0x1d9ceb8` | `CreateGameplayServices` | `0xa40470` |
+| 37 | `0x1d9cec8` | `IsDataPackMode_DatapackOnly` | `0xa411d0` |
+| 38 | `0x1d9ced8` | `IsDemoMode` | `0xa41220` |
+| 39 | `0x1d9cee8` | `DontRequireDeterminismFromNowOn` | `0xa40900` |
+| 40 | `0x1d9cef8` | `RequireDeterminismFromNowOn` | `0xa41770` |
+| 41 | `0x1d9cf08` | `SendMail_IFP` | `0xa41b60` |
+| 42 | `0x1d9cf18` | `GetOutgameChapter` | `0xa40ef0` |
+| 43 | `0x1d9cf28` | `DecreaseGameSpeed` | `0xa40530` |
+| 44 | `0x1d9cf38` | `IncreaseGameSpeed` | `0xa40f40` |
+| 45 | `0x1d9cf48` | `ResetGameSpeed` | `0xa417c0` |
+| 46 | `0x1d9cf58` | `ResetTime` | `0xa41890` |
+| 47 | `0x1d9cf68` | `LoadingDone` | `0xa41470` |
+| 48 | `0x1d9cf78` | `TerminateSelf` | `0xa425b0` |
+| 49 | `0x1d9cf88` | `SaveData` | `0xa41a20` |
+| 50 | `0x1d9cf98` | `refcount` | `0xa426d0` |
+
+## 2. Clock fields on the GameplayServices singleton
+
+Singleton pointer slot `0x201d318` (unchanged). Two distinct clock fields:
+
+- **Deterministic ticks: `+0xd0`, int32.** Seconds getter path
+  `0xbb04d0 → 0xaaedf0`: `movd xmm0,[ecx+0xd0]` / `cvtdq2ps` /
+  `mulss [0x195d768]` (`cd cc 4c 3e` = 0.2f), x87 return. Ticks getter
+  `0xa40780` pushes `[eax+0xd0]` at `0xa407a8`. Setter `0xa41bc0` parses one
+  `"i"` arg and stores `mov [eax+0xd0],ecx` at `0xa41bf2`, then
+  `inc ds:0x1dbf028` at `0xa41bfd`. That counter is **shared, not a setter
+  discriminator**: `.text` contains 1,379 `inc ds:0x1dbf028` sites (3,514
+  references), including `DisplayDebugMessage` at `0xa4085e` and `ResetTime`
+  at `0xa41907`. Its semantics are unverified (plausibly a global
+  binding-call statistic); a nonzero value cannot attribute a call to the
+  setter. Only a hook on `0xa41bc0` itself discriminates setter invocations.
+  Static observation; unobserved at runtime.
+- **Realtime: `+0x98`, binary32.** Getter `0xa41710`:
+  `a4173b: f3 0f 10 80 98 00 00 00  movss xmm0,[eax+0x98]`; setter
+  `0xa422e0`: `a42314: f3 0f 11 80 98 00 00 00  movss [eax+0x98],xmm0`,
+  format `"f"`. Both load the same singleton (`a41733` / `a42309`). This is
+  not the tick counter; earlier notes did not distinguish the two fields.
+
+`BeforeStartGameGameplayServices` (`0xa403c0`) has no `+0xd0` access and no
+call to the setter; its callees `0xaac910 → 0xaa2be0` do not touch `+0xd0`
+(worker analysis, byte excerpts retained). `ResetTime` (`0xa41890`) loads no
+singleton in its body; it calls `0x528c00` and `0x974630` (unanalyzed). No
+static reset path for `+0xd0` beyond the constructor below.
+
+## 3. Exhaustive writer scan for `[singleton+0xd0]`
+
+Scope: every `.text` instruction with a `+0xd0` displacement (2,546 memory
+operands; `+0xd0 > 0x7f` forces disp32, so no disp8 aliasing exists).
+837 modify memory:
+
+| Form | Count |
+|---|---|
+| `mov` dword store | 494 |
+| `mov` byte / word store | 28 / 4 |
+| `fstp` dword | 3 |
+| `movaps`/`movups` 16-byte store | 276 |
+| `movss`/`movsd`/`movlpd`/`movq` | 22 |
+| RMW (`add` 4, `inc` 3, `dec` 1, `sub` 1, `and` 1) | 10 |
+
+The prior "497 stores" figure reproduces exactly as 494 `mov` dword + 3
+`fstp`; that scan missed the other 340 modifying instructions. `lock`,
+`xchg`, `xadd`, `cmpxchg`, `neg`, `not`, `adc`, `sbb`, `or`, `xor` at
+`+0xd0`: zero.
+
+Singleton-derived writers: **exactly two**, both parent-verified:
+
+1. `0xa41bf2` `mov [eax+0xd0],ecx` — the `_sysutils` setter (base loaded at
+   `0xa41be9`).
+2. `0xaab588` `c7 83 d0 00 00 00 00 00 00 00` `mov [ebx+0xd0],0x0` —
+   constructor zero-init; `ebx` is the fresh object installed to the slot at
+   `0xaab439` (`89 1d 18 d3 01 02`). Runs once at construction, not per tick.
+
+All 10 RMW sites were independently re-extracted and checked: three are
+stack-local (`[esp+…]`), seven have zero `0x201d318` references in a
+−200/+20 instruction window. The 537 singleton references include 4 slot
+stores (install `0xaab439`; null-outs `0xaabc21`, `0xaabf32`, `0xaac24b`)
+and 2 `cmp` reads; 356 call sites forward the singleton to 89 callees, none
+of which contains a `+0xd0` writer (worker provenance pass with call-clobber
+barriers; one false positive at `0xb363f2` rejected — `esi` is
+`operator new(0xfc)` output, not the singleton).
+
+**The runtime tick advance has no statically visible direct writer.** The
+counter is observed advancing ~1 per replay frame
+([frame/tick capture](2026-11-02-frame-tick-capture.md)). The wide-store
+overlap gap is now closed (2026-11-19, second scan): a store of width W at
+displacement d covers `+0xd0` iff `d <= 0xd0 <= d+W-1`; 919 instructions
+qualify (837 at `d=0xd0`, address-identical to the set above, plus 82 at
+`0xc0/0xc4/0xc8/0xcc`: 35 AVX `vmovdqu [esp+0xc0]`, 39 16-byte and 8 8-byte
+object stores). Of the 82, 72 are stack-relative; the 10 non-stack
+candidates were provenance-checked (call-clobber barriers) and none is
+singleton-derived; their enclosing functions show zero `0x201d318`
+references in caller lookbacks and bodies. The 89 callees that receive the
+singleton pointer contain no covering store, and 14 `lea`/`add` delta paths
+from `+0xc1..+0xd0` resolve to no singleton-derived store. Supporting fact:
+`sizeof(TGameplayServices) = 0xf0` — the construction site pushes `0xf0`
+before `operator new` (`0xaae63b push 0xf0` / `0xaae642 call 0x528c00` /
+`0xaae65b mov ecx,eax` / `0xaae65d call 0xaab3e0`, parent-verified), so
+offsets `>= 0xf0` are out of object and larger allocations are different
+types. Remaining hypotheses: an indirect write through a copied pointer, a
+write from outside `.text`, or the embedded Python calling
+`SetDeterministicCurrentTimeInTicks` per tick. The runtime discriminator is
+a hook on the setter `0xa41bc0` itself (the shared counter `0x1dbf028`
+cannot attribute calls — §2), which needs an authorized
+capture. Limitations: provenance is intra-procedural; parameter-derived
+bases and cross-call indirect writes are invisible to this scan (type-level
+exclusions by allocation size/vtable are not reachability proofs, and for
+the six enclosing functions with no direct call site the caller lookback is
+vacuous); one
+worker caller-count script disagreed with the other for `0x10d0f50`
+(0 vs 283; direct call sites exist), so that exclusion rests on the
+283-caller singleton-reference sweep and base provenance, not the count;
+absence of a textual spelling is not proof of absence.
+
+## 4. `0xaaee10`: store-if-different, not monotonic max (worker claim refuted)
+
+A delegated worker reported the float store in `0xaaee10` fires "only when
+current ≤ new (monotonic max)". Parent flag-level analysis refutes this.
+Bytes:
+
+```
+aaee87  f3 0f 10 4d 0c     movss xmm1,[ebp+0xc]    ; new (arg2)
+aaee8c  f3 0f 10 41 24     movss xmm0,[ecx+0x24]   ; current
+aaee91  0f 2e c1           ucomiss xmm0,xmm1
+aaee94  9f                 lahf                    ; AH bit6=ZF bit2=PF bit0=CF
+aaee95  f6 c4 44           test ah,0x44
+aaee98  7b 10              jnp 0xaaeeaa            ; skip store
+aaee9a  f3 0f 11 49 24     movss [ecx+0x24],xmm1   ; store
+```
+
+`test` recomputes PF from the parity of `AH & 0x44`; `jnp` skips the store
+only when exactly one of ZF/PF is set, i.e. ordered equality:
+
+| cur ? new | CF | ZF | PF | AH&0x44 | parity | jnp | store |
+|---|---|---|---|---|---|---|---|
+| cur > new | 0 | 0 | 0 | 0x00 | even | no | YES |
+| cur < new | 1 | 0 | 0 | 0x00 | even | no | YES |
+| cur == new | 0 | 1 | 0 | 0x40 | odd | yes | no |
+| unordered | 1 | 1 | 1 | 0x44 | even | no | YES |
+
+Verified by independent flag-level emulation of all four cases. The store
+fires on increase, **decrease**, and NaN; it skips only ordered equality.
+Change detection, not a max. A monotonic max would never store a decrease.
+
+Control flow (verified, semantics not assigned): thiscall, `ret 8`;
+`ecx = [esi+0xe8]` subobject; arg1 is a string key used with a container at
+`subobj+0x1c` (`0x4fd050` lookup, `0x4fca90` on hit); the float field is
+`subobj+0x24`; both paths call `0x58da80` (store path twice). The function
+never reads or writes `+0xd0`. Sole caller in the image: `0xa40851` inside
+`DisplayDebugMessage` (`0xa407d0`, entry #12), passing `3.0f`
+(`0x40400000`). What the float means and what `0x58da80` do remain unknown;
+"message dwell timer" is an unproven gloss. Full record with provenance:
+`$WGRD_ARTIFACTS_DIR/frameclock-lua-20261119/aaee10-truth-table.md`.
+
+## 5. Phase store / opcode-0x13 proximity (correlation, not proof)
+
+New cross-check from retained evidence, no new capture:
+
+- The attempt session's run 03 saw `0xab4780` fire once at deterministic tick
+  **2905**, argument `0x2`, `game_started = 1`
+  ([combat attempt](2026-11-03-combat-frame-capture-attempt.md)).
+- run-07 (SHA-256 `acb8ecdc9f264c2784590180e1b316822a3ade6db13cd3c4969c9046f90d6f21`,
+  hash re-verified) contains exactly one `phase_change_candidate` pair, also
+  at tick **2905** (`+0xd0` read `590b0000` enter and leave), argument `0x2`,
+  joined to frames **2915–2916**; the indirect phase-manager header read
+  shows `+0x0c` transition `0 → 2` between enter and leave
+  ([combat frames](2026-11-03-combat-frames-captured.md)). Two independent
+  playbacks of the same replay hit the same deterministic tick: the boundary
+  is reproducible for this replay.
+- The same replay (`abf6a5e9…`, parsed offline) has its single opcode-0x13
+  event at frame **2914** and surrender (`0x02`) at 4173.
+- Distance: the phase store lands **1–2 frames after** the 0x13 frame.
+- Static context: phase descriptor node 18572 (`TWargameGamePhaseDescriptor`,
+  `GamePhaseType=2`) is the configured next-phase type (branch-only
+  `2026-11-02-aar-clock.md`, phase-change capture target section); `0x6d17e0`
+  copies the raw argument to manager `+0x0c`.
+
+This is two independent hints converging on the same boundary region, and the
+phase firing reproduces across sessions. It is still correlation: no UI
+observation at that instant, and the 0x13 duration match itself assumes the
+0.2 s grid. H2 (battle time starts at the 0x13 frame) stays **tested, not
+proven**; opcode 0x13 remains a synchro-service membership request, not a
+renamed battle-start.
+
+## 6. Trace re-verification receipts (2026-11-19, parent recomputation)
+
+- `frameclock-20261102/run-01.jsonl` (SHA-256 `b3a60af4…4ee0`, re-hashed):
+  10,965 paired `tick_step` calls, frame deltas `{0: 8576, +1: 2389}` —
+  matches the capture note exactly. 99 clock samples; 4 pre-reset
+  (2586..2659), 95 post-reset spanning ticks 13..2293. Joining each sample
+  to its **containing tick call** (all 95 are nested children of `tick_step`,
+  frame = parent's leave frame) reproduces `frame − tick = {10: 48, 11: 47}`.
+  Join-convention sensitivity: joining to the last *completed* advance
+  instead gives `{9: 48, 10: 47}` — an off-by-one of convention, not of data.
+  The published 48/47 split uses the containing tick's leave frame. Whether
+  that equals the frame index at the sample instant depends on the
+  store/getter order inside the tick, which is not directly observed; the
+  static tick layout (increment at `0xb349bd` before command dispatch)
+  supports it. New-epoch span: 2,311 advances, frames 1..2311,
+  461.77 s between first and last advance ≈ 5.00 frames/s. (The capture
+  note's 4.995 frames/s uses the full 462.65 s window; the two figures
+  differ only in window endpoints, both ≈5 Hz.)
+- run-07: `tick_step` frame index min 0, **max 4175**. The file holds 4174
+  recorded frames (0..4173); the index reaches 4175 because the manager pads
+  unrecorded frames with empty payloads (`0xb35650`, static) and keeps
+  ticking after EOF. "frames 0–4175" in the capture note is the observed
+  index range: 4174 recorded frames + 2 post-EOF padding ticks. Impacts
+  28/28 paired, `frame_correlation.status_counts = {"inside_tick_call": 28}`,
+  last impact frames 4165–4166; `tick_step` 11,780 enter / 11,779 leave (the
+  documented one-unpaired-enter allowance).
+- AAR traces behind the release note: both traces have exactly **459**
+  `clock_sample_candidate` dword `+0xd0` reads, last counter **4164**
+  (trace A `wgrd-aar-combat-20261102-01.jsonl`; trace B
+  `native-v3b-replay.jsonl`, 1 pre-reset read at 12102 and 458 post-reset
+  from 242). Trace B additionally reads `+0xd0` twice in its one
+  `phase_change_candidate` pair (enter and leave, both 2905), so an
+  all-hooks count of `+0xd0` reads gives 461 for B. The release's "459
+  sampled clock reads per trace" is correct under the clock-sampler
+  definition; an earlier draft of this note "corrected" it to 461 by
+  silently switching definitions — that correction is withdrawn
+  (independent review, 2026-11-19). "Last counter 4164" means the last
+  *sampled* value, not the
+  playback endpoint; it is a different quantity from 4155 (last impact's
+  engine seconds 831.0 / 0.2) and 4165 (state-observer end candidate, another
+  session). The three values are not in conflict once labeled.
+
+## 7. Open questions
+
+1. Counter writer (§3): direct and wide-store paths are exhausted statically;
+   remaining candidates are indirect/copy-pointer writes, non-`.text` writers,
+   or Python-driven setter calls. Runtime discriminator: a hook on the setter
+   `0xa41bc0` itself, under authorization (the shared counter `0x1dbf028`
+   cannot attribute calls).
+2. The integer 10/11 frame lag origin: constructor zero-init is the only
+   static zeroing of `+0xd0`; no static reset explains the lag. Sample-specific.
+3. Battle start: §5 proximity is correlation; a UI-corroborated phase capture
+   would discriminate, under authorization.
+4. `ResetTime` callees `0x528c00` / `0x974630` unanalyzed; other `.data`
+   binding tables unverified per-table (§1).
+
+## Reproduction
+
+```sh
+EXE=~/.hermes/artifacts/wgrd-replay/game/win64/WarGame3.exe
+shasum -a 256 "$EXE"   # must equal 5eaa6d61...efc75d
+OD=/opt/homebrew/opt/binutils/bin/objdump
+$OD -d -M intel --start-address=0xa42790 --stop-address=0xa427e0 "$EXE"
+$OD -d -M intel --start-address=0x1537830 --stop-address=0x15378d0 "$EXE"
+$OD -s --start-address=0x1dcba88 --stop-address=0x1dcbae8 "$EXE"
+$OD -s --start-address=0x1d9cc78 --stop-address=0x1d9cfb8 "$EXE"
+```
+
+Worker outputs and parent excerpts (private, outside Git):
+`$WGRD_ARTIFACTS_DIR/frameclock-lua-20261119/` (worker reports, `static/`
+objdump excerpts, truth table, `candidates.json`, `worker-d/` wide-store
+scan outputs). Trace recomputation used the hash-pinned traces above; no new
+capture was produced.

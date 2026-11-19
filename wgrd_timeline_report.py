@@ -11,8 +11,10 @@ seconds since replay load. One capture observed the deterministic clock lagging
 the frame counter by an integer 10 or 11 frames; the 10.5 midpoint is only a
 statistic, so each event carries an estimate with bounds. Verified battle time,
 battle start, game time, deterministic ticks per event and wall clock stay null
-(see CLOCK_MAPPING). Runtime AAR observations are not merged, because no
-frame correlation exists.
+(see CLOCK_MAPPING). Runtime AAR observations are not merged by this
+structural export; runtime-v4 captures do carry per-event frame brackets
+(research/current-build/2026-11-03-combat-frames-captured.md), so merging is
+a separate policy decision, not a missing correlation.
 """
 import argparse
 from collections import Counter
@@ -75,8 +77,9 @@ CLOCK_MAPPING = {
         "counter is one tick per frame and lags the frame counter by an integer 10 or 11 "
         "frames; the exact synchronization boundary is unresolved.",
         "Observed (same trace): the replay HUD showed 00:00:00 - 00:13:53. (4174 - 11..10) * 0.2 "
-        "= 832.6..832.8 s also displays as 13:53, so the duration is consistent with the "
-        "deterministic clock. Consistency is not identity: the HUD clock was not read directly.",
+        "= 832.6..832.8 s, within 1 s of the displayed 13:53 (display rounding not established), "
+        "so the duration is consistent with the deterministic clock on the same 0.2 s grid. "
+        "Consistency is not identity: the HUD clock was not read directly.",
         "Static: the per-tick step 0xb34060 accumulates real seconds in +0x68 and, at "
         "0xb3473a/0xb34758, compares against and subtracts 0.2f (0x195d768 = 0x3e4ccccd), "
         "then advances the frame index by exactly one at 0xb349bd. One quantum, one frame.",
@@ -98,23 +101,34 @@ CLOCK_MAPPING = {
                    "the exact integer frame/tick boundary is unresolved (10 and 11 both observed).",
          "test": "tests/test_aar_hypotheses.py"},
         {"id": "H2", "claim": "battle time starts at the opcode-0x13 frame",
-         "status": "untested_runtime_phase_hook_never_fired",
-         "detail": "0xab4780 produced 0 calls in 481.8 s of load and playback.",
+         "status": "duration_match_verified_phase_boundary_reproducible_unproven",
+         "detail": "The 0x13-to-surrender duration matches two displayed battle times on the "
+                   "0.2 s grid (tests/test_aar_hypotheses.py). 0xab4780 fired at tick 2905 in "
+                   "two independent playbacks (attempt run 03; run-07 frames 2915-2916, "
+                   "manager+0x0c 0->2 observed), 1-2 frames after the 0x13 frame 2914: "
+                   "reproducible correlation, not proof. Opcode 0x13 is a synchro-service "
+                   "membership request; battle start stays unknown.",
          "test": "tests/test_aar_hypotheses.py"},
         {"id": "H4", "claim": "damage-clock seconds / 0.2 place AAR events on replay frames",
          "status": "corrected_by_measured_offset",
          "detail": "frame = seconds/0.2 is off by an unresolved 10- or 11-frame difference: "
                    "806.4 s -> frames 4042..4043, 830.8 s -> frames 4164..4165. The earlier 4154 "
-                   "match is withdrawn; no capture yet carries both hooks.",
+                   "match is withdrawn. run-07 (2026-11-03) carries both hooks: all 28 impacts "
+                   "land inside tick calls with frame brackets, and their engine seconds sit "
+                   "inside the frame-derived bounds without fitting.",
          "test": "tests/test_timeline_report.py"},
     ],
     "unknowns": [
         {"field": "battle start / phase boundary",
          "status": "unknown",
-         "detail": "0xab4780 was never called in 481.8 s of load and playback, so it is not the "
-                   "replay phase path. Deployment length and the battle-start frame are unknown.",
+         "detail": "0xab4780 is reachable during replay: it fired at tick 2905 in two "
+                   "independent playbacks (run-07 frames 2915-2916, 1-2 frames after the "
+                   "0x13 frame 2914). The earlier 'never called' statement was window-scoped "
+                   "and is withdrawn. Reproducible correlation is not a phase timeline; "
+                   "deployment length and the battle-start frame remain unobserved.",
          "smallest_experiment": "Hook the phase manager store 0x6d17e0 and the gameplay-services "
-                                "flags +0x20..0x22 for one full-length playback."},
+                                "flags +0x20..0x22 for one full-length playback, with a UI "
+                                "screenshot at the transition."},
         {"field": "exact frame/tick synchronization boundary",
          "status": "unresolved",
          "detail": "Samples give frame - tick = 10 or 11 with no drift. The 10.5 midpoint is a "
@@ -130,6 +144,8 @@ CLOCK_MAPPING = {
     ],
     "evidence": ["research/current-build/2026-11-02-frame-tick-capture.md",
                  "research/current-build/2026-11-02-frame-clock-consumption.md",
+                 "research/current-build/2026-11-03-combat-frames-captured.md",
+                 "research/current-build/2026-11-19-sysutils-cpython-bindings.md",
                  "research/current-build/2026-11-02-aar-release.md#6-timing-evidence",
                  "research/current-build/2026-11-02-causal-chain.md"],
 }
@@ -172,15 +188,17 @@ TIME_DOMAINS = {
     "battle_time": None,
     "wall_clock": None,
     "origins": {"frame_index": "first star chunk", "deterministic_ticks": "unknown",
-                "battle_time": "replay load, per the displayed replay timeline",
+                "battle_time": "unknown; displayed-timeline consistency is not an observed origin",
                 "t_from_replay_load_seconds": "frame counter zero (0xb2cfe0 reset)",
                 "wall_clock": "replay carries no wall-clock field"},
 }
 AAR_INTEGRATION = {
     "status": "not_integrated",
-    "reason": "Retained AAR traces bind to replay abf6a5e9... by manifest hash and content, "
-              "but no observation carries a replay frame; merging would invent timestamps.",
-    "see": "research/current-build/2026-11-02-aar-release.md",
+    "reason": "Retained AAR traces bind to replay abf6a5e9... by manifest hash and content. "
+              "runtime-v4 observations carry per-event frame brackets "
+              "(2026-11-03-combat-frames-captured.md); this structural export still does not "
+              "merge them, by policy, and no verified battle-time origin exists.",
+    "see": "research/current-build/2026-11-03-combat-frames-captured.md",
 }
 
 

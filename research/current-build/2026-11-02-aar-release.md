@@ -8,6 +8,16 @@ authenticated captures and static analysis. No VM, gameplay, new hook or new
 investigation was used for this release. A fully runtime-verified AAR is a
 separate future task and needs explicit VM authorization.
 
+**Superseded in part (2026-11-19).** The timing conclusions below were
+overtaken by the [frame/tick capture](2026-11-02-frame-tick-capture.md) and
+[frame-indexed combat events](2026-11-03-combat-frames-captured.md): H1's rate
+is observed with an integer 10/11 frame offset, and combat events carry frame
+brackets. The deterministic-clock bindings cited here belong to the CPython
+2.7 `_sysutils` module, identified 2026-11-19 (earlier notes mislabeled the
+table as Lua; [binding note](2026-11-19-sysutils-cpython-bindings.md)). Read
+§11 errata before citing the timing claims. The release remains the record of
+what the two retained traces alone supported on 2026-11-02.
+
 Evidence levels used below: **observed** (read in a hash-pinned trace),
 **static** (pinned executable bytes or the build-matched NDF index),
 **hypothesis** (tested against evidence, not proven), **unknown** (not
@@ -136,10 +146,15 @@ scored kills**.
   0.2 (`0x195d768` = `0x3e4ccccd`). The ticks accessor reads the same counter.
 - **Observed counters:** 459 sampled clock reads per trace; one receiver change
   each (A: 2195 → 195; B: 12102 → 242), last counter 4164 in both. Receiver
-  changes are not interpreted as epochs.
+  changes are not interpreted as epochs. (Clarified 2026-11-19: "459" counts
+  `clock_sample_candidate` reads and is correct for both traces; trace B's
+  phase hook reads `+0xd0` twice more, so an all-hooks count gives 461.
+  "Last counter" is the last sampled value, not the playback endpoint — §11.)
 - **Hypotheses (tested, not proven; `tests/test_aar_hypotheses.py`):** H1 one
   replay frame = one 0.2 s tick; H2 battle time starts at the opcode-0x13
-  frame.
+  frame. (Superseded in part 2026-11-19: H1's rate is observed with an integer
+  10/11 offset; H2's duration match is verified arithmetic but the boundary is
+  unproven — see the banner links and §11.)
 - **Unknown:** clock origin, replay frame, simulation/battle time of any
   event. Guest wall-clock timestamps are UTC observations, not game time.
 
@@ -188,7 +203,7 @@ quantities. The chain is static; no retained trace observes `0xb9b680` or
 | Scored kills | Store, credit and statistics calls not observed; message consumer not traced |
 | Player, faction, team per unit | Only raw owning-object ref `owner+0x24` observed |
 | Company → unit links | H3 is a static/adjacency hypothesis; parent-child link not observed |
-| Clock origin, frame, battle time | Not captured; H1/H2 untested at runtime |
+| Clock origin, frame, battle time | Not captured; H1/H2 untested at runtime (superseded in part 2026-11-19: rate and frame brackets observed later; battle origin still unknown — §11) |
 | Replay file-open identity | Native open not observed in either capture |
 | Movement, tactical outcome | Position anchors are raw, uncalibrated float triples |
 
@@ -205,4 +220,45 @@ Each needs an authorized playback; none is part of this release.
 6. Score conditions in `0xb9b680` (mode switch, `0xb7abf0`) for this match.
 7. Debrief binding: Python → `GetStatsDescriptorsKilled` → kill-table UI.
 8. Clock origin and frame mapping (H1/H2); company-to-unit link (H3).
+   (Frame mapping partially closed 2026-11-03: events carry frame brackets
+   with the 10/11 offset; battle origin and H3 remain open — §11.)
 9. Native replay file-open identity for each capture.
+
+## 11. Errata and supersession (2026-11-19)
+
+Parent recomputation from the hash-pinned traces, no new capture:
+
+1. **Clock-read counts (definition clarified; original figure stands).**
+   Both traces have exactly 459 `clock_sample_candidate` dword `+0xd0`
+   reads, last counter 4164: trace A
+   (`wgrd-aar-combat-20261102-01.jsonl`) and trace B
+   (`native-v3b-replay.jsonl`, 1 pre-reset read at 12102, 458 post-reset
+   from 242). Trace B's one `phase_change_candidate` pair also reads `+0xd0`
+   at enter and leave (both 2905), so an all-hooks count gives 461 for B.
+   The published "459 per trace" is correct under the clock-sampler
+   definition. A same-day draft errata "corrected" it to 461 by switching
+   definitions; independent review caught this and the correction is
+   withdrawn.
+2. **"Last counter 4164" semantics.** It is the last *sampled* counter value
+   in each trace, not the playback endpoint. It is a different quantity from
+   4155 (the last impact's engine seconds 831.0 / 0.2 in run-07) and 4165
+   (the state-observer end candidate, a different session). The three values
+   do not conflict once labeled; no endpoint mapping is claimed.
+3. **H1.** Rate observed: one tick per frame, 4.995 frames/s in the bounded
+   playback; `frame − tick` = 10 (48 samples) or 11 (47), independently
+   recomputed 2026-11-19. The counters do not share an origin; 10.5 is a
+   statistic, not a boundary. See
+   [frame/tick capture](2026-11-02-frame-tick-capture.md).
+4. **H2.** The 0x13-to-surrender duration matches are verified arithmetic on
+   the 0.2 s grid (`tests/test_aar_hypotheses.py`), not an observed phase
+   transition. The phase store fired at tick 2905 in two independent
+   playbacks, 1–2 frames after the 0x13 frame 2914: reproducible correlation,
+   boundary unproven. See [binding note §5](2026-11-19-sysutils-cpython-bindings.md).
+5. **Frame placement.** run-07 (2026-11-03) carries both damage and tick
+   hooks: all 28 impacts land inside tick calls with frame brackets, engine
+   seconds inside the frame-derived bounds without fitting. See
+   [combat frames](2026-11-03-combat-frames-captured.md).
+6. **Binding language.** The deterministic-clock table is CPython 2.7
+   `PyMethodDef` for module `_sysutils` (51 entries), not Lua; the realtime
+   clock is a separate `+0x98` float field. See
+   [binding note](2026-11-19-sysutils-cpython-bindings.md).

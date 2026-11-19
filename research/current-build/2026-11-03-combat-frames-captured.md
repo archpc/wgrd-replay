@@ -16,7 +16,7 @@ Existing capture-era controller pair reused unchanged; UI via the maintained
 |---|---|
 | trace | `run-07.jsonl`, 32,029,839 B, SHA-256 `acb8ecdc9f264c2784590180e1b316822a3ade6db13cd3c4969c9046f90d6f21` |
 | config | `aar-capture-131544-v4.json`, `ab7810a2…5752de1` (11 hooks) |
-| window | 600 s, playback raised to 5.00x; whole replay executed (frames 0–4175) |
+| window | 600 s, playback raised to 5.00x; whole replay executed (frame index 0–4175: 4174 recorded frames 0..4173 plus 2 post-EOF padding ticks; the manager pads unrecorded frames with empty payloads and keeps ticking, `0xb35650` static; trace max index re-verified 2026-11-19) |
 | termination | `summary`, `detached` `application-requested`, `end` `cleanup_errors: 0` |
 | hashes | guest and host trace SHA-256 equal |
 

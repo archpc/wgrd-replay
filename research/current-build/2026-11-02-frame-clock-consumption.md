@@ -118,13 +118,24 @@ Consequences for interpretation, no stronger claim than the bytes support:
 
 1. **Writer of `[TGameplayServices+0xd0]`.** A scan of all 537 textual
    references to `0x201d318` and of all 497 stores to a `+0xd0` displacement in
-   `.text` found exactly one writer: the Lua setter `0xa41bc0`
-   (`mov [eax+0xd0],ecx` at `0xa41bf2`). The observed runtime advancement is
-   therefore not accounted for statically. Until it is, `frame == deterministic
-   tick` stays `tested_not_proven` and no battle-time origin is claimed.
+   `.text` found exactly one writer: the `_sysutils` setter `0xa41bc0`
+   (`mov [eax+0xd0],ecx` at `0xa41bf2`). (The original text called this a
+   "Lua setter"; the table is CPython 2.7 `PyMethodDef`, see the
+   [2026-11-19 binding note](2026-11-19-sysutils-cpython-bindings.md).)
+   Update 2026-11-19: an exhaustive scan of all 837 memory-modifying `+0xd0`
+   operands (the 497 figure was the mov-dword + fstp subset) confirms exactly
+   two singleton-derived writers: the setter and a constructor zero-init at
+   `0xaab588`. A wide-store overlap scan (919 covering instructions) found no
+   additional writer. The observed runtime advancement is still not accounted
+   for statically; indirect paths remain open. Until it is,
+   `frame == deterministic tick` stays `tested_not_proven` and no battle-time
+   origin is claimed.
 2. **Battle start.** `0xab4780` (`[ecx+0x38]` phase store, `jmp 0x6d17e0`) was
    observed once with argument `0x2`. One sample is not a phase timeline, and
-   opcode `0x13` is not battle start.
+   opcode `0x13` is not battle start. Update 2026-11-19: the store fired at
+   tick 2905 in two independent playbacks (run-07 frames 2915–2916, 1–2 frames
+   after the 0x13 frame 2914); reproducible correlation, still not a phase
+   timeline ([binding note §5](2026-11-19-sysutils-cpython-bindings.md)).
 3. **Native event placement.** Retained AAR traces carry damage events with
    engine deterministic seconds (806.4, 806.6, 830.8, 831.0) and no frame
    field. `seconds / 0.2` gives 4032, 4033, 4154, 4155, all integral and inside
@@ -153,8 +164,9 @@ Do not write the capture config or profile before that run is authorized.
 
 ## 5. What this changes in the exported timeline
 
-`wgrd_timeline_report.py` now carries `tick_basis` (0.2 s per frame, static,
-origin = replay load) and `execution_model` (bulk load, one frame per tick,
+`wgrd_timeline_report.py` now carries `t_basis` (0.2 s per frame, static,
+origin = replay load; the field was misnamed `tick_basis` in the original
+text) and `execution_model` (bulk load, one frame per tick,
 empty-frame padding, slot-array dispatch). Each event gains
 `time.t_from_replay_load_seconds = frame * 0.2` labelled
 `derived_from_static_tick_quantum`. `deterministic_ticks`, `game_time`,

@@ -63,7 +63,16 @@ most recent frame advance (samples land 0.002–0.005 s after it):
 - `frame - tick` is **10** for 48 samples and **11** for 47 samples, with no
   drift over 462 s. Only these two integers occur; nothing observed both
   counters advancing at the same instant, so the exact synchronization boundary
-  is unresolved.
+  is unresolved. Independently recomputed 2026-11-19 from the hash-pinned
+  run-01 trace: all 95 post-reset samples are nested children of `tick_step`
+  calls, and joining each to its containing tick's leave frame reproduces
+  {10: 48, 11: 47} exactly. Join-convention note: joining to the last
+  *completed* advance instead gives {9: 48, 10: 47}; the published split uses
+  the containing tick's leave frame. Whether that equals the frame index at
+  the sample instant depends on the store/getter order inside the tick, which
+  is not directly observed; the static layout (increment at `0xb349bd` before
+  command dispatch) supports it. See the
+  [binding note §6](2026-11-19-sysutils-cpython-bindings.md).
 - The 10.5-frame midpoint (2.1 s) is a sample statistic, not an observed
   boundary. It is carried only as a labelled estimate with per-event bounds
   `(frame - 11) .. (frame - 10)`.
@@ -75,7 +84,10 @@ most recent frame advance (samples land 0.002–0.005 s after it):
 
 The replay HUD showed `00:00:00 - 00:13:53` at speed 1.00x. The file has 4174
 frames (0..4173): `4174 × 0.2 = 834.8 s`, and `(4174 − 11..10) × 0.2` =
-832.6..832.8 s, which also displays as 13:53.
+832.6..832.8 s, within 1 s of the displayed 13:53. (Display rounding is not
+established: under truncation 832.6..832.8 s would read 13:52, under
+round-up/nearest 13:53. The original text asserted "also displays as 13:53"
+without that qualification; corrected 2026-11-19.)
 
 That is a consistency check on the same 0.2 s grid, not proof that the HUD
 timeline and `[TGameplayServices+0xd0]` are the same clock: the HUD value was
@@ -131,6 +143,10 @@ unresolved and no phase timeline is claimed.
 One playback with the existing runtime-v3 hook set plus this `tick_step` hook,
 so impact/destroy records carry a frame index directly instead of a derived
 one. That closes AAR placement and unit-lifetime timing without new tooling.
+
+**Done 2026-11-03:** this exact run happened as `runtime-v4` (run-07); all 28
+impacts carry frame brackets. See
+[frame-indexed combat events](2026-11-03-combat-frames-captured.md).
 
 ## Reproduction
 

@@ -142,8 +142,11 @@ both use offset `+0xc`. The observer reads `+0x08`/`+0x0c`/`+0x10` raw as
 
 ## 2. Named deterministic clock (units upgraded, origin still unknown)
 
-The `.data` Lua binding table gives these entries (parent-confirmed, re-verified
-here by disassembling the function bodies):
+The `.data` binding table gives these entries (parent-confirmed, re-verified
+here by disassembling the function bodies). The table is CPython 2.7
+`PyMethodDef` for module `_sysutils`, not Lua as originally labeled; the
+installer and version-gate proof are in the
+[2026-11-19 binding note](2026-11-19-sysutils-cpython-bindings.md):
 
 | Name | Table entry | fn | Reads |
 |---|---|---|---|
@@ -179,7 +182,7 @@ Implications, stated narrowly:
   zero on replay load or maps 1:1 to replay frames; the earlier 4165-vs-4173
   endpoint coincidence remains unfitted.
 
-## 2.1 Lua wrapper address errata (checked against the pinned .data table)
+## 2.1 `_sysutils` wrapper address errata (checked against the pinned .data table; section formerly titled "Lua")
 
 The earlier `ui-engine-signals.md` gave the wrong `SetNextGamePhase` wrapper. The
 `.data` binding table settles it, and each address below was read out of the
@@ -238,7 +241,7 @@ does not coerce it to a boolean.
 | `[net+0xc8]` | loading-phase object presence; `a3ac19: 8b 81 c8 00 00 00; test eax,eax`, an instruction inside `RequestEndLoadingPhase` (`0xa3abc0`) | lifecycle; the object could exist outside a load, so presence is not a loading *state* |
 | `[[net+0xc8]+0xc]` | loading phase index, incremented in `RequestEndLoadingPhase` | index -> named phase |
 | `[0x2024a40]+0x74` | outgame chapter id (binding `GetOutgameChapter`) | anything else about `TManagerIA` |
-| `[0x2022844]` | dword passed as the **context argument** to the Lua-arg resolver `0x1546430` (`pushl 0x2022844`) | that it is a live replay-browser object, or that non-null implies the browser screen |
+| `[0x2022844]` | dword passed as the **context argument** to the CPython argument parser `0x1546430` (`pushl 0x2022844`; formerly mislabeled "Lua-arg resolver") | that it is a live replay-browser object, or that non-null implies the browser screen |
 
 ### 4.1 Phase id is an enum, not a descriptor-list index
 

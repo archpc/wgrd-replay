@@ -137,10 +137,23 @@ with `git show 47f0ae2:<path>`. Its hook-target evidence remains in
 ## Retained-capture AAR export
 
 `aar_events.py` is the single maintained AAR exporter, with revision-131544
-`runtime` (default) and `runtime-v3` profiles. It verifies trace/index pins, pairs calls, joins captured descriptor
+`runtime` (default), `runtime-v3` and `runtime-v4` profiles. It verifies trace/index pins, pairs calls, joins captured descriptor
 GUID and token bytes, and emits `events.json`, `units.json`, `summary.json` and
 `chronology.md`. Existing outputs are never overwritten. Details and coverage:
 [runtime AAR evidence](../research/current-build/2026-11-02-runtime-aar.md).
+
+`runtime-v4` (schema `wgrd-aar-runtime-v4/1`) is v3 plus the `tick_step` hook
+(`0xb34060`, reads `+0x68` accumulator, `+0x6c` frame index, `+0xa0`/`+0xa4`/
+`+0xa5` mode bytes at enter and leave). It joins every event to the tick call
+it fell inside: `frame_correlation` carries `status`, `frame_low`/`frame_high`,
+`bracket_before_seconds`/`bracket_after_seconds`, `tick_call_id` and
+`estimated_deterministic_seconds_bounds`. An exact frame is assigned only
+inside a tick call or between two calls closer than the 1.0 s tolerance;
+otherwise the frame stays a bracket. One unpaired `tick_step` enter at detach
+is allowed; any unpaired event hook fails the export. v4 additionally emits
+`combat_frames.json`. The frame/tick difference is carried as the observed
+integers 10 or 11; no midpoint mapping or battle start is derived. Capture and
+results: [frame-indexed combat events](../research/current-build/2026-11-03-combat-frames-captured.md).
 
 Example executed from an isolated staged-source export against the retained data:
 
