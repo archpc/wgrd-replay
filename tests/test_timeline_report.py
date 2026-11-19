@@ -237,5 +237,31 @@ class AuthenticRevision131544(unittest.TestCase):
                 self.assertEqual(r["coverage"]["timing"]["deterministic_ticks"], 0)
 
 
+class UnresolvedTailReport(unittest.TestCase):
+    """Regression: the report must format opcode=None tail events.
+
+    Synthetic replay: one real-layout command followed by unsupported-opcode
+    bytes in a count-4 pact. The decoder's genuine 'unresolved' path and the
+    timeline's genuine multi-command tail path produce two opcode=None
+    placeholder events. Before the fix, build_report raised TypeError
+    ('0x%02x' % None) at the by_opcode bucket and the markdown row.
+    """
+
+    def setUp(self):
+        self.data = replay([[(4, OP09 + b"\x00\x00\x00"), (0, b"")]])
+        self.result = report.build_report(self.data)
+
+    def test_none_opcode_events_are_bucketed_not_crashed(self):
+        by_op = self.result["coverage"]["interpretation_status_by_opcode"]
+        self.assertIn("None", by_op)
+        self.assertEqual(sum(by_op["None"].values()), 2)
+        self.assertEqual(self.result["coverage"]["commands"], 4)
+        self.assertEqual(self.result["coverage"]["unresolved_spans"], 1)
+
+    def test_markdown_renders_none_opcode_cell(self):
+        md = report.render_markdown(self.result)
+        self.assertIn("| None |", md)
+
+
 if __name__ == "__main__":
     unittest.main()

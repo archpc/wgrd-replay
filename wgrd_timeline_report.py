@@ -341,7 +341,10 @@ def build_report(b):
         f["command_orders"] = [r["command_order"] for r in rows if r["frame"] == f["frame"]]
     by_opcode = {}
     for r in rows:
-        bucket = by_opcode.setdefault("0x%02x" % r["opcode"], Counter())
+        # Unresolved multi-command tails carry opcode None; bucket them under
+        # "None" (same convention as wgrd_timeline_query.request_summary).
+        key = "0x%02x" % r["opcode"] if r["opcode"] is not None else "None"
+        bucket = by_opcode.setdefault(key, Counter())
         bucket[r["interpretation"]["status"]] += 1
     game = parsed["metadata"].get("game", {})
     alliances = {k: v.get("PlayerAlliance") for k, v in sorted(parsed["metadata"].items())
@@ -433,10 +436,11 @@ def render_markdown(report):
               "| # | frame | t+ (s) | est (s) | slot | opcode | class | decode | interpretation | action | flags |",
               "|---:|---:|---:|---:|---:|---|---|---|---|---|---|"]
     for e in report["events"]:
-        lines.append("| %d | %d | %.1f | %.1f | %d | 0x%02x | %s | %s | %s | %s | %s |" % (
+        opcode_cell = "0x%02x" % e["opcode"] if e["opcode"] is not None else "None"
+        lines.append("| %d | %d | %.1f | %.1f | %d | %s | %s | %s | %s | %s | %s |" % (
             e["command_order"], e["frame"], e["time"]["t_from_replay_load_seconds"],
             e["time"]["estimated_deterministic_time_seconds"],
-            e["player_slot"], e["opcode"], e["class"] or "unknown",
+            e["player_slot"], opcode_cell, e["class"] or "unknown",
             e["decode_status"], e["interpretation"]["status"], e["interpretation"].get("action") or "-",
             ", ".join(e["undecoded"]) or "-"))
     lines += ["", "## Frames", ""]
