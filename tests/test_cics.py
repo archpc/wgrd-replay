@@ -11,6 +11,7 @@ Evidence classes stay separate:
 The differential test compares the 72-byte journal byte for byte, including
 IEEE-754 binary32 bit patterns, so agreement is bit equality.
 """
+import math
 import os
 import re
 import shutil
@@ -29,6 +30,7 @@ for extra in (REPO / "scripts", REPO / "research"):
 
 import cics_oracle  # noqa: E402
 import cics_spec  # noqa: E402
+import combat_damage_range  # noqa: E402
 import combat_damage_table  # noqa: E402
 import make_cics_fixtures  # noqa: E402
 
@@ -36,6 +38,7 @@ COBC = shutil.which("cobc") or ""
 SOURCE = REPO / "src/cobol/WGRDCICS.cob"
 SYNTHETIC = REPO / "samples/cics/synthetic-table.cards"
 SAMPLE = REPO / "samples/cics/sample-batch.dat"
+SAMPLE_REPORT = REPO / "samples/cics/sample-report.txt"
 PRIVATE_JSON = Path(os.environ.get(
     "WGRD_ARME_ARMURE_TABLE",
     Path.home() / ".hermes/artifacts/wgrd-replay"
@@ -196,6 +199,56 @@ class TestRecordSpecification(unittest.TestCase):
         self.assertEqual(float(decoded["h_value"]), record["h"])
 
 
+class TestSampleFixtureProvenance(unittest.TestCase):
+    """SYNTHETIC: the committed sample pair must match builder and spec.
+
+    cceb664 widened the distance field without regenerating samples/cics.
+    The COBOL/oracle differential stayed self-consistent under either layout
+    while the committed report drifted, so these pins fail on any future
+    spec change that forgets the fixtures. No cobc required.
+    """
+
+    def test_committed_batch_is_exactly_the_builder_output(self):
+        records = make_cics_fixtures.sample_records()
+        lines = [cics_spec.encode_detail(record) for record in records]
+        lines.append(cics_spec.encode_control(len(records)))
+        self.assertEqual(SAMPLE.read_text(), "\n".join(lines) + "\n")
+
+    def test_tx5_scenario_reaches_the_family_cap(self):
+        # TX5 must exercise the CAPPED range-gate path: arme 60 plus 6
+        # range steps overshoots HIGH_CAP, so family 64 proves the cap was
+        # applied, not a below-cap result or the family floor.
+        line = [raw for raw in SAMPLE.read_text().splitlines()
+                if raw[1:11] == "TX00000005"][0]
+        decoded = cics_spec.decode(line)
+        self.assertEqual(float(decoded["dist_value"]), 26000.0)
+        self.assertEqual(float(decoded["r_proj_value"]), 104000.0)
+        self.assertEqual(int(decoded["arme_value"]), 60)
+        self.assertEqual(int(decoded["eff_value"]), 1)
+        self.assertEqual(int(decoded["tclass_value"]), 6)
+        self.assertTrue(combat_damage_range.range_family_applies(
+            int(decoded["proj_value"]), int(decoded["arme_value"]),
+            int(decoded["eff_value"])))
+        rmax = float(decoded["r_proj_value"])
+        dist = float(decoded["dist_value"])
+        arme = int(decoded["arme_value"])
+        remaining = f32(f32(rmax) - f32(dist))
+        steps = math.trunc(f32(remaining
+                               / f32(combat_damage_range.RANGE_STEP)))
+        self.assertEqual(steps, 6)
+        self.assertGreater(arme + steps, combat_damage_range.HIGH_CAP)
+        self.assertEqual(
+            combat_damage_range.kinetic_family_index(arme, rmax, dist), 64)
+        expected, accepted, rejected, _ = cics_oracle.run(SYNTHETIC, SAMPLE)
+        self.assertEqual((accepted, rejected), (6, 5))
+        tx5 = [row for row in expected if row[1:11] == "TX00000005"][0]
+        self.assertEqual(tx5[17:20], "064")
+        matrix = cics_oracle.load_cards(SYNTHETIC)
+        self.assertEqual(matrix[64][3], 17.5)
+        # H=K=C=F=1, P=10: amount = 10 * T[64][3] = 175.0, exact in binary32.
+        self.assertEqual(tx5[23:31], cics_spec.bits(f32(10.0 * 17.5)))
+
+
 @unittest.skipUnless(COBC, "GnuCOBOL cobc not installed")
 class TestCompileAndSample(unittest.TestCase):
     """ACCEPTANCE: real build, sample batch, multi-page report."""
@@ -218,6 +271,22 @@ class TestCompileAndSample(unittest.TestCase):
         expected, accepted, rejected, _ = cics_oracle.run(SYNTHETIC, SAMPLE)
         self.assertEqual(journal.splitlines(), expected)
         self.assertEqual((accepted, rejected), (6, 5))
+
+    def test_committed_report_matches_actual_run(self):
+        # The report is deterministic (RUN DATE is fixed in the source), so
+        # the committed register is pinned byte for byte. A stale fixture or
+        # a rendering drift fails here instead of passing the differential.
+        code, _, report, output = run_program(SYNTHETIC, SAMPLE)
+        self.assertEqual(code, 0, output)
+        self.assertEqual(report, SAMPLE_REPORT.read_text())
+
+    def test_tx5_journal_family_is_capped_at_64(self):
+        code, journal, _, output = run_program(SYNTHETIC, SAMPLE)
+        self.assertEqual(code, 0, output)
+        tx5 = [row for row in journal.splitlines()
+               if row[1:11] == "TX00000005"][0]
+        self.assertEqual(tx5[17:20], "064")
+        self.assertEqual(tx5[23:31], cics_spec.bits(175.0))
 
     def test_report_is_multipage_and_reconciled(self):
         _, _, report, _ = run_program(SYNTHETIC, SAMPLE)
