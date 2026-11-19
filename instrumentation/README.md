@@ -106,6 +106,40 @@ script adds the RVA to the observed module base. It rejects an address outside
 the loaded image or mismatched entry bytes. Configuring a new function does not
 establish its calling convention, parameters, return meaning, or success.
 
+### Loss accounting (opt-in)
+
+`loss_accounting: true` makes the script assign a contiguous integer
+`sequence` (from 1) to every record it sends, including `callback_error`, and
+report `loss_accounting: {last_sequence, send_failures}` in the stop summary.
+The controller audits the stream: missing, duplicate, out-of-order or
+non-integer sequences fail the capture, and the final summary must reconcile
+with the receiver's last sequence. All sender loss counters (`send_failures`,
+`suppressed`, `callback_errors`, `stale_frames`, `stack_mismatches`,
+`outstanding_threads`) must be zero, with one explicit exception:
+`loss_allow_outstanding_threads: true` (the key requires `loss_accounting:
+true`) tolerates exactly one outstanding thread — the unpaired tick enter a
+v4-style capture leaves at detach. The allowance never stretches to 2 and
+never relaxes another counter. Because `suppressed` must be zero, size
+`event_limit` for the expected record count of the whole window; the default
+limit will fail a busy accounting capture by design. A record arriving after
+drain completion fails the capture; the controller drains in-flight
+deliveries for up to 0.5 s before the exit decision (legacy captures exit
+immediately). A capture that already failed for another reason records
+`loss_accounting_skipped` instead of a vacuous "complete" audit. On success
+the trace gains a `loss_accounting` record with `received_records`,
+`last_sequence`, `complete: true`; on any violation it gains
+`loss_accounting_failure` records and the run exits nonzero.
+
+With accounting disabled (the default) the trace and summary keep their legacy
+shape exactly: no `sequence` fields, no `loss_accounting` keys. The mechanics
+are exercised offline by `tests/frida_loss_sim.js` (simulated Frida API,
+including a failed-send scenario), the receiver audit by
+`tests/test_frida_controller.py`, and the controller wiring end-to-end by
+`tests/test_frida_loss_integration.py` (fake Frida device: transport loss,
+late delivery, install/stop failures; no game, no live attach). A live attach
+still requires an authorized Windows capture. A clean audit proves record
+transport integrity, not engine semantics or coverage completeness.
+
 ## Event schema and interpretation
 
 Each line is JSON. Administrative records include `start`, `identity_verified`,
