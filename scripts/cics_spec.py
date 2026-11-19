@@ -63,8 +63,9 @@ TABLE DECK (80-byte cards)::
     R + family 9(3) + sequence 99 + 3 x [value 9(3)V9(18) + filler X(3)]
       + filler X(2)
 
-Values carry the exact decimal expansion of the binary32 cell, so the COBOL
-numeric MOVE reconstructs the same bit pattern with no rounding.
+Values carry a shortest round-trip decimal of the binary32 cell (within half
+a binary32 ULP, not the full exact expansion), scaled by 10**18; the COBOL
+numeric MOVE's correctly-rounded conversion reconstructs the same bit pattern.
 """
 import struct
 from decimal import Decimal
