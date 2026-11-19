@@ -53,9 +53,18 @@ Correction scope: `2026-11-02-engine-state.md` §2/§2.1,
 `2026-11-02-frame-clock-consumption.md` §4, `instrumentation/state_observe.py`
 comments, and the branch-only `2026-11-02-aar-clock.md` addendum called these
 "Lua" bindings. That language is wrong for this table. The engine may embed
-Lua elsewhere; nothing here proves or disproves that. Other `.data` tables
-with the same 16-byte layout (e.g. `GameStarted` at `0x1d97b38`) are not
-covered by this proof; each needs its own installer check before relabeling.
+Lua elsewhere; nothing here proves or disproves that.
+
+The lifecycle binding table (`GameStarted`/`GameEnded`/`EndGameAsked`) is now
+also proven CPython: 32 entries at `0x1d97ad8..0x1d97cc8`, terminator
+`0x1d97cd8`, module name `_misc` (pointer at `0x1d970f0` → `0x19883d0`, read
+back). Installer `0xa32ba0` is the same pattern: one-shot guard
+`ds:0x20231d8`, `push 0x3f5` at `0xa32baa`, table push at `0xa32bb3`, call to
+the same version-gated helper `0x1537830` at `0xa32bc8`, then the same SIP
+lookup (`push 0x1988120`). Entries include `WorldTickEnd`,
+`CreateNamedActionWithTimer`, `ExecuteNamedCallbackInIAThread`/`MainThread`,
+`metre`/`reverse_metre`. Any further `.data` table with this layout still
+needs its own installer check before relabeling.
 
 ### Table extent and full entry list
 
@@ -338,8 +347,8 @@ renamed battle-start.
    static zeroing of `+0xd0`; no static reset explains the lag. Sample-specific.
 3. Battle start: §5 proximity is correlation; a UI-corroborated phase capture
    would discriminate, under authorization.
-4. `ResetTime` callees `0x528c00` / `0x974630` unanalyzed; other `.data`
-   binding tables unverified per-table (§1).
+4. `ResetTime` callees `0x528c00` / `0x974630` unanalyzed; further `.data`
+   binding tables beyond `_sysutils` and `_misc` unverified per-table (§1).
 
 ## Reproduction
 
