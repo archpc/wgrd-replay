@@ -25,6 +25,13 @@ replay-open watch. Its mechanics are tested; the expanded guest capture remains
 unverified. Raw candidate fields and caller fingerprints do not authenticate UI
 screens or replay-active state.
 
+The [2026-11-19 binding identification](current-build/2026-11-19-sysutils-cpython-bindings.md)
+proves the clock binding table is CPython 2.7 `PyMethodDef` (module
+`_sysutils`, 51 entries) and the lifecycle table is the same interface
+(module `_misc`, 32 entries) — not Lua as earlier notes labeled. It records
+the exhaustive counter-writer scans, the separate `+0x98` realtime field, the
+refuted `0xaaee10` monotonic-max claim, and hash-pinned trace re-verification.
+
 The [live owner/type bridge and damage lifecycle](current-build/2026-11-02-live-unit-attribution.md)
 now resolves the impacted types and separates three threshold-parented lifecycle
 calls from three cleanup calls. Clock origins, wire-member mapping, source-role

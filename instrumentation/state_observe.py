@@ -41,7 +41,8 @@ CLOCK_CONSTANTS = {
     "speed_factor_plus_one": 0x19326E8,   # 1.0
     "speed_factor_minus_one": 0x1932748,  # -1.0
 }
-# Named Lua bindings for the deterministic clock (parent-confirmed .data table entries).
+# Named _sysutils (CPython 2.7 PyMethodDef) bindings for the clock; table proof:
+# research/current-build/2026-11-19-sysutils-cpython-bindings.md (formerly mislabeled Lua).
 # a406b0 -> [[0x201d318]+0xd0] * 0.2 ; a40780 -> [[0x201d318]+0xd0] ; a41710 -> [[0x201d318]+0x98]
 ENGINE_NAMED_TIME_BINDINGS = (
     {"name": "DeterministicCurrentTimeInSeconds", "table_entry": 0x1D9CD68, "fn": 0xA406B0,
@@ -57,7 +58,7 @@ TICK_SECONDS = 0.2
 
 MANAGER_IA = 0x2024A40       # TManagerIA singleton pointer slot
 MANAGER_CHAPTER_OFFSET = 0x74
-UI_BINDING_CONTEXT = 0x2022844  # dword passed to the Lua-arg resolver; meaning unresolved
+UI_BINDING_CONTEXT = 0x2022844  # dword passed to the CPython arg parser 0x1546430; meaning unresolved
 
 # TS field map. `offset` is relative to TGameplayServices.
 TS_FIELDS = {
