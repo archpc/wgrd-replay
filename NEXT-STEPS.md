@@ -155,10 +155,15 @@ destruction math. Anchors and negative results are in the
 1. Request usefulness: filters, reference history and request summaries on the
    existing timeline. Keep contextual kind 39 and unknown execution outcomes.
    (Executable offline.)
-2. Targeted format questions: the `0x0C` consumer and marker fields.
+2. Targeted format questions: marker fields; deeper 0x0C apply targets
+   (manager-entry vtable slot +0x44 concrete classes).
    (`0x0A` layout complete; `0x0B` wire layout decoded statically —
-   41 bytes fixed, no authentic occurrences, decoder support deliberately
-   deferred; see [COMMAND-LAYOUTS](research/COMMAND-LAYOUTS.md).)
+   41 bytes fixed, class `TNetworkActionAnnuleLastProductionOfType`, no
+   authentic occurrences, decoder support deliberately deferred; `0x0C`
+   consumer traced statically to the dispatch boundary, class
+   `TNetworkActionProductionUnite` — see
+   [COMMAND-LAYOUTS](research/COMMAND-LAYOUTS.md) and
+   [CHANGEPRODUCTION-0C](research/CHANGEPRODUCTION-0C.md).)
    Check the [research index](research/INDEX.md) first.
    (Executable offline: static analysis plus the pinned corpus.)
 3. Independent validation: more authenticated samples, and the Sample2

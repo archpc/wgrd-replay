@@ -111,7 +111,7 @@ Do not subtract these requests from purchase totals. 0x0b has no authentic
 occurrences in this corpus and remains unsupported by the decoder; its wire
 layout is now decoded statically (41 bytes fixed, no validation — see
 [COMMAND-LAYOUTS §0x0b](COMMAND-LAYOUTS.md#0x0b--fun_00b2e760-static-only-no-authentic-occurrences)). 0x0c ChangeProduction has
-47 authentic records, including13 in Sample1; its interior is decoded structurally (see [CHANGEPRODUCTION-0C.md](CHANGEPRODUCTION-0C.md)) and exported as timeline action `change_production_request` with raw-field parameters; field meanings and consumer remain unresolved.
+47 authentic records, including13 in Sample1; its interior is decoded structurally (see [CHANGEPRODUCTION-0C.md](CHANGEPRODUCTION-0C.md)) and exported as timeline action `change_production_request` with raw-field parameters. The consumer/Execute path is traced statically to a type-dependent dispatch boundary (obj+0x34 = subscripts, obj+0xe8 = float32; engine class `TNetworkActionProductionUnite`, not the unreferenced `ChangeProduction` type descriptor); field meanings remain unresolved.
 
 ## Corpus results
 

@@ -36,8 +36,16 @@ the dispatcher proper is `0xb24050`.)
 Creator `0xb2e760..0xb2e860` (success ret `0xb2e83f`, failure ret
 `0xb2e860`; int3 padding to `0xb2e870`, the 0x0a creator; no tail jump).
 Allocation `push 0x2c` at `0xb2e78e` (call `0x529280`): 44-byte object;
-descriptor `0x19a1908` set at `0xb2e7b1`. RTTI unresolved (`0x19a1904`
-holds `.text` pointer `0x55aac0`, no MSVC COL); class name unknown.
+descriptor `0x19a1908` set at `0xb2e7b1`.
+
+RTTI correction (2026-11-19, parent-verified): the first version of this
+section said "RTTI unresolved; `0x19a1904` holds `.text` pointer `0x55aac0`,
+no MSVC COL". That was a section-map misread (the 131544 .rdata map was
+applied to this 59638 image; correct map: .rdata VA `0x1914000` raw
+`0x1513000`). The dword at `0x19a1904` is `0x1b9a9bc`, a descriptor record
+`{0,0,0,TD}` → TypeDescriptor `0x1eabb78`, name read back:
+`.?AVTNetworkActionAnnuleLastProductionOfType@IA@Eugen@@`. The class name is
+evidence of intent, not proof of behavior; field meanings stay unverified.
 
 Four wire reads, each `test al,al ; je 0xb2e840` on failure (cleanup calls
 the reader vtable with arg 1, then `xor eax,eax` at `0xb2e84d` → NULL):
