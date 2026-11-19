@@ -53,7 +53,11 @@ The observer preserves unknown clock origin and does not set `simulation_time_va
 
 Completion is not inferred from a stationary counter.
 
-The original engine's Lua binding table maps:
+The original engine's binding table maps (CPython 2.7 `PyMethodDef`, module
+`_misc`, 32 entries at `0x1d97ad8`; installer `0xa32ba0` passes API version
+1013 to the same version-gated helper and registers SIP — proof in the
+[2026-11-19 binding note](2026-11-19-sysutils-cpython-bindings.md); the
+original text mislabeled it Lua):
 
 | Engine name | Binding table | Getter | Field |
 |---|---|---|---|
@@ -62,7 +66,7 @@ The original engine's Lua binding table maps:
 | `GameEnded` | `0x1d97b58` | `0xa31360` | GameplayServices+`0x22` |
 
 `GameEnded`'s getter loads the global pointer at `0xa31383`, reads +`0x22`
-at `0xa31388`, then returns that byte to Lua. `SetGameEnded` is bound at
+at `0xa31388`, then returns that byte to the Python caller. `SetGameEnded` is bound at
 `0x1d97b48` to `0xa327f0`; it calls `0xab4600`, which writes one to +`0x22`
 and tail-jumps to the state publication path `0xab4800`.
 The constructor initializes +`0x22` to zero at `0xaab470`.

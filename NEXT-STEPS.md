@@ -27,7 +27,8 @@ Revision-131544 AAR work is in progress on the Frida feature branch. Current
 verified milestones are indexed in [research](research/INDEX.md):
 
 - Native 131544 descriptor extraction and exact configured-type joins work.
-- Engine deterministic ticks/seconds have original Lua binding names and a
+- Engine deterministic ticks/seconds have original engine binding names
+  (CPython 2.7 `_sysutils`/`_misc`, not Lua as earlier labeled) and a
   verified computation path. Replay-frame and battle-clock origins remain open.
 - Live owner/type snapshots resolve the impacted VTT-323 instances and two
   Merkava source candidates. Three damage-threshold/lifecycle chains are distinct
