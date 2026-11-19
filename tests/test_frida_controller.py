@@ -70,6 +70,204 @@ class LoadedIdentityTests(PeMappingTests):
                 wgrd_frida.verify_loaded(config, image, info, "C:\\Game\\wargame3.exe")
 
 
+class TraceSequenceTests(unittest.TestCase):
+    def sender(self, last=1):
+        return {"loss_accounting": {"last_sequence": last, "send_failures": 0},
+                "suppressed": 0, "callback_errors": 0, "stale_frames": 0,
+                "stack_mismatches": 0, "outstanding_threads": 0}
+
+    def test_finalization_rejects_missing_tail_and_any_incomplete_sender_state(self):
+        import copy
+        variants = []
+        for key in ("suppressed", "callback_errors", "stale_frames",
+                    "stack_mismatches", "outstanding_threads"):
+            for value in (1, None, False):
+                summary = self.sender()
+                summary[key] = value
+                variants.append(summary)
+        for key, value in (("last_sequence", 2), ("last_sequence", True),
+                           ("send_failures", 1), ("send_failures", None)):
+            summary = self.sender()
+            summary["loss_accounting"][key] = value
+            variants.append(summary)
+        variants.extend(({}, {"loss_accounting": None}))
+        for summary in variants:
+            audit = wgrd_frida.TraceSequenceAudit()
+            audit.observe({"sequence": 1})
+            with self.subTest(summary=summary), self.assertRaises(ValueError):
+                audit.finish(copy.deepcopy(summary))
+
+    def test_no_completion_after_discontinuity_or_late_records(self):
+        audit = wgrd_frida.TraceSequenceAudit()
+        audit.observe({"sequence": 1})
+        with self.assertRaises(ValueError):
+            audit.observe({"sequence": 3})
+        audit.observe({"sequence": 2})
+        with self.assertRaises(ValueError):
+            audit.finish(self.sender(last=2))
+        closed = wgrd_frida.TraceSequenceAudit()
+        closed.observe({"sequence": 1})
+        closed.finish(self.sender())
+        with self.assertRaises(ValueError):
+            closed.observe({"sequence": 2})
+
+    def test_rejects_missing_duplicate_out_of_order_and_noninteger_sequences(self):
+        for value in (None, True, 2.0, "2", 0, -1, 1, 3):
+            audit = wgrd_frida.TraceSequenceAudit()
+            audit.observe({"sequence": 1})
+            with self.subTest(sequence=value), self.assertRaises(ValueError):
+                audit.observe({"sequence": value})
+            self.assertEqual(audit.last_sequence, 1)
+
+    def test_contiguous_stream_reconciles_with_sender(self):
+        audit = wgrd_frida.TraceSequenceAudit()
+        audit.observe({"sequence": 1})
+        audit.observe({"sequence": 2})
+        result = audit.finish({"loss_accounting": {"last_sequence": 2, "send_failures": 0},
+                               "suppressed": 0, "callback_errors": 0, "stale_frames": 0,
+                               "stack_mismatches": 0, "outstanding_threads": 0})
+        self.assertEqual(result, {"received_records": 2, "last_sequence": 2, "complete": True})
+
+
+class LossAllowanceTests(unittest.TestCase):
+    """The documented v4 detach allowance (one unpaired tick enter) must be
+    explicit, bounded to outstanding_threads, and never stretch to 2."""
+
+    def sender(self, last=1, **over):
+        base = {"loss_accounting": {"last_sequence": last, "send_failures": 0},
+                "suppressed": 0, "callback_errors": 0, "stale_frames": 0,
+                "stack_mismatches": 0, "outstanding_threads": 0}
+        base.update(over)
+        return base
+
+    def audit(self):
+        audit = wgrd_frida.TraceSequenceAudit()
+        audit.observe({"sequence": 1})
+        return audit
+
+    def test_explicit_allowance_accepts_exactly_one_outstanding_thread(self):
+        result = self.audit().finish(self.sender(outstanding_threads=1),
+                                     {"outstanding_threads": 1})
+        self.assertTrue(result["complete"])
+
+    def test_default_stays_strict(self):
+        with self.assertRaises(ValueError):
+            self.audit().finish(self.sender(outstanding_threads=1))
+
+    def test_allowance_does_not_stretch_to_two_or_other_counters(self):
+        with self.assertRaises(ValueError):
+            self.audit().finish(self.sender(outstanding_threads=2),
+                                {"outstanding_threads": 1})
+        with self.assertRaises(ValueError):
+            self.audit().finish(self.sender(suppressed=1),
+                                {"outstanding_threads": 1})
+        with self.assertRaises(ValueError):
+            self.audit().finish(self.sender(outstanding_threads=-1),
+                                {"outstanding_threads": 1})
+        with self.assertRaises(ValueError):
+            self.audit().finish(self.sender(outstanding_threads=True),
+                                {"outstanding_threads": 1})
+
+    def test_unknown_allowance_keys_are_rejected(self):
+        with self.assertRaises(ValueError):
+            self.audit().finish(self.sender(), {"suppressed": 1})
+
+
+class LossAccountingRecorderTests(unittest.TestCase):
+    """Receiver-side glue used by the controller message loop and finalizer."""
+
+    def sender(self, last=1, **over):
+        base = {"loss_accounting": {"last_sequence": last, "send_failures": 0},
+                "suppressed": 0, "callback_errors": 0, "stale_frames": 0,
+                "stack_mismatches": 0, "outstanding_threads": 0}
+        base.update(over)
+        return base
+
+    def test_disabled_recorder_is_transparent(self):
+        rec = wgrd_frida.LossAccountingRecorder(False)
+        self.assertEqual(rec.observe({"event": "enter"}), [])
+        self.assertEqual(rec.observe({"sequence": 5}), [])
+        records, error = rec.finalize({})
+        self.assertEqual(records, [])
+        self.assertIsNone(error)
+
+    def test_contiguous_stream_finalizes_complete(self):
+        rec = wgrd_frida.LossAccountingRecorder(True)
+        self.assertEqual(rec.observe({"sequence": 1}), [])
+        self.assertEqual(rec.observe({"sequence": 2}), [])
+        records, error = rec.finalize(self.sender(last=2))
+        self.assertIsNone(error)
+        self.assertEqual(records, [{"event": "loss_accounting", "received_records": 2,
+                                    "last_sequence": 2, "complete": True}])
+
+    def test_gap_emits_one_failure_and_blocks_completion(self):
+        rec = wgrd_frida.LossAccountingRecorder(True)
+        rec.observe({"sequence": 1})
+        records = rec.observe({"sequence": 3})
+        self.assertEqual(len(records), 1)
+        self.assertEqual(records[0]["event"], "loss_accounting_failure")
+        self.assertIn("sequence", records[0]["error"])
+        # No cascading failures after the first discontinuity.
+        self.assertEqual(rec.observe({"sequence": 9}), [])
+        records, error = rec.finalize(self.sender(last=3))
+        self.assertIsNotNone(error)
+        self.assertEqual(records[0]["event"], "loss_accounting_failure")
+
+    def test_late_record_after_completion_fails(self):
+        rec = wgrd_frida.LossAccountingRecorder(True)
+        rec.observe({"sequence": 1})
+        rec.finalize(self.sender())
+        records = rec.observe({"sequence": 2})
+        self.assertEqual(records[0]["event"], "loss_accounting_failure")
+
+    def test_allowance_flag_flows_to_finalizer(self):
+        rec = wgrd_frida.LossAccountingRecorder(True, allow_outstanding_threads=True)
+        rec.observe({"sequence": 1})
+        records, error = rec.finalize(self.sender(outstanding_threads=1))
+        self.assertIsNone(error)
+        self.assertTrue(records[0]["complete"])
+        strict = wgrd_frida.LossAccountingRecorder(True)
+        strict.observe({"sequence": 1})
+        records, error = strict.finalize(self.sender(outstanding_threads=1))
+        self.assertIsNotNone(error)
+
+    def test_missing_sender_accounting_fails_closed(self):
+        rec = wgrd_frida.LossAccountingRecorder(True)
+        rec.observe({"sequence": 1})
+        records, error = rec.finalize({"suppressed": 0})
+        self.assertIsNotNone(error)
+        self.assertEqual(records[0]["event"], "loss_accounting_failure")
+
+
+class LossConfigValidationTests(unittest.TestCase):
+    def config(self, **over):
+        base = {"revision": "131544", "sha256": "a" * 64,
+                "module": "wargame3.exe", "ghidra_base": "0x400000",
+                "hooks": [{"name": "wrapper", "va": "0xb2be30", "args": 2, "sample_every": 1}]}
+        base.update(over)
+        return base
+
+    def test_loss_accounting_must_be_boolean(self):
+        for value in (1, "true", None, [], {}):
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                wgrd_frida.validate_config(self.config(loss_accounting=value))
+
+    def test_allowance_flag_must_be_boolean_and_requires_loss_accounting(self):
+        with self.assertRaises(ValueError):
+            wgrd_frida.validate_config(self.config(loss_allow_outstanding_threads=True))
+        for value in (1, "yes", None):
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                wgrd_frida.validate_config(
+                    self.config(loss_accounting=True, loss_allow_outstanding_threads=value))
+
+    def test_valid_loss_configurations_accepted(self):
+        wgrd_frida.validate_config(self.config(loss_accounting=True))
+        wgrd_frida.validate_config(self.config(loss_accounting=False))
+        wgrd_frida.validate_config(
+            self.config(loss_accounting=True, loss_allow_outstanding_threads=True))
+        wgrd_frida.validate_config(self.config())
+
+
 class ConfigurationTests(unittest.TestCase):
     def config(self):
         return {
