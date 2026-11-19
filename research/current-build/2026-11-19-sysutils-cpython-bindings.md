@@ -152,7 +152,8 @@ Singleton pointer slot `0x201d318` (unchanged). Two distinct clock fields:
 `BeforeStartGameGameplayServices` (`0xa403c0`) has no `+0xd0` access and no
 call to the setter; its callees `0xaac910 → 0xaa2be0` do not touch `+0xd0`
 (worker analysis, byte excerpts retained). `ResetTime` (`0xa41890`) loads no
-singleton in its body; it calls `0x528c00` and `0x974630` (unanalyzed). No
+singleton in its body; its callees `0x528c00` / `0x974630` are analyzed in
+§8 — it posts a synchronisation-queue token, it does not write the clock. No
 static reset path for `+0xd0` beyond the constructor below.
 
 ## 3. Exhaustive writer scan for `[singleton+0xd0]`
@@ -340,15 +341,90 @@ renamed battle-start.
 
 1. Counter writer (§3): direct and wide-store paths are exhausted statically;
    remaining candidates are indirect/copy-pointer writes, non-`.text` writers,
-   or Python-driven setter calls. Runtime discriminator: a hook on the setter
+   or Python-driven setter calls. The synchronisation-queue drain family is
+   now a concrete candidate class (§8): it is outside the writer sweep's
+   singleton-callee set. Runtime discriminator: a hook on the setter
    `0xa41bc0` itself, under authorization (the shared counter `0x1dbf028`
    cannot attribute calls).
 2. The integer 10/11 frame lag origin: constructor zero-init is the only
    static zeroing of `+0xd0`; no static reset explains the lag. Sample-specific.
 3. Battle start: §5 proximity is correlation; a UI-corroborated phase capture
    would discriminate, under authorization.
-4. `ResetTime` callees `0x528c00` / `0x974630` unanalyzed; further `.data`
-   binding tables beyond `_sysutils` and `_misc` unverified per-table (§1).
+4. Queue-drain clock access (§8) unanalyzed past the posted excerpts; further
+   `.data` binding tables beyond `_sysutils` and `_misc` unverified per-table
+   (§1).
+
+## 8. ResetTime posts a deferred token; it is not a clock writer (2026-11-19)
+
+Worker analysis, parent-reverified against the pinned image (re-hash before
+reuse; full byte excerpts: local evidence record
+`~/.hermes/artifacts/wgrd-replay/frameclock-lua-20261119/resettime-callee-analysis.md`).
+
+`ResetTime` (`0xa41890–0xa41958`, plus a dead EH funclet at `0xa41924`) takes
+no Python arguments (format `""` at `0x1927bdc`). Its complete global effect:
+
+```
+a418ed  e8 0e 73 ae ff      call 0x528c00        ; array-new alloc, size 0xc
+a41902  e8 29 2d f3 ff      call 0x974630        ; TResetTimeHelper ctor
+a41907  ff 05 28 f0 db 01   inc ds:0x1dbf028     ; shared usage counter
+a4190d  b8 28 f0 db 01      mov eax,0x1dbf028    ; returns the counter address
+```
+
+The return-value anomaly (`&0x1dbf028` in `eax` where sibling bindings return
+0) is recorded, semantics unverified; it is not a clock write.
+
+Class identity from RTTI: TypeDescriptor `0x1e83028` =
+`.?AVTResetTimeHelper@Eugen@@`, vtable `0x1984b30`, base
+`TSynchronisationItemImpl<ListForIA, TSynchronisationQueue>` vtable
+`0x1942a7c`. The ctor chain enqueues the item:
+`0x974630 → 0x58da80 → [vtable+0xc] = 0x58e450 → 0x58b800` (list insert under
+mutex into the manager at `ds:0x2006000+0x18`):
+
+```
+58e45f  c6 41 04 01         mov byte [ecx+4],1   ; queued flag
+58e464  8b 0d 00 60 00 02   mov ecx,ds:0x2006000
+58e46a  8d 49 18            lea ecx,[ecx+0x18]
+58e46d  e8 8e d3 ff ff      call 0x58b800
+```
+
+The object is 12 bytes with no data fields, and all five virtual slots are
+accounted for: dtor `0x953030`, string getter `0x51bc20`, clear-flag
+`0x58e480` (`c6 41 04 00 / c3`), enqueue `0x58e450`, no-op `0x4dc2c0`. No
+virtual method of this class can store into a field of another object.
+
+Negative scan (independently recomputed): 325 instruction rows across the 11
+ranges of the ResetTime envelope contain **zero** references to `+0xd0`,
+`+0xd4`, `+0xd8`, `+0xdc`, `+0x98`, `ds:0x201d318`, or `call 0xa41bc0`.
+`call 0xa41890` occurs 0 times in the listing (binding-only entry);
+`call 0x974630` occurs twice: `0xa41902` and `0xab3fd7`.
+
+Consequence for the writer question (§7.1): ResetTime is eliminated as a
+direct or indirect writer in this envelope. Its mechanism is a data-less
+ordering token posted to the synchronisation queue — the "copied pointer,
+written later" shape, but the token itself cannot write. Any ResetTime-driven
+reset must live in the drain's own code: entry `0x58e310`, per-item
+`0x58d990` (thread-id compare, pending array `ds:0x2005fa8/0x2005fac`, then
+`call [vtable+8]` = clear-flag for this class), worker `0x58df00` (30000 ms
+timeout structure). That family is outside §3's singleton-callee sweep.
+Hypothesis, unproven: the token is an ordering barrier that makes the game
+thread perform the reset at a synchronised frame.
+
+Open branches: the drain body and pending-array consumer (all 7 references to
+`ds:0x2005fa8` are inside `0x58d1c1–0x58df09`); `0xab3f90`, unreferenced in
+text, posts both `TResetTimeHelper` and `TLoadingDoneHelper` — reachability
+via data pointer unverified.
+
+Reproduction:
+
+```sh
+EXE=~/.hermes/artifacts/wgrd-replay/game/win64/WarGame3.exe
+OD=/opt/homebrew/opt/binutils/bin/objdump
+$OD -d -M intel --start-address=0xa41890 --stop-address=0xa41960 "$EXE"
+$OD -d -M intel --start-address=0x58e450 --stop-address=0x58e486 "$EXE"
+$OD -s --start-address=0x1e83028 --stop-address=0x1e83060 "$EXE"   # RTTI name
+$OD -s --start-address=0x1984b30 --stop-address=0x1984b48 "$EXE"   # vtable
+grep -c 'call   0xa41890' ~/REA/wgrd-131544/wgrd_131544_full.lst   # 0
+```
 
 ## Reproduction
 

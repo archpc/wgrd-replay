@@ -108,8 +108,11 @@ of `TGameplayServices+0xd0` has no statically visible writer beyond the Python
 setter `0xa41bc0` and a constructor zero-init; direct and wide-store scans are
 exhausted. The discriminating experiment is an authorized capture hooking the
 setter itself. The shared counter `ds:0x1dbf028` is NOT a discriminator
-(1,379 inc sites). Until that capture runs, the writer is unknown; indirect
-pointer-copy paths are candidates, not conclusions.
+(1,379 inc sites). `ResetTime` is eliminated as a writer: it posts a data-less
+synchronisation-queue token ([sysutils note §8](research/current-build/2026-11-19-sysutils-cpython-bindings.md));
+the queue-drain family is the concrete remaining static candidate. Until the
+capture runs, the writer is unknown; indirect pointer-copy paths are
+candidates, not conclusions.
 
 ## Next authorized capture (weapon/team delta; tick-frame join already done)
 
