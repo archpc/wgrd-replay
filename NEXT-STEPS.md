@@ -78,6 +78,39 @@ new replay with known UI times should be added to its `DISPLAYED` table.
   whose member type matches both runtime owners, and the keys are adjacent.
   The parent-child link is not runtime-observed.
 
+## Engineering state (2026-11-19)
+
+Completed and merged; these are not open tasks:
+
+- Binding identification: the clock table is CPython 2.7 `_sysutils` (51
+  entries), the lifecycle table `_misc` (32); not Lua. Installer and
+  version-gate proof:
+  [sysutils note](research/current-build/2026-11-19-sysutils-cpython-bindings.md)
+  (PRs #30, #34).
+- Frida trace loss accounting: opt-in, fail-closed receiver audit, one
+  explicit allowance, offline integration harness (PRs #33, #35;
+  [instrumentation README](instrumentation/README.md#loss-accounting-opt-in)).
+- TestBench integration plus the fixture-pin completeness contract: the
+  private regression exercises every pinned fixture (PRs #31, #36).
+- Combat-damage kernels and the WGRD-CICS batch, with subsystem architecture
+  and corrected transport wording (PRs #32, #37;
+  [damage accounting](docs/damage-accounting.md)).
+- Frame-clock documentation corrected against pinned bytes and traces; the
+  false "Lua" labels, the shared-counter discriminator claim and the
+  461-reads errata are retracted with provenance (PR #30).
+
+Regression receipt: 498 tests, zero skips, every private fixture pinned
+(TestBench `tb_20261119_182548_8f881449`). This is a transport-and-contract
+receipt, not a claim that the open engine questions are solved.
+
+Blocked evidence boundary — deterministic counter writer: the runtime advance
+of `TGameplayServices+0xd0` has no statically visible writer beyond the Python
+setter `0xa41bc0` and a constructor zero-init; direct and wide-store scans are
+exhausted. The discriminating experiment is an authorized capture hooking the
+setter itself. The shared counter `ds:0x1dbf028` is NOT a discriminator
+(1,379 inc sites). Until that capture runs, the writer is unknown; indirect
+pointer-copy paths are candidates, not conclusions.
+
 ## Next authorized capture (weapon/team delta; tick-frame join already done)
 
 Status 2026-11-19: the frame-join part of the v3 delta ran on 2026-11-03 as
@@ -104,7 +137,8 @@ Mechanisms are mapped and the shipped NDF values are recovered; see the
 the [effective-values note](research/current-build/2026-11-08-ndf-effective-values.md).
 Keep economy and information as separate questions.
 
-Next milestone, two traces: the 500-point `BonusIAMoneyForSkirmish` into
+Next milestone (capture-dependent — needs two authorized runtime traces):
+the 500-point `BonusIAMoneyForSkirmish` into
 skirmish initialisation, and the pinned/death multipliers into suppression and
 destruction math. Anchors and negative results are in the
 [plan](research/current-build/2026-11-08-next-milestone-skirmish-traces.md).
@@ -113,10 +147,13 @@ destruction math. Anchors and negative results are in the
 
 1. Request usefulness: filters, reference history and request summaries on the
    existing timeline. Keep contextual kind 39 and unknown execution outcomes.
-2. Targeted format questions: the `0x0C` consumer, `0x0A`/`0x0B` and marker
+   (Executable offline.)
+2. Targeted format questions: the `0x0C` consumer, `0x0A`/0x0B` and marker
    fields. Check the [research index](research/INDEX.md) first.
+   (Executable offline: static analysis plus the pinned corpus.)
 3. Independent validation: more authenticated samples, and the Sample2
-   executable.
+   executable. (Acquisition-dependent: needs new authenticated inputs, not a
+   game capture.)
 
 ## Constraints
 
