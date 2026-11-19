@@ -4,9 +4,12 @@ Interpretations are limited to offline execution traces in build 59638. An actio
 request is not proof that it succeeded in the running game.
 
 Time: entries are ordered by replay frame and recorded slot, never by seconds.
-The frame-to-seconds mapping is unresolved (time_basis). No repo source
-establishes a tick rate; any ~5 Hz figure is an unvalidated hypothesis and is
-not used here.
+For build 59638 the frame-to-seconds mapping is unresolved (time_basis) and no
+tick rate is verified; this module uses none. For revision 131544 the 0.2 s
+tick quantum is established statically and was observed at ~5 Hz in one
+bounded playback (research/current-build/2026-11-02-frame-clock-consumption.md
+and 2026-11-02-frame-tick-capture.md); that evidence does not transfer to
+59638.
 """
 from collections import Counter
 import math

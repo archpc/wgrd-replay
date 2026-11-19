@@ -127,9 +127,17 @@ Frame indices start at zero with no gaps. The ordered slot IDs must stay constan
 across frames, and EOF cannot leave a frame open. `star` and `endt` trailing bytes
 are not exposed in the parser result; the original file remains their source.
 
-**Frame duration is unresolved.** Recorded frame order is not wall-clock time,
-and the controlled experiment distinguishes replay and battle clocks. See
-timing evidence (archived: `research/current-build/2026-10-28-controlled-experiment.md`).
+**Frame duration is build-qualified.** For revision 131544, one consumed
+replay frame is one 0.2 s simulation tick (static engine quantum, observed at
+~5 Hz in one bounded playback); frame 0 is the replay-load origin, not battle
+start, and the deterministic counter lags the frame index by an observed
+integer 10 or 11 frames in that capture. See
+[frame consumption](research/current-build/2026-11-02-frame-clock-consumption.md)
+and [frame/tick capture](research/current-build/2026-11-02-frame-tick-capture.md).
+For build 59638 no tick rate is verified. Recorded frame order is not
+wall-clock time, and the controlled experiment distinguishes replay and
+battle clocks (archived:
+`research/current-build/2026-10-28-controlled-experiment.md`).
 
 ## 4. `pact` payload (little-endian)
 

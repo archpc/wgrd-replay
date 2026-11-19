@@ -19,14 +19,18 @@ from test_timeline import OP09, OPAQUE, op08, replay  # noqa: E402
 ARTIFACTS = Path(os.environ.get("WGRD_ARTIFACTS_DIR", Path.home() / ".hermes" / "artifacts" / "wgrd-replay"))
 # Revision-131544 replays: (path, replay SHA-256, frames, commands,
 # SHA-256 of timeline.json without "generator", SHA-256 of timeline.md).
+# JSON pins re-pinned 2026-11-19 for the corrected clock metadata only
+# (clock_mapping/time_domains/aar_integration; 12 leaves, verified by
+# old-vs-new output diff). Event/frame/command content and both markdown
+# hashes are unchanged.
 AUTHENTIC = {
     "controlled": ("current-build-20261028/raw/replay_2026-10-28_01-49-18.wargamerpl2",
                    "1b060d2ab2e5501c6c8731fcb87ac0c7ac6dc4598387dcdb261ab8bb06bc8d70", 1784, 12,
-                   "1b65da0916ea45e5a5baebd30785fd7fa6cde0ff049e3fe28d3bb2d67b34ea54",
+                   "6c2fe69c98aadb266b8bdd309ecf30b005bdfda04df95574606ace0e99fd3900",
                    "d71abb0fc7f749f5e81c112ebeeb627da8d8ef32982808f29bb5da6fe50fb80a"),
     "combat": ("combat-20261101/replay_2026-11-01_19-10-26.wargamerpl2",
                "abf6a5e909ec976a30d16e043f25220bfb7d7a149cfbf828de992be8e69da121", 4174, 14,
-               "193641eeaa73a2a77dd8a2014cff97604117affc638d88cd075c91f98183ac72",
+               "f2bddbed6f8ebe772a6f08e34e72d51b20b01d9831b9d770f5773569a51bb854",
                "70e4f84a1839c86aa725b684141b02d456b7e4173011b6fb635ae3ef3521d391"),
 }
 
@@ -131,6 +135,37 @@ class StructuralTimeline(unittest.TestCase):
             self.assertLess(low, high)
             self.assertLessEqual(low, e["time"]["estimated_deterministic_time_seconds"])
             self.assertLessEqual(e["time"]["estimated_deterministic_time_seconds"], high)
+
+    def test_clock_metadata_reflects_later_captures(self):
+        # 2026-11-19 corrections: the phase hook fired (twice, same tick), v4
+        # carries frame brackets, and no battle-time origin is asserted.
+        clock = self.result["clock_mapping"]
+        h2 = next(h for h in clock["hypotheses"] if h["id"] == "H2")
+        self.assertEqual(h2["status"],
+                         "duration_match_verified_phase_boundary_reproducible_unproven")
+        self.assertIn("two independent playbacks", h2["detail"])
+        self.assertIn("correlation, not proof", h2["detail"])
+        h4 = next(h for h in clock["hypotheses"] if h["id"] == "H4")
+        self.assertIn("run-07", h4["detail"])
+        self.assertNotIn("no capture yet carries both hooks", h4["detail"])
+        phase = next(u for u in clock["unknowns"]
+                     if u["field"] == "battle start / phase boundary")
+        self.assertIn("reachable during replay", phase["detail"])
+        self.assertNotIn("is not the replay phase path", phase["detail"])
+        self.assertTrue(any("within 1 s of the displayed 13:53" in line
+                            for line in clock["verified"]))
+        self.assertFalse(any("also displays as 13:53" in line
+                             for line in clock["verified"]))
+        self.assertIn("research/current-build/2026-11-03-combat-frames-captured.md",
+                      clock["evidence"])
+        self.assertIn("research/current-build/2026-11-19-sysutils-cpython-bindings.md",
+                      clock["evidence"])
+        origins = self.result["time_domains"]["origins"]
+        self.assertTrue(origins["battle_time"].startswith("unknown"))
+        integration = self.result["aar_integration"]
+        self.assertEqual(integration["status"], "not_integrated")
+        self.assertIn("runtime-v4", integration["reason"])
+        self.assertNotIn("no observation carries a replay frame", integration["reason"])
 
     def test_execution_model_separates_load_from_tick(self):
         r = self.result

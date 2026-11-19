@@ -51,7 +51,7 @@ the structural authority. The recipe is in the
 | Frame → simulation time | static: one frame per 0.2 s tick; origin = replay load | [frame consumption](research/current-build/2026-11-02-frame-clock-consumption.md) |
 | Recorded order apply path | static: `TNetworkActionGiveOrderStandard` slot 1 `0xb2be30`; outcome unknown | frame consumption §3 |
 | Frame/tick clock | observed: 5.00 frames/s, ticks 1:1 with frames, integer difference 10 or 11 (boundary unresolved) | [frame/tick capture](research/current-build/2026-11-02-frame-tick-capture.md) |
-| Battle start / phase boundary | **unknown**: `0xab4780` fired once during replay (arg `0x2`, tick 2905); one sample is not a timeline | [combat attempt](research/current-build/2026-11-03-combat-frame-capture-attempt.md) |
+| Battle start / phase boundary | **unknown**: `0xab4780` fired at tick 2905 in two independent playbacks (run-07 frames 2915–2916, 1–2 frames after the 0x13 frame 2914); reproducible correlation, not a timeline | [combat frames](research/current-build/2026-11-03-combat-frames-captured.md), [attempt record](research/current-build/2026-11-03-combat-frame-capture-attempt.md) |
 
 ## Hypotheses (tested, not proven)
 
@@ -67,13 +67,24 @@ new replay with known UI times should be added to its `DISPLAYED` table.
   estimate. Verified battle time stays null.
 - **H2:** battle time starts at the opcode-0x13 frame. It matches two displayed
   battle durations (4:11 and 2:24) and one mid-battle UI point (replay 4:29 =
-  battle 0:58).
+  battle 0:58). The matches are arithmetic on the 0.2 s grid, not an observed
+  phase transition: opcode 0x13 is a synchro-service membership request, and
+  temporal agreement does not establish battle start. The phase store fired
+  at tick 2905 in two playbacks, 1–2 frames after the 0x13 frame
+  ([sysutils note §5](research/current-build/2026-11-19-sysutils-cpython-bindings.md)):
+  reproducible correlation, still unproven.
 - **H3:** the replay actor `0xC0000066` is the company owning runtime units
   `0xC0000067`/`0xC0000068`. Its GUID is exactly `Company_Merkava_IIIB_Baz`,
   whose member type matches both runtime owners, and the keys are adjacent.
   The parent-child link is not runtime-observed.
 
-## Next authorized capture (delta from v3)
+## Next authorized capture (weapon/team delta; tick-frame join already done)
+
+Status 2026-11-19: the frame-join part of the v3 delta ran on 2026-11-03 as
+`runtime-v4` (v3 + `tick_step`), producing frame-bracketed combat events
+([combat frames](research/current-build/2026-11-03-combat-frames-captured.md)).
+The drop list below predates that run; v4 kept `tick_step` because it is the
+frame join. What remains unexecuted is the weapon/team/scored-kill delta:
 
 Add one indirect read `("arg3", 0, 128, "enter", indirect)` to
 `impact_apply_candidate`: the descriptor GUID at `+0x0c` joins the private
