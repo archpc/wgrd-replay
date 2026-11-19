@@ -70,6 +70,65 @@ class LoadedIdentityTests(PeMappingTests):
                 wgrd_frida.verify_loaded(config, image, info, "C:\\Game\\wargame3.exe")
 
 
+class TraceSequenceTests(unittest.TestCase):
+    def sender(self, last=1):
+        return {"loss_accounting": {"last_sequence": last, "send_failures": 0},
+                "suppressed": 0, "callback_errors": 0, "stale_frames": 0,
+                "stack_mismatches": 0, "outstanding_threads": 0}
+
+    def test_finalization_rejects_missing_tail_and_any_incomplete_sender_state(self):
+        import copy
+        variants = []
+        for key in ("suppressed", "callback_errors", "stale_frames",
+                    "stack_mismatches", "outstanding_threads"):
+            for value in (1, None, False):
+                summary = self.sender()
+                summary[key] = value
+                variants.append(summary)
+        for key, value in (("last_sequence", 2), ("last_sequence", True),
+                           ("send_failures", 1), ("send_failures", None)):
+            summary = self.sender()
+            summary["loss_accounting"][key] = value
+            variants.append(summary)
+        variants.extend(({}, {"loss_accounting": None}))
+        for summary in variants:
+            audit = wgrd_frida.TraceSequenceAudit()
+            audit.observe({"sequence": 1})
+            with self.subTest(summary=summary), self.assertRaises(ValueError):
+                audit.finish(copy.deepcopy(summary))
+
+    def test_no_completion_after_discontinuity_or_late_records(self):
+        audit = wgrd_frida.TraceSequenceAudit()
+        audit.observe({"sequence": 1})
+        with self.assertRaises(ValueError):
+            audit.observe({"sequence": 3})
+        audit.observe({"sequence": 2})
+        with self.assertRaises(ValueError):
+            audit.finish(self.sender(last=2))
+        closed = wgrd_frida.TraceSequenceAudit()
+        closed.observe({"sequence": 1})
+        closed.finish(self.sender())
+        with self.assertRaises(ValueError):
+            closed.observe({"sequence": 2})
+
+    def test_rejects_missing_duplicate_out_of_order_and_noninteger_sequences(self):
+        for value in (None, True, 2.0, "2", 0, -1, 1, 3):
+            audit = wgrd_frida.TraceSequenceAudit()
+            audit.observe({"sequence": 1})
+            with self.subTest(sequence=value), self.assertRaises(ValueError):
+                audit.observe({"sequence": value})
+            self.assertEqual(audit.last_sequence, 1)
+
+    def test_contiguous_stream_reconciles_with_sender(self):
+        audit = wgrd_frida.TraceSequenceAudit()
+        audit.observe({"sequence": 1})
+        audit.observe({"sequence": 2})
+        result = audit.finish({"loss_accounting": {"last_sequence": 2, "send_failures": 0},
+                               "suppressed": 0, "callback_errors": 0, "stale_frames": 0,
+                               "stack_mismatches": 0, "outstanding_threads": 0})
+        self.assertEqual(result, {"received_records": 2, "last_sequence": 2, "complete": True})
+
+
 class ConfigurationTests(unittest.TestCase):
     def config(self):
         return {

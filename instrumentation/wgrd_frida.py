@@ -74,6 +74,46 @@ def verify_loaded(config, image, info, process_path):
             raise ValueError(f"loaded entry mismatch: {hook['name']}")
 
 
+class TraceSequenceAudit:
+    """Count received instrumentation records, never infer engine semantics."""
+
+    def __init__(self):
+        self.last_sequence = 0
+        self.received_records = 0
+        self.failed = False
+        self.closed = False
+
+    def observe(self, event):
+        if self.closed:
+            self.failed = True
+            raise ValueError("instrumentation record arrived after drain completion")
+        sequence = event.get("sequence")
+        if type(sequence) is not int or sequence != self.last_sequence + 1:
+            self.failed = True
+            raise ValueError("missing, duplicate or out-of-order instrumentation sequence")
+        self.last_sequence = sequence
+        self.received_records += 1
+
+    def finish(self, sender):
+        if self.failed:
+            raise ValueError("instrumentation stream previously failed integrity checks")
+        loss = sender.get("loss_accounting")
+        if not isinstance(loss, dict):
+            raise ValueError("sender loss accounting is missing")
+        expected = loss.get("last_sequence")
+        if type(expected) is not int or expected != self.last_sequence:
+            raise ValueError("sender/receiver sequence totals disagree")
+        counters = [loss.get("send_failures")]
+        counters.extend(sender.get(key) for key in (
+            "suppressed", "callback_errors", "stale_frames",
+            "stack_mismatches", "outstanding_threads"))
+        if any(type(value) is not int or value != 0 for value in counters):
+            raise ValueError("sender reported incomplete or invalid capture state")
+        self.closed = True
+        return {"received_records": self.received_records,
+                "last_sequence": self.last_sequence, "complete": True}
+
+
 def validate_config(config):
     """Reject ambiguous or unsafe hook configurations."""
     import re
