@@ -27,6 +27,7 @@ Status codes: **S** reproduction script, **T** regression tests, **E** static-an
 | Frame/tick/battle clock, bounded playback | [frame/tick capture](current-build/2026-11-02-frame-tick-capture.md) | `instrumentation/frameclock-131544.json` |
 | Frame-indexed combat events (runtime-v4) | [combat frames](current-build/2026-11-03-combat-frames-captured.md) | `instrumentation/aar-capture-131544-v4.json`, `tests/test_aar_events.py` |
 | `_sysutils` binding table is CPython 2.5.1; clock fields; counter-writer scan; trace re-verification | [sysutils bindings](current-build/2026-11-19-sysutils-cpython-bindings.md) | `tests/test_timeline_report.py` (clock metadata pins) |
+| Complete binding-table inventory: 28 modules / 271 entries, installers, clock/determinism surface | [binding inventory](current-build/2026-11-19-binding-inventory.md) | parent-recomputed stride-4 scan (28/271 exact) |
 | Offline corpus and order queue on the current executable | [offline corpus](current-build/2026-10-29-offline-corpus.md) | `research/offline_corpus.py`, `tests/test_offline_corpus.py` |
 | Clock and actor hypotheses (H1-H3) | [NEXT-STEPS.md](../NEXT-STEPS.md) | `tests/test_aar_hypotheses.py` |
 
